@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,105 +6,116 @@
 
 @layer base {
   :root {
-    --background: 210 30% 98%;
-    --foreground: 215 25% 12%;
+    /* 2030 Futuristic Islamic — Light: warm ivory + emerald + gold */
+    --background: 40 30% 97%;
+    --foreground: 160 30% 8%;
 
-    --card: 210 25% 100%;
-    --card-foreground: 215 25% 12%;
+    --card: 40 25% 99%;
+    --card-foreground: 160 30% 8%;
 
-    --popover: 210 25% 100%;
-    --popover-foreground: 215 25% 12%;
+    --popover: 40 25% 99%;
+    --popover-foreground: 160 30% 8%;
 
-    --primary: 215 60% 22%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 160 55% 28%;
+    --primary-foreground: 45 80% 95%;
 
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 215 20% 30%;
+    --secondary: 40 20% 93%;
+    --secondary-foreground: 160 20% 25%;
 
-    --muted: 210 15% 94%;
-    --muted-foreground: 215 10% 45%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 160 10% 42%;
 
-    --accent: 215 60% 22%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 42 85% 55%;
+    --accent-foreground: 35 50% 12%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 90%;
-    --input: 210 15% 90%;
-    --ring: 215 60% 22%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 160 55% 28%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    --islamic-green: 152 55% 32%;
-    --islamic-green-foreground: 0 0% 100%;
-    --islamic-gold: 43 90% 55%;
-    --islamic-gold-foreground: 30 60% 15%;
-    --islamic-navy: 215 60% 22%;
-    --islamic-navy-foreground: 0 0% 95%;
-    --islamic-teal: 200 55% 35%;
-    --islamic-teal-light: 200 30% 92%;
-    --islamic-purple: 270 40% 50%;
-    --islamic-purple-light: 270 30% 92%;
+    /* Islamic palette */
+    --islamic-green: 160 55% 28%;
+    --islamic-green-foreground: 45 80% 95%;
+    --islamic-gold: 42 85% 55%;
+    --islamic-gold-foreground: 35 50% 12%;
+    --islamic-navy: 200 45% 15%;
+    --islamic-navy-foreground: 40 30% 95%;
+    --islamic-teal: 175 50% 30%;
+    --islamic-teal-light: 175 25% 92%;
+    --islamic-purple: 280 35% 40%;
+    --islamic-purple-light: 280 20% 93%;
+    --islamic-emerald: 155 60% 22%;
+    --islamic-emerald-glow: 155 70% 40%;
+    --islamic-rose: 350 45% 55%;
+    --islamic-copper: 25 60% 50%;
 
-    --sidebar-background: 210 25% 100%;
-    --sidebar-foreground: 215 25% 20%;
-    --sidebar-primary: 215 60% 22%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 94%;
-    --sidebar-accent-foreground: 215 20% 30%;
-    --sidebar-border: 210 15% 90%;
-    --sidebar-ring: 215 60% 22%;
+    --sidebar-background: 40 25% 99%;
+    --sidebar-foreground: 160 25% 18%;
+    --sidebar-primary: 160 55% 28%;
+    --sidebar-primary-foreground: 45 80% 95%;
+    --sidebar-accent: 40 20% 93%;
+    --sidebar-accent-foreground: 160 20% 25%;
+    --sidebar-border: 40 15% 88%;
+    --sidebar-ring: 160 55% 28%;
   }
 
   .dark {
-    --background: 215 20% 8%;
-    --foreground: 210 15% 92%;
+    /* 2030 Futuristic Islamic — Dark: obsidian + neon emerald + gold */
+    --background: 160 18% 5%;
+    --foreground: 40 15% 90%;
 
-    --card: 215 20% 12%;
-    --card-foreground: 210 15% 92%;
+    --card: 160 15% 8%;
+    --card-foreground: 40 15% 90%;
 
-    --popover: 215 20% 12%;
-    --popover-foreground: 210 15% 92%;
+    --popover: 160 15% 8%;
+    --popover-foreground: 40 15% 90%;
 
-    --primary: 210 50% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 155 65% 42%;
+    --primary-foreground: 160 20% 5%;
 
-    --secondary: 215 15% 16%;
-    --secondary-foreground: 210 20% 75%;
+    --secondary: 160 12% 12%;
+    --secondary-foreground: 40 15% 70%;
 
-    --muted: 215 15% 14%;
-    --muted-foreground: 210 10% 55%;
+    --muted: 160 10% 11%;
+    --muted-foreground: 40 10% 50%;
 
-    --accent: 210 50% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 42 80% 52%;
+    --accent-foreground: 35 50% 8%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 15% 18%;
-    --input: 215 15% 18%;
-    --ring: 210 50% 50%;
+    --border: 160 12% 14%;
+    --input: 160 12% 14%;
+    --ring: 155 65% 42%;
 
-    --islamic-green: 152 45% 40%;
-    --islamic-green-foreground: 0 0% 100%;
-    --islamic-gold: 43 80% 50%;
-    --islamic-gold-foreground: 30 60% 10%;
-    --islamic-navy: 215 40% 15%;
-    --islamic-navy-foreground: 0 0% 95%;
-    --islamic-teal: 200 45% 40%;
-    --islamic-teal-light: 200 20% 18%;
-    --islamic-purple: 270 35% 50%;
-    --islamic-purple-light: 270 25% 18%;
+    --islamic-green: 155 60% 40%;
+    --islamic-green-foreground: 160 20% 5%;
+    --islamic-gold: 42 75% 50%;
+    --islamic-gold-foreground: 35 50% 8%;
+    --islamic-navy: 200 35% 10%;
+    --islamic-navy-foreground: 40 25% 90%;
+    --islamic-teal: 175 45% 35%;
+    --islamic-teal-light: 175 15% 14%;
+    --islamic-purple: 280 30% 45%;
+    --islamic-purple-light: 280 15% 14%;
+    --islamic-emerald: 155 55% 30%;
+    --islamic-emerald-glow: 155 70% 45%;
+    --islamic-rose: 350 40% 50%;
+    --islamic-copper: 25 55% 45%;
 
-    --sidebar-background: 215 20% 10%;
-    --sidebar-foreground: 210 15% 88%;
-    --sidebar-primary: 210 50% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 15% 16%;
-    --sidebar-accent-foreground: 210 20% 75%;
-    --sidebar-border: 215 15% 16%;
-    --sidebar-ring: 210 50% 50%;
+    --sidebar-background: 160 15% 7%;
+    --sidebar-foreground: 40 15% 85%;
+    --sidebar-primary: 155 65% 42%;
+    --sidebar-primary-foreground: 160 20% 5%;
+    --sidebar-accent: 160 12% 12%;
+    --sidebar-accent-foreground: 40 15% 70%;
+    --sidebar-border: 160 12% 14%;
+    --sidebar-ring: 155 65% 42%;
   }
 }
 
@@ -125,19 +136,17 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
   }
 
-  [dir="rtl"] body,
   .font-arabic {
-    font-family: 'Amiri', serif;
+    font-family: 'Noto Naskh Arabic', serif;
   }
 
   [dir="rtl"] {
-    font-family: 'Cairo', 'Amiri', sans-serif;
+    font-family: 'IBM Plex Sans Arabic', 'Noto Naskh Arabic', sans-serif;
   }
 
-  /* Prevent text from being clipped inside flex/grid containers */
   [dir="rtl"] p,
   [dir="rtl"] span,
   [dir="rtl"] h1,
@@ -150,29 +159,47 @@
 
 @layer utilities {
   .islamic-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23308050' fill-opacity='0.03'%3E%3Cpath d='M40 0l10 10-10 10L30 10zM0 40l10 10-10 10L-10 50zM80 40l10 10-10 10L70 50zM40 80l10 10-10 10L30 90z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L37.5 7.5L30 15L22.5 7.5Z' fill='%2300805a' fill-opacity='0.04'/%3E%3Cpath d='M0 30L7.5 22.5L15 30L7.5 37.5Z' fill='%2300805a' fill-opacity='0.04'/%3E%3Cpath d='M60 30L52.5 22.5L45 30L52.5 37.5Z' fill='%2300805a' fill-opacity='0.04'/%3E%3Cpath d='M30 60L37.5 52.5L30 45L22.5 52.5Z' fill='%2300805a' fill-opacity='0.04'/%3E%3C/svg%3E");
   }
 
   .gradient-islamic {
-    background: linear-gradient(135deg, hsl(215 60% 22%) 0%, hsl(215 50% 14%) 100%);
+    background: linear-gradient(145deg, hsl(160 55% 28%) 0%, hsl(155 60% 18%) 50%, hsl(160 45% 10%) 100%);
   }
 
   .gradient-prayer-bar {
-    background: linear-gradient(135deg, hsl(215 55% 26%) 0%, hsl(215 50% 18%) 100%);
+    background: linear-gradient(135deg, hsl(155 60% 22%) 0%, hsl(160 50% 14%) 60%, hsl(42 85% 55% / 0.15) 100%);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(42 85% 55%) 0%, hsl(35 70% 45%) 100%);
   }
 
   .text-gradient-islamic {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--islamic-teal)) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 30px -5px hsl(155 65% 42% / 0.25),
+                0 0 60px -10px hsl(155 65% 42% / 0.1);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px -5px hsl(42 85% 55% / 0.3);
+  }
+
+  .shadow-elevated {
+    box-shadow: 0 8px 32px -8px hsl(160 30% 8% / 0.08),
+                0 2px 8px -2px hsl(160 30% 8% / 0.04);
   }
 }
 
