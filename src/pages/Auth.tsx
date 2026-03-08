@@ -47,7 +47,7 @@ export default function Auth() {
         toast.success(t('signupSuccess'));
       }
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(isLogin ? 'بريد إلكتروني أو كلمة مرور غير صحيحة' : 'حدث خطأ، يرجى المحاولة مرة أخرى');
     } finally {
       setLoading(false);
     }
