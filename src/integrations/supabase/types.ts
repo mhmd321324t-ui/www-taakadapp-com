@@ -19,8 +19,11 @@ export type Database = {
           ad_code: string | null
           created_at: string
           id: string
+          image_url: string | null
           is_active: boolean
+          link_url: string | null
           name: string
+          platform: string | null
           position: string
           slot_type: string
           updated_at: string
@@ -29,8 +32,11 @@ export type Database = {
           ad_code?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          link_url?: string | null
           name: string
+          platform?: string | null
           position: string
           slot_type?: string
           updated_at?: string
@@ -39,8 +45,11 @@ export type Database = {
           ad_code?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          link_url?: string | null
           name?: string
+          platform?: string | null
           position?: string
           slot_type?: string
           updated_at?: string
