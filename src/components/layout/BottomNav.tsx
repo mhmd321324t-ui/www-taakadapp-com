@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 
 // Order: Right to Left in RTL → Home, PrayerTimes, Quran, Stories, More
 const navItems = [
-  { path: '/', icon: Home, labelKey: 'home' },
-  { path: '/prayer-times', icon: Clock, labelKey: 'prayerTimes' },
-  { path: '/quran', icon: BookOpen, labelKey: 'quran' },
-  { path: '/stories', icon: MessageSquare, label: 'قصص' },
-  { path: '/more', icon: MoreHorizontal, labelKey: 'more' },
+  { path: '/', icon: Home, labelKey: 'home', label: '' },
+  { path: '/prayer-times', icon: Clock, labelKey: 'prayerTimes', label: '' },
+  { path: '/quran', icon: BookOpen, labelKey: 'quran', label: '' },
+  { path: '/stories', icon: MessageSquare, labelKey: '', label: 'قصص' },
+  { path: '/more', icon: MoreHorizontal, labelKey: 'more', label: '' },
 ];
 
 export function BottomNav() {
