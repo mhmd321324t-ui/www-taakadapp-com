@@ -298,7 +298,7 @@ export default function Qibla() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full max-w-sm mb-4 rounded-xl bg-primary/5 border border-primary/20 p-4 text-center"
+              className="w-full max-w-sm mb-4 rounded-xl bg-primary/5 border border-primary/20 p-5 text-center"
             >
               <motion.div
                 animate={{ rotate: [0, 360] }}
