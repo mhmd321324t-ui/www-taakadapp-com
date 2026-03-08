@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
-import { RotateCcw } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { RotateCcw, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 const dhikrOptions = [
   { key: 'subhanAllah', arabic: 'سُبْحَانَ اللّهِ', target: 33 },
@@ -11,28 +14,96 @@ const dhikrOptions = [
   { key: 'allahuAkbar', arabic: 'اللّهُ أَكْبَرُ', target: 34 },
 ];
 
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0];
+}
+
 export default function Tasbeeh() {
   const { t } = useLocale();
+  const { user } = useAuth();
   const [selected, setSelected] = useState(0);
   const [count, setCount] = useState(0);
-  const [total, setTotal] = useState(() => {
-    const saved = localStorage.getItem('tasbeeh-total');
-    return saved ? parseInt(saved) : 0;
-  });
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const dhikr = dhikrOptions[selected];
+  const today = getTodayKey();
 
-  const handleTap = () => {
-    setCount(prev => prev + 1);
-    const newTotal = total + 1;
-    setTotal(newTotal);
-    localStorage.setItem('tasbeeh-total', String(newTotal));
+  // Load data
+  useEffect(() => {
+    if (user) {
+      loadFromDB();
+    } else {
+      const saved = localStorage.getItem('tasbeeh-total');
+      setTotal(saved ? parseInt(saved) : 0);
+      setCount(0);
+      setLoading(false);
+    }
+  }, [user, selected]);
 
-    // Vibrate if available
-    if (navigator.vibrate) navigator.vibrate(30);
+  const loadFromDB = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    // Get today's count for selected dhikr
+    const { data: todayData } = await supabase
+      .from('tasbeeh_counts')
+      .select('count, total')
+      .eq('user_id', user.id)
+      .eq('dhikr_key', dhikr.key)
+      .eq('date', today)
+      .maybeSingle();
+
+    // Get overall total
+    const { data: totalData } = await supabase
+      .from('tasbeeh_counts')
+      .select('total')
+      .eq('user_id', user.id)
+      .eq('dhikr_key', dhikr.key);
+
+    const overallTotal = totalData?.reduce((sum, row) => sum + (row.total || 0), 0) || 0;
+
+    setCount(todayData?.count || 0);
+    setTotal(overallTotal);
+    setLoading(false);
   };
 
-  const handleReset = () => setCount(0);
+  const handleTap = async () => {
+    const newCount = count + 1;
+    const newTotal = total + 1;
+    setCount(newCount);
+    setTotal(newTotal);
+
+    if (navigator.vibrate) navigator.vibrate(30);
+
+    if (user) {
+      await supabase
+        .from('tasbeeh_counts')
+        .upsert(
+          { user_id: user.id, dhikr_key: dhikr.key, date: today, count: newCount, total: newCount },
+          { onConflict: 'user_id,dhikr_key,date' }
+        );
+    } else {
+      localStorage.setItem('tasbeeh-total', String(newTotal));
+    }
+  };
+
+  const handleReset = async () => {
+    setCount(0);
+    if (user) {
+      await supabase
+        .from('tasbeeh_counts')
+        .upsert(
+          { user_id: user.id, dhikr_key: dhikr.key, date: today, count: 0, total: 0 },
+          { onConflict: 'user_id,dhikr_key,date' }
+        );
+    }
+  };
+
+  const handleSelectDhikr = (i: number) => {
+    setSelected(i);
+    setCount(0);
+  };
 
   const progress = Math.min((count / dhikr.target) * 100, 100);
 
@@ -44,12 +115,22 @@ export default function Tasbeeh() {
       </div>
 
       <div className="px-5 pt-4">
+        {!user && (
+          <Link
+            to="/auth"
+            className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 mb-4 text-sm"
+          >
+            <LogIn className="h-4 w-4 text-primary" />
+            <span className="text-primary">{t('loginPrompt')}</span>
+          </Link>
+        )}
+
         {/* Dhikr selector */}
         <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide">
           {dhikrOptions.map((opt, i) => (
             <button
               key={opt.key}
-              onClick={() => { setSelected(i); setCount(0); }}
+              onClick={() => handleSelectDhikr(i)}
               className={cn(
                 'whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
                 selected === i
