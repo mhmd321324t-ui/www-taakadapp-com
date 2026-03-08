@@ -282,6 +282,8 @@ export default function Index() {
         </div>
       </div>
 
+      <AdBanner position="home-middle" />
+
       {/* Quick Access */}
       <div className="px-4 mb-4">
         <h2 className="text-sm font-semibold text-foreground mb-3">{t('quickAccess')}</h2>
