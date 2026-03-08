@@ -239,6 +239,6 @@ if (typeof window !== 'undefined') {
   if ('requestIdleCallback' in window) {
     (window as any).requestIdleCallback(warmAll, { timeout: 2000 });
   } else {
-    window.setTimeout(warmAll, 1200);
+    globalThis.setTimeout(warmAll, 1200);
   }
 }
