@@ -17,6 +17,7 @@ import More from "./pages/More";
 import PrayerTracker from "./pages/PrayerTracker";
 import ZakatCalculator from "./pages/ZakatCalculator";
 import Auth from "./pages/Auth";
+import Stories from "./pages/Stories";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/more" element={<More />} />
                 <Route path="/tracker" element={<PrayerTracker />} />
                 <Route path="/zakat" element={<ZakatCalculator />} />
+                <Route path="/stories" element={<Stories />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

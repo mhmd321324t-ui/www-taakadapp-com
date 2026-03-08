@@ -6,7 +6,7 @@ import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import HijriCalendar from '@/components/HijriCalendar';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, User, CheckCircle2 } from 'lucide-react';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, User, CheckCircle2, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ const quickAccessItems = [
   { icon: Compass, labelKey: 'qibla', path: '/qibla', color: 'text-primary' },
   { icon: BookOpen, labelKey: 'quran', path: '/quran', color: 'text-primary' },
   { icon: Moon, labelKey: 'duas', path: '/duas', color: 'text-primary' },
+  { icon: MessageSquare, label: 'قصص', path: '/stories', color: 'text-primary' },
   { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', color: 'text-primary' },
 ];
 
@@ -296,7 +297,7 @@ export default function Index() {
                 <div className="h-14 w-14 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm">
                   <item.icon className={cn('h-6 w-6', item.color)} />
                 </div>
-                <span className="text-[10px] font-medium text-foreground">{t(item.labelKey)}</span>
+                <span className="text-[10px] font-medium text-foreground">{(item as any).label || t((item as any).labelKey)}</span>
               </Link>
             </motion.div>
           ))}

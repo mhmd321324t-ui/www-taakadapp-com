@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import {
   Compass, Heart, Calculator, User,
-  LogIn, LogOut, Moon, BookOpen, Clock, CheckCircle2
+  LogIn, LogOut, Moon, BookOpen, Clock, CheckCircle2, MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ const features = [
   { icon: Clock, label: 'مواقيت الصلاة', path: '/prayer-times', bg: 'bg-primary' },
   { icon: BookOpen, label: 'القرآن', path: '/quran', bg: 'bg-primary' },
   { icon: Moon, label: 'الأدعية', path: '/duas', bg: 'bg-primary' },
+  { icon: MessageSquare, label: 'قصص حقيقية', path: '/stories', bg: 'bg-primary' },
   { icon: Calculator, label: 'حاسبة الزكاة', path: '/zakat', bg: 'bg-primary' },
   { icon: CheckCircle2, label: 'متابعة الصلاة', path: '/tracker', bg: 'bg-primary' },
   { icon: User, label: 'حسابي', path: '/auth', bg: 'bg-primary' },
