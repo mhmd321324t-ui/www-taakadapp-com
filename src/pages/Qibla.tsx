@@ -109,7 +109,7 @@ export default function Qibla() {
         <div className="text-center space-y-2">
           <p className="text-3xl font-bold text-foreground">{Math.round(qiblaAngle)}°</p>
           <p className="text-sm text-muted-foreground">
-            {t('distanceToMakkah')}: {Math.round(distance).toLocaleString()} km
+            {t('distanceToMakkah')}: {Math.round(distance).toLocaleString()} {t('km')}
           </p>
         </div>
       </div>

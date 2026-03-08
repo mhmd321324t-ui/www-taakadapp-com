@@ -115,7 +115,7 @@ export default function PrayerTracker() {
             className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 mb-4 text-sm"
           >
             <LogIn className="h-4 w-4 text-primary" />
-            <span className="text-primary">سجّل دخولك لحفظ تقدمك عبر الأجهزة</span>
+            <span className="text-primary">{t('loginToSaveProgress')}</span>
           </Link>
         )}
 

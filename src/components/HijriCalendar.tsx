@@ -129,7 +129,7 @@ export default function HijriCalendar() {
     return events.sort((a, b) => a.daysAway - b.daysAway).slice(0, 4);
   }, [today]);
 
-  const dayLabels = ['أحد', 'اثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
+  const dayLabels = [t('sunday'), t('monday'), t('tuesday'), t('wednesday'), t('thursday'), t('friday'), t('saturday')];
 
   return (
     <div className="space-y-4">

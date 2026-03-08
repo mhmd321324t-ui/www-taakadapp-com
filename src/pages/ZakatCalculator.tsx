@@ -15,13 +15,21 @@ export default function ZakatCalculator() {
 
   const calculate = () => {
     const total = (parseFloat(cash) || 0) + (parseFloat(gold) || 0) + (parseFloat(silver) || 0) + (parseFloat(stocks) || 0) - (parseFloat(debts) || 0);
-    const nisab = 5000; // Approximate nisab in USD
+    const nisab = 5000;
     if (total >= nisab) {
       setResult(total * 0.025);
     } else {
       setResult(0);
     }
   };
+
+  const fields = [
+    { labelKey: 'cashBalance', value: cash, set: setCash },
+    { labelKey: 'goldValue', value: gold, set: setGold },
+    { labelKey: 'silverValue', value: silver, set: setSilver },
+    { labelKey: 'stocksInvestments', value: stocks, set: setStocks },
+    { labelKey: 'debtsOwed', value: debts, set: setDebts },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -31,15 +39,9 @@ export default function ZakatCalculator() {
       </div>
 
       <div className="px-5 pt-4 space-y-4 max-w-md mx-auto">
-        {[
-          { label: 'Cash & Bank Balance', value: cash, set: setCash },
-          { label: 'Gold Value', value: gold, set: setGold },
-          { label: 'Silver Value', value: silver, set: setSilver },
-          { label: 'Stocks & Investments', value: stocks, set: setStocks },
-          { label: 'Debts Owed', value: debts, set: setDebts },
-        ].map(({ label, value, set }) => (
-          <div key={label}>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">{label}</label>
+        {fields.map(({ labelKey, value, set }) => (
+          <div key={labelKey}>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">{t(labelKey)}</label>
             <Input
               type="number"
               placeholder="0.00"
@@ -52,12 +54,12 @@ export default function ZakatCalculator() {
 
         <Button onClick={calculate} className="w-full rounded-xl gap-2">
           <Calculator className="h-4 w-4" />
-          Calculate Zakat
+          {t('calculateZakat')}
         </Button>
 
         {result !== null && (
           <div className="rounded-xl border border-primary bg-primary/5 p-6 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Your Zakat (2.5%)</p>
+            <p className="text-sm text-muted-foreground mb-1">{t('yourZakat')}</p>
             <p className="text-4xl font-bold text-primary">${result.toFixed(2)}</p>
           </div>
         )}

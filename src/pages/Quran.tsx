@@ -78,7 +78,7 @@ export default function Quran() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground">{surah.englishName}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {surah.englishNameTranslation} • {surah.numberOfAyahs} ayahs
+                    {surah.englishNameTranslation} • {surah.numberOfAyahs} {t('ayahs')}
                   </p>
                 </div>
                 <p className="text-xl font-arabic text-foreground">{surah.name}</p>
