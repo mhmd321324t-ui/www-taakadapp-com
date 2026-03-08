@@ -114,47 +114,50 @@ export default function Tasbeeh() {
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic relative px-5 pb-24 pt-safe-header">
+      <div className="gradient-islamic relative px-4 pb-20 pt-safe-header">
         <div className="absolute inset-0 islamic-pattern opacity-20" />
-        <div className="flex items-center justify-between relative z-10">
+        <div className="relative z-10 flex items-center justify-between gap-3">
           <button
             onClick={handleReset}
             className="glass-card rounded-2xl p-2.5 transition-transform active:scale-90"
+            aria-label="إعادة تعيين العداد"
           >
-            <RotateCcw className="h-5 w-5 text-white/80" />
+            <RotateCcw className="h-5 w-5 text-white/85" />
           </button>
-          <h1 className="text-xl font-bold text-white">{t('tasbeeh')}</h1>
+          <h1 className="text-2xl font-bold text-white leading-relaxed">{t('tasbeeh')}</h1>
+          <div className="w-10" />
         </div>
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>
 
-      <div className="px-5 -mt-2">
+      <div className="px-4 -mt-2">
         {!user && (
           <Link
             to="/auth"
-            className="flex items-center justify-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 mb-5 text-sm transition-all active:scale-[0.98]"
+            className="mb-5 flex items-center justify-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm leading-relaxed transition-all active:scale-[0.98]"
           >
-            <span className="text-primary font-medium">{t('loginPrompt')}</span>
+            <span className="font-medium text-primary">{t('loginPrompt')}</span>
             <LogIn className="h-4 w-4 text-primary" />
           </Link>
         )}
 
         {/* Dhikr selector cards */}
-        <div className="grid grid-cols-4 gap-2 mb-8">
+        <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {dhikrOptions.map((opt, i) => (
             <motion.button
               key={opt.key}
               onClick={() => handleSelectDhikr(i)}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.97 }}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-2xl p-3.5 transition-all border min-w-0',
+                'min-h-[88px] rounded-2xl border p-4 text-center transition-all',
+                'flex flex-col items-center justify-center gap-2',
                 selected === i
-                  ? 'bg-primary text-primary-foreground border-primary shadow-lg glow-emerald'
-                  : 'bg-card text-foreground border-border/50 hover:border-primary/30'
+                  ? 'border-primary bg-primary text-primary-foreground shadow-lg glow-emerald'
+                  : 'border-border/50 bg-card text-foreground hover:border-primary/30'
               )}
             >
-              <span className="text-xl shrink-0">{opt.emoji}</span>
-              <span className="text-[10px] font-medium leading-normal text-center w-full break-words">
+              <span className="shrink-0 text-xl" aria-hidden="true">{opt.emoji}</span>
+              <span className="w-full text-xs font-semibold leading-relaxed break-words">
                 {t(opt.key)}
               </span>
             </motion.button>
@@ -163,14 +166,16 @@ export default function Tasbeeh() {
 
         {/* Main counter area */}
         <div className="flex flex-col items-center">
-          <motion.p
+          <motion.div
             key={selected}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-arabic text-foreground mb-6"
+            className="mb-5 w-full max-w-md rounded-2xl border border-border/50 bg-card p-4 text-center shadow-elevated"
           >
-            {dhikr.arabic}
-          </motion.p>
+            <p className="text-4xl font-arabic text-foreground leading-[1.9] break-words sm:text-5xl">
+              {dhikr.arabic}
+            </p>
+          </motion.div>
 
           {/* Circular counter */}
           <div className="relative mb-8">
@@ -186,33 +191,20 @@ export default function Tasbeeh() {
               )}
             </AnimatePresence>
 
-            <svg className="w-64 h-64 -rotate-90" viewBox="0 0 200 200">
-              <circle
-                cx="100" cy="100" r="92"
-                fill="none"
-                className="stroke-muted"
-                strokeWidth="5"
-              />
-              <circle
-                cx="100" cy="100" r="82"
-                fill="none"
-                className="stroke-muted/30"
-                strokeWidth="1"
-              />
+            <svg className="h-64 w-64 -rotate-90" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="92" fill="none" className="stroke-muted" strokeWidth="5" />
+              <circle cx="100" cy="100" r="82" fill="none" className="stroke-muted/30" strokeWidth="1" />
               <motion.circle
-                cx="100" cy="100" r="92"
+                cx="100"
+                cy="100"
+                r="92"
                 fill="none"
-                className={cn(
-                  'transition-colors duration-500',
-                  isComplete ? 'stroke-accent' : 'stroke-primary'
-                )}
+                className={cn('transition-colors duration-500', isComplete ? 'stroke-accent' : 'stroke-primary')}
                 strokeWidth="5"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 initial={false}
-                animate={{
-                  strokeDashoffset: circumference * (1 - progress / 100),
-                }}
+                animate={{ strokeDashoffset: circumference * (1 - progress / 100) }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 style={isComplete ? {} : { filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.3))' }}
               />
@@ -221,15 +213,13 @@ export default function Tasbeeh() {
                   cx={100 + 92 * Math.cos((progress / 100) * 2 * Math.PI - Math.PI / 2)}
                   cy={100 + 92 * Math.sin((progress / 100) * 2 * Math.PI - Math.PI / 2)}
                   r="4"
-                  className={cn(
-                    isComplete ? 'fill-accent' : 'fill-primary'
-                  )}
+                  className={cn(isComplete ? 'fill-accent' : 'fill-primary')}
                 />
               )}
             </svg>
 
             <motion.button
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-full active:bg-primary/5 transition-colors"
+              className="absolute inset-0 flex flex-col items-center justify-center rounded-full transition-colors active:bg-primary/5"
               onClick={handleTap}
               whileTap={{ scale: 0.97 }}
             >
@@ -243,25 +233,20 @@ export default function Tasbeeh() {
                     className="flex flex-col items-center gap-1"
                   >
                     <Sparkles className="h-10 w-10 text-accent" />
-                    <span className="text-sm font-bold text-accent">
-                      {t('completed')}!
-                    </span>
+                    <span className="text-sm font-bold text-accent">{t('completed')}!</span>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="counter"
-                    className="flex flex-col items-center"
-                  >
+                  <motion.div key="counter" className="flex flex-col items-center">
                     <motion.span
                       key={count}
                       initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -20, opacity: 0 }}
-                      className="text-6xl font-bold text-foreground tabular-nums"
+                      className="tabular-nums text-6xl font-bold text-foreground"
                     >
                       {count}
                     </motion.span>
-                    <span className="text-sm text-muted-foreground mt-1">/ {dhikr.target}</span>
+                    <span className="mt-1 text-sm text-muted-foreground">/ {dhikr.target}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -269,24 +254,20 @@ export default function Tasbeeh() {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+          <div className="grid w-full max-w-sm grid-cols-2 gap-3">
             <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-                {t('today')}
-              </p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">{count}</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('today')}</p>
+              <p className="tabular-nums text-2xl font-bold text-foreground">{count}</p>
             </div>
             <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-                {t('total')}
-              </p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">
-                {total.toLocaleString()}
-              </p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('total')}</p>
+              <p className="tabular-nums text-2xl font-bold text-foreground">{total.toLocaleString()}</p>
             </div>
           </div>
 
-          <p className="text-[10px] text-muted-foreground mt-6">{t('tasbeeh')} — {t('count')}</p>
+          <p className="mt-6 text-xs text-muted-foreground">
+            {t('tasbeeh')} — {t('count')}
+          </p>
         </div>
       </div>
     </div>

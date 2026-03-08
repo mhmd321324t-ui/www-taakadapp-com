@@ -162,29 +162,29 @@
     min-width: 0;
   }
 
-  /* Global button scaling */
+  /* Typography reset for predictable mobile rendering */
+  h1,
+  h2,
+  h3,
+  p,
+  span,
   button,
-  [role="button"],
-  a[class*="rounded"] {
-    font-size: 0.875rem; /* 14px */
-  }
-
-  h1 {
-    font-size: 1.375rem; /* 22px */
-    font-weight: 700;
+  a,
+  label {
     line-height: 1.6;
+    min-width: 0;
+    text-wrap: pretty;
   }
 
-  h2 {
-    font-size: 1rem; /* 16px */
-    font-weight: 700;
-    line-height: 1.7;
+  button,
+  a {
+    white-space: normal;
   }
 
+  h1,
+  h2,
   h3 {
-    font-size: 0.9375rem; /* 15px */
-    font-weight: 600;
-    line-height: 1.7;
+    font-weight: 700;
   }
 }
 
