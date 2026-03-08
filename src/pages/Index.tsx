@@ -129,6 +129,8 @@ export default function Index() {
         </div>
       </div>
 
+      <AdBanner position="home-top" />
+
       {/* Goals card */}
       <div className="px-4 -mt-10 relative z-10 mb-4">
         <motion.div
