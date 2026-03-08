@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export default function Auth() {
   const { t } = useLocale();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -20,10 +20,23 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user) {
-    navigate('/');
-    return null;
+  // Redirect logged-in users to account page
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/account', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
+  // Show nothing while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
+
+  if (user) return null;
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
