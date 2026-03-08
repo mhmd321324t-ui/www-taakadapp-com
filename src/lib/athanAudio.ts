@@ -81,17 +81,12 @@ function getSavedVolume() {
 
 /**
  * Create audio element and play it.
- * Per browser policy, this MUST be called synchronously within a user gesture handler.
+ * Fixed: removed double-play pattern that caused issues on iOS.
  */
 function createAndPlayAudio(url: string): HTMLAudioElement {
   const audio = new Audio();
   audio.preload = 'auto';
   audio.volume = getSavedVolume();
-
-  // Unlock audio context immediately (required for iOS Safari)
-  audio.play().catch(() => {});
-
-  // Now set the source and play for real
   audio.src = url;
 
   audio.addEventListener('error', () => {

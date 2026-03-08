@@ -440,8 +440,8 @@ export default function Stories() {
                       </div>
                     </div>
                   </div>
-                  <h2 className="text-lg font-bold text-foreground text-right mb-3">{selectedStory.title}</h2>
-                  <p className="text-sm text-foreground/80 text-right leading-[1.8] whitespace-pre-wrap">
+                  <h2 className="text-lg font-bold text-foreground text-right mb-3 break-words">{selectedStory.title}</h2>
+                  <p className="text-sm text-foreground/80 text-right leading-[1.8] whitespace-pre-wrap break-words">
                     {selectedStory.content}
                   </p>
                   <div className="flex items-center justify-between border-t border-border pt-3 mt-4">

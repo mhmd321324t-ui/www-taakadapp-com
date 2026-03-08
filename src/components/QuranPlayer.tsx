@@ -156,7 +156,8 @@ export default function QuranPlayer() {
       if (audio.src && audio.src !== window.location.href) {
         setLoading(false);
         setIsPlaying(false);
-        toast.error('تعذر تشغيل الصوت — جرّب قارئاً آخر');
+        const currentReciter = getReciterById(reciterRef.current);
+        toast.error(`تعذر تشغيل الصوت من "${currentReciter.name}" — جرّب قارئاً آخر`);
       }
     };
 
