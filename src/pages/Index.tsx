@@ -121,31 +121,16 @@ export default function Index() {
         
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleNotifications}
-              className="p-2.5 rounded-2xl bg-black/25 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
-            >
-              {notificationsEnabled ? (
-                <Bell className="h-4 w-4 text-white fill-current" />
-              ) : (
-                <BellOff className="h-4 w-4 text-white/70" />
-              )}
-            </button>
-            {/* Test athan alert button */}
-            <button
-              onClick={() => {
-                const next = nextPrayer || prayers.find(p => p.key !== 'sunrise');
-                if (next) {
-                  import('@/lib/athanAudio').then(m => m.playAthan(next.key));
-                  setAlertPrayer({ key: next.key, time: next.time });
-                }
-              }}
-              className="p-2.5 rounded-2xl bg-black/25 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
-            >
-              <Volume2 className="h-4 w-4 text-white/70" />
-            </button>
-          </div>
+          <button
+            onClick={toggleNotifications}
+            className="p-2.5 rounded-2xl bg-black/25 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
+          >
+            {notificationsEnabled ? (
+              <Bell className="h-4 w-4 text-white fill-current" />
+            ) : (
+              <BellOff className="h-4 w-4 text-white/70" />
+            )}
+          </button>
           <div className="text-center">
             <p className="text-white font-semibold text-sm tracking-wide">
               {location.loading ? '...' : location.city}
