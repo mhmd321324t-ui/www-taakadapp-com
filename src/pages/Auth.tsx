@@ -47,7 +47,7 @@ export default function Auth() {
         toast.success(t('signupSuccess'));
       }
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(isLogin ? 'بريد إلكتروني أو كلمة مرور غير صحيحة' : 'حدث خطأ، يرجى المحاولة مرة أخرى');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export default function Auth() {
       redirect_uri: window.location.origin,
     });
     if (error) {
-      toast.error(error.message);
+      toast.error('حدث خطأ أثناء تسجيل الدخول، يرجى المحاولة مرة أخرى');
     }
   };
 
