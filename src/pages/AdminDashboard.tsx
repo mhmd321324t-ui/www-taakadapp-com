@@ -277,32 +277,42 @@ function AdsManager() {
         <h3 className="font-bold text-foreground">📋 الإعلانات الحالية ({ads.length})</h3>
         {ads.length === 0 && <p className="text-sm text-muted-foreground">لا توجد إعلانات بعد</p>}
         {ads.map(ad => (
-          <div key={ad.id} className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
-            {ad.slot_type === 'image' && ad.image_url && (
-              <img src={ad.image_url} alt="" className="h-12 w-12 rounded-lg object-cover shrink-0" />
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{ad.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {ad.position} • {
-                  ad.slot_type === 'image' ? '🖼️ صورة' :
-                  ad.slot_type === 'native' ? '📰 أصلي' :
-                  ad.slot_type === 'popunder' ? '🪟 منبثق' :
-                  '💻 كود'
-                } • {ad.platform || 'custom'}
-              </p>
+          <div key={ad.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
+            <div className="flex items-center gap-3">
+              {ad.slot_type === 'image' && ad.image_url && (
+                <img src={ad.image_url} alt="" className="h-12 w-12 rounded-lg object-cover shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{ad.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {ad.position} • {
+                    ad.slot_type === 'image' ? '🖼️ صورة' :
+                    ad.slot_type === 'native' ? '📰 أصلي' :
+                    ad.slot_type === 'popunder' ? '🪟 منبثق' :
+                    '💻 كود'
+                  } • {ad.platform || 'custom'}
+                </p>
+              </div>
+              <Button
+                variant={ad.is_active ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleAd(ad.id, ad.is_active)}
+                className="text-xs"
+              >
+                {ad.is_active ? 'مفعّل' : 'معطّل'}
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => deleteAd(ad.id)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
-            <Button
-              variant={ad.is_active ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleAd(ad.id, ad.is_active)}
-              className="text-xs"
-            >
-              {ad.is_active ? 'مفعّل' : 'معطّل'}
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => deleteAd(ad.id)}>
-              <Trash2 className="h-3 w-3" />
-            </Button>
+            {/* Stats */}
+            <div className="flex gap-4 px-1">
+              <span className="text-xs text-muted-foreground">👁️ مشاهدات: <strong className="text-foreground">{ad.impressions ?? 0}</strong></span>
+              <span className="text-xs text-muted-foreground">👆 نقرات: <strong className="text-foreground">{ad.clicks ?? 0}</strong></span>
+              {(ad.impressions ?? 0) > 0 && (
+                <span className="text-xs text-muted-foreground">📊 CTR: <strong className="text-foreground">{((ad.clicks ?? 0) / (ad.impressions ?? 1) * 100).toFixed(1)}%</strong></span>
+              )}
+            </div>
           </div>
         ))}
       </div>

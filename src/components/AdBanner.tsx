@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdSlot {
@@ -11,6 +11,19 @@ interface AdSlot {
   image_url: string | null;
   link_url: string | null;
   platform: string | null;
+}
+
+function useTrackImpression(adId: string | undefined) {
+  const tracked = useRef(false);
+  useEffect(() => {
+    if (!adId || tracked.current) return;
+    tracked.current = true;
+    supabase.rpc('track_ad_impression', { _ad_id: adId }).then(() => {});
+  }, [adId]);
+}
+
+function trackClick(adId: string) {
+  supabase.rpc('track_ad_click', { _ad_id: adId }).then(() => {});
 }
 
 export function AdBanner({ position }: { position: string }) {
@@ -30,30 +43,33 @@ export function AdBanner({ position }: { position: string }) {
       });
   }, [position]);
 
+  // Track impression
+  useTrackImpression(ad?.id);
+
+  const handleClick = useCallback(() => {
+    if (ad) trackClick(ad.id);
+  }, [ad]);
+
   // Execute scripts inside ad_code for native/script types
   useEffect(() => {
     if (!ad || !containerRef.current) return;
     if ((ad.slot_type === 'native' || ad.slot_type === 'script' || ad.slot_type === 'manual') && ad.ad_code) {
       const container = containerRef.current;
-      // Parse and execute script tags
       const temp = document.createElement('div');
       temp.innerHTML = ad.ad_code;
       const scripts = temp.querySelectorAll('script');
       
       scripts.forEach((origScript) => {
         const newScript = document.createElement('script');
-        // Copy attributes
         Array.from(origScript.attributes).forEach((attr) => {
           newScript.setAttribute(attr.name, attr.value);
         });
-        // Copy inline content
         if (origScript.textContent) {
           newScript.textContent = origScript.textContent;
         }
         container.appendChild(newScript);
       });
 
-      // Add non-script HTML
       const nonScriptHTML = ad.ad_code.replace(/<script[\s\S]*?<\/script>/gi, '');
       if (nonScriptHTML.trim()) {
         const wrapper = document.createElement('div');
@@ -62,7 +78,6 @@ export function AdBanner({ position }: { position: string }) {
       }
 
       return () => {
-        // Cleanup scripts on unmount
         while (container.firstChild) {
           container.removeChild(container.firstChild);
         }
@@ -84,7 +99,7 @@ export function AdBanner({ position }: { position: string }) {
     );
     return (
       <div className="w-full flex justify-center my-3 px-4">
-        <div className="w-full max-w-lg rounded-xl overflow-hidden">
+        <div className="w-full max-w-lg rounded-xl overflow-hidden" onClick={handleClick}>
           {ad.link_url ? (
             <a href={ad.link_url} target="_blank" rel="noopener noreferrer nofollow">
               {img}
@@ -103,6 +118,7 @@ export function AdBanner({ position }: { position: string }) {
       <div className="w-full flex justify-center my-3 px-4">
         <div
           ref={containerRef}
+          onClick={handleClick}
           className="w-full max-w-lg rounded-xl overflow-hidden bg-muted/30"
         />
       </div>
@@ -113,8 +129,7 @@ export function AdBanner({ position }: { position: string }) {
 }
 
 /**
- * PopUnder loader — place once in AppLayout or App.tsx
- * Loads popunder ad scripts globally (they don't need a visible container)
+ * PopUnder loader — place once in AppLayout
  */
 export function PopUnderLoader() {
   const [scripts, setScripts] = useState<string[]>([]);
@@ -122,11 +137,15 @@ export function PopUnderLoader() {
   useEffect(() => {
     supabase
       .from('ad_slots')
-      .select('ad_code')
+      .select('id, ad_code')
       .eq('slot_type', 'popunder')
       .eq('is_active', true)
       .then(({ data }) => {
         if (data) {
+          // Track impressions for popunder ads
+          data.forEach((d: any) => {
+            supabase.rpc('track_ad_impression', { _ad_id: d.id }).then(() => {});
+          });
           setScripts(data.map((d: any) => d.ad_code).filter(Boolean));
         }
       });
@@ -136,7 +155,6 @@ export function PopUnderLoader() {
     const addedScripts: HTMLScriptElement[] = [];
 
     scripts.forEach((code) => {
-      // Extract script src or inline code
       const temp = document.createElement('div');
       temp.innerHTML = code;
       const scriptTags = temp.querySelectorAll('script');
