@@ -17,7 +17,11 @@ const prayerIcons: Record<string, string> = {
 export default function PrayerTimes() {
   const { t } = useLocale();
   const location = useGeoLocation();
-  const { prayers, hijriDate, loading } = usePrayerTimes(location.latitude, location.longitude);
+  const { prayers, hijriDate, loading } = usePrayerTimes(
+    location.latitude,
+    location.longitude,
+    location.calculationMethod
+  );
   const { prayer: nextPrayer } = getNextPrayer(prayers);
 
   return (

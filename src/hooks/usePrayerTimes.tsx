@@ -68,6 +68,9 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
   const lastFetchKey = useRef('');
 
   useEffect(() => {
+    // Don't fetch with placeholder coordinates
+    if (latitude === 0 && longitude === 0) return;
+
     // Create a stable fetch key to prevent duplicate requests
     const fetchKey = `${latitude}-${longitude}-${method}`;
     if (fetchKey === lastFetchKey.current) return;
