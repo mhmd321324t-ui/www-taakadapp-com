@@ -270,13 +270,13 @@ export default function Tasbeeh() {
 
           {/* Stats row */}
           <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-            <div className="rounded-3xl border border-border/50 bg-card p-4 text-center shadow-elevated">
+            <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                 {t('today')}
               </p>
               <p className="text-2xl font-bold text-foreground tabular-nums">{count}</p>
             </div>
-            <div className="rounded-3xl border border-border/50 bg-card p-4 text-center shadow-elevated">
+            <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                 {t('total')}
               </p>

@@ -153,7 +153,7 @@ export default function PrayerTracker() {
                 transition={{ delay: i * 0.06 }}
                 onClick={() => togglePrayer(key)}
                 className={cn(
-                  'w-full flex items-center justify-between rounded-2xl border p-4 transition-all',
+                  'w-full flex items-center justify-between rounded-2xl border p-5 transition-all',
                   done ? 'border-primary/40 bg-primary/5 glow-emerald' : 'border-border/50 bg-card'
                 )}
               >

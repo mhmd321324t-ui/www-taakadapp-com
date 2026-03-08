@@ -77,13 +77,13 @@ export default function Account() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-border/50 bg-card p-4 flex items-center gap-4"
+          className="rounded-2xl border border-border/50 bg-card p-5 flex items-center gap-4"
         >
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Mail className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">البريد الإلكتروني</p>
             <p className="text-sm font-semibold text-foreground truncate">{email}</p>
           </div>
         </motion.div>
@@ -92,13 +92,13 @@ export default function Account() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl border border-border/50 bg-card p-4 flex items-center gap-4"
+          className="rounded-2xl border border-border/50 bg-card p-5 flex items-center gap-4"
         >
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Shield className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground">طريقة الدخول</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">طريقة الدخول</p>
             <p className="text-sm font-semibold text-foreground capitalize">{provider === 'google' ? 'Google' : 'بريد إلكتروني'}</p>
           </div>
         </motion.div>
@@ -107,7 +107,7 @@ export default function Account() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl border border-border/50 bg-card p-4 flex items-center gap-4"
+          className="rounded-2xl border border-border/50 bg-card p-5 flex items-center gap-4"
         >
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Calendar className="h-5 w-5 text-primary" />

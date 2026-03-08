@@ -35,7 +35,7 @@ export default function More() {
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       {/* Header */}
-      <div className="px-5 pt-12 pb-4 text-center">
+      <div className="px-5 pt-safe-header-compact pb-4 text-center">
         <h1 className="text-foreground">الميزات</h1>
       </div>
 

@@ -251,7 +251,7 @@ export default function ZakatCalculator() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mt-3 rounded-2xl bg-primary/5 border border-primary/10 p-3"
+              className="mt-3 rounded-2xl bg-primary/5 border border-primary/10 p-4"
             >
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
