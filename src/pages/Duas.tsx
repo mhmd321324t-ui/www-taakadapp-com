@@ -376,7 +376,7 @@ export default function Duas() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="h-24" />
+      
     </div>
   );
 }
