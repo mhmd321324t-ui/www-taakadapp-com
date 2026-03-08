@@ -114,7 +114,7 @@ export default function Tasbeeh() {
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic relative px-5 pb-20 pt-14">
+      <div className="gradient-islamic relative px-5 pb-24 pt-16">
         <div className="absolute inset-0 islamic-pattern opacity-20" />
         <div className="flex items-center justify-between relative z-10">
           <button
