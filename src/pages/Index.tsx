@@ -99,7 +99,14 @@ export default function Index() {
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      {/* Hero Header */}
+      {/* Full-screen Athan Alert */}
+      {alertPrayer && (
+        <AthanAlert
+          prayerKey={alertPrayer.key}
+          prayerTime={alertPrayer.time}
+          onDismiss={() => setAlertPrayer(null)}
+        />
+      )}
       <div className="relative overflow-hidden">
         <img
           src={meccaImage}
