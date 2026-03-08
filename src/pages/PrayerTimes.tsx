@@ -1,17 +1,17 @@
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
-import { MapPin, Clock } from 'lucide-react';
+import { Clock, Sun, Sunrise, Sunset, Moon, CloudSun, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const prayerIcons: Record<string, string> = {
-  fajr: '🌅',
-  sunrise: '☀️',
-  dhuhr: '🌞',
-  asr: '🌤️',
-  maghrib: '🌅',
-  isha: '🌙',
+const prayerIcons: Record<string, React.ReactNode> = {
+  fajr: <Sunrise className="h-6 w-6" />,
+  sunrise: <Sun className="h-6 w-6" />,
+  dhuhr: <Sun className="h-6 w-6" />,
+  asr: <CloudSun className="h-6 w-6" />,
+  maghrib: <Sunset className="h-6 w-6" />,
+  isha: <Moon className="h-6 w-6" />,
 };
 
 export default function PrayerTimes() {
@@ -24,21 +24,29 @@ export default function PrayerTimes() {
   );
   const { prayer: nextPrayer } = getNextPrayer(prayers);
 
+  const today = new Date();
+  const dayName = today.toLocaleDateString('ar-EG', { weekday: 'long' });
+  const dateStr = today.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-safe" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic px-5 pb-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary-foreground mb-1">{t('prayerTimes')}</h1>
-        <div className="flex items-center gap-1.5 text-primary-foreground/70 text-sm">
-          <MapPin className="h-3.5 w-3.5" />
-          <span>{location.city}, {location.country}</span>
-        </div>
-        <p className="text-primary-foreground/60 text-xs mt-2 font-arabic">{hijriDate}</p>
-        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
+      <div className="px-5 pt-12 pb-4">
+        <h1 className="text-xl font-bold text-foreground text-center">{t('prayerTimes')}</h1>
       </div>
 
+      {/* Date + share */}
+      <div className="px-5 mb-4 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{dayName}، {dateStr}</p>
+        <button className="p-2">
+          <Share2 className="h-5 w-5 text-muted-foreground" />
+        </button>
+      </div>
+
+      <div className="border-t border-border" />
+
       {/* Prayer List */}
-      <div className="px-5 pt-2 space-y-3">
+      <div className="px-5 py-2">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Clock className="h-6 w-6 animate-spin text-primary" />
@@ -49,41 +57,86 @@ export default function PrayerTimes() {
             return (
               <motion.div
                 key={prayer.key}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.05 }}
                 className={cn(
-                  'flex items-center justify-between rounded-xl border p-4 transition-all',
-                  isNext
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border bg-card'
+                  'flex items-center justify-between py-5 border-b border-border last:border-b-0',
+                  isNext && 'bg-primary/5 -mx-5 px-5 rounded-xl border-b-0'
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{prayerIcons[prayer.key]}</span>
-                  <div>
-                    <p className={cn(
-                      'font-semibold',
-                      isNext ? 'text-primary' : 'text-foreground'
-                    )}>
-                      {t(prayer.key)}
-                    </p>
-                    {isNext && (
-                      <span className="text-xs text-primary/70">{t('nextPrayer')}</span>
-                    )}
+                  {/* Athan bell indicator */}
+                  <div className={cn(
+                    'flex items-center justify-center',
+                    isNext ? 'text-primary' : 'text-primary'
+                  )}>
+                    <div className="relative">
+                      <div className={cn(
+                        'h-6 w-6 rounded-full border-2 flex items-center justify-center',
+                        isNext ? 'border-primary bg-primary' : 'border-primary'
+                      )}>
+                        {isNext && <div className="h-2 w-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
                   </div>
+                  <p className={cn(
+                    'text-lg tabular-nums font-semibold',
+                    isNext ? 'text-primary' : 'text-foreground'
+                  )}>
+                    {prayer.time}
+                  </p>
                 </div>
-                <p className={cn(
-                  'text-xl font-semibold tabular-nums',
-                  isNext ? 'text-primary' : 'text-foreground'
-                )}>
-                  {prayer.time}
-                </p>
+
+                <div className="flex items-center gap-3">
+                  <p className={cn(
+                    'font-semibold text-lg',
+                    isNext ? 'text-primary' : 'text-foreground'
+                  )}>
+                    {t(prayer.key)}
+                  </p>
+                  <span className={cn(
+                    isNext ? 'text-primary' : 'text-muted-foreground'
+                  )}>
+                    {prayerIcons[prayer.key]}
+                  </span>
+                </div>
               </motion.div>
             );
           })
         )}
       </div>
+
+      {/* Calculation method info */}
+      <div className="px-5 mt-4 mb-8">
+        <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <ChevronBtn />
+            <div className="text-right">
+              <p className="text-sm font-bold text-foreground">المذهب الفقهي</p>
+              <p className="text-xs text-muted-foreground">الشافعي / المالكي / حنبلي</p>
+            </div>
+          </div>
+          <div className="border-t border-border" />
+          <div className="flex items-center justify-between">
+            <ChevronBtn />
+            <div className="text-right">
+              <p className="text-sm font-bold text-foreground">طريقة الحساب</p>
+              <p className="text-xs text-muted-foreground">رابطة العالم الإسلامي</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChevronBtn() {
+  return (
+    <div className="h-8 w-8 rounded-full border border-border flex items-center justify-center">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M8 2L4 6L8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
     </div>
   );
 }

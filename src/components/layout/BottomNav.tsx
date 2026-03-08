@@ -1,14 +1,14 @@
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Clock, Compass, BookOpen, MoreHorizontal } from 'lucide-react';
+import { Home, Clock, BookOpen, Heart, MoreHorizontal } from 'lucide-react';
 import { useLocale } from '@/hooks/useLocale';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { path: '/', icon: Home, labelKey: 'home' },
-  { path: '/prayer-times', icon: Clock, labelKey: 'prayerTimes' },
-  { path: '/qibla', icon: Compass, labelKey: 'qibla' },
-  { path: '/quran', icon: BookOpen, labelKey: 'quran' },
   { path: '/more', icon: MoreHorizontal, labelKey: 'more' },
+  { path: '/duas', icon: Heart, labelKey: 'duas' },
+  { path: '/quran', icon: BookOpen, labelKey: 'quran' },
+  { path: '/prayer-times', icon: Clock, labelKey: 'prayerTimes' },
+  { path: '/', icon: Home, labelKey: 'home' },
 ];
 
 export function BottomNav() {
@@ -16,7 +16,7 @@ export function BottomNav() {
   const { t } = useLocale();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg" dir="rtl">
       <div className="flex items-center justify-around pb-[env(safe-area-inset-bottom,0px)]">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;

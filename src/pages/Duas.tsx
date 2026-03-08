@@ -2,73 +2,139 @@ import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Sun, Moon } from 'lucide-react';
+import { Search, Bookmark, ChevronDown, Moon, Bed, Droplets, Home, Shirt, Plane, UtensilsCrossed } from 'lucide-react';
 
-const morningAdhkar = [
-  { arabic: 'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ', translation: 'We have reached the morning and at this very time the whole kingdom belongs to Allah. All praise is for Allah.', count: 1 },
-  { arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ', translation: 'O Allah, by Your grace we have reached the morning, by Your grace we reach the evening, by Your grace we live and die, and to You is the resurrection.', count: 1 },
-  { arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', translation: 'Glory be to Allah and praise Him.', count: 100 },
-  { arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ', translation: 'None has the right to be worshipped except Allah, alone, without partner. To Him belongs all sovereignty and praise, and He is over all things omnipotent.', count: 10 },
-  { arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', translation: 'I seek refuge in the complete words of Allah from the evil of what He has created.', count: 3 },
+// Categories like Athan app
+const dailyCategories = [
+  { icon: Bed, label: 'النوم', key: 'sleep' },
+  { icon: Droplets, label: 'الوضوء', key: 'wudu' },
+  { icon: Home, label: 'مسجد', key: 'mosque' },
+  { icon: Moon, label: 'صلاة', key: 'salah' },
+  { icon: Home, label: 'منزل', key: 'home' },
+  { icon: Shirt, label: 'ملابس', key: 'clothes' },
+  { icon: Plane, label: 'سفر', key: 'travel' },
+  { icon: UtensilsCrossed, label: 'طعام', key: 'food' },
 ];
 
-const eveningAdhkar = [
-  { arabic: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ', translation: 'We have reached the evening and at this very time the whole kingdom belongs to Allah. All praise is for Allah.', count: 1 },
-  { arabic: 'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ', translation: 'O Allah, by Your grace we have reached the evening, by Your grace we reach the morning, by Your grace we live and die, and to You is the final return.', count: 1 },
-  { arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', translation: 'Glory be to Allah and praise Him.', count: 100 },
-  { arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', translation: 'I seek refuge in the complete words of Allah from the evil of what He has created.', count: 3 },
+const adhkarCategories = [
+  { icon: '📿', label: 'الذكر اليومي', key: 'daily-dhikr' },
+  { icon: '🌙', label: 'إحياء الذكرى اليومي', key: 'daily-revival' },
+  { icon: '🤲', label: 'بعد الصلوات', key: 'after-prayer' },
+  { icon: '🍎', label: 'رزق', key: 'rizq' },
+  { icon: '📖', label: 'معرفة', key: 'knowledge' },
+  { icon: '🕌', label: 'الإيمان', key: 'faith' },
+  { icon: '⚖️', label: 'يوم الحساب', key: 'judgment' },
+  { icon: '💚', label: 'مغفرة', key: 'forgiveness' },
+  { icon: '🤲', label: 'مشيداً بالله', key: 'praising' },
 ];
+
+// Sample duas for expanded sections
+const sampleDuas: Record<string, Array<{ arabic: string; translation: string; count: number }>> = {
+  sleep: [
+    { arabic: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا', translation: 'In Your name, O Allah, I die and I live.', count: 1 },
+    { arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ', translation: 'O Allah, protect me from Your punishment on the Day You resurrect Your servants.', count: 3 },
+  ],
+  'daily-dhikr': [
+    { arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', translation: 'Glory be to Allah and praise Him.', count: 100 },
+    { arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ', translation: 'None has the right to be worshipped except Allah alone.', count: 10 },
+  ],
+};
 
 export default function Duas() {
   const { t } = useLocale();
-  const [tab, setTab] = useState<'morning' | 'evening'>('morning');
-  const adhkar = tab === 'morning' ? morningAdhkar : eveningAdhkar;
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+
+  const toggle = (key: string) => {
+    setExpandedKey(expandedKey === key ? null : key);
+  };
 
   return (
-    <div className="min-h-screen">
-      <div className="gradient-islamic px-5 pb-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary-foreground">{t('duas')}</h1>
-        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
-      </div>
-
-      {/* Tabs */}
-      <div className="px-5 pt-4 mb-4">
-        <div className="flex gap-2">
-          {(['morning', 'evening'] as const).map((key) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={cn(
-                'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all',
-                tab === key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground'
-              )}
-            >
-              {key === 'morning' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {t(key === 'morning' ? 'morningAdhkar' : 'eveningAdhkar')}
-            </button>
-          ))}
+    <div className="min-h-screen pb-safe" dir="rtl">
+      {/* Header */}
+      <div className="px-5 pt-12 pb-3 flex items-center justify-between">
+        <div className="flex gap-3">
+          <button className="p-1"><Search className="h-5 w-5 text-muted-foreground" /></button>
+          <button className="p-1"><Bookmark className="h-5 w-5 text-muted-foreground" /></button>
         </div>
+        <h1 className="text-xl font-bold text-foreground">الدُعاء والذكر</h1>
       </div>
 
-      {/* Adhkar list */}
-      <div className="px-5 space-y-4 pb-8">
-        {adhkar.map((item, i) => (
+      {/* Daily section */}
+      <div className="px-5 mb-2">
+        <p className="text-sm font-bold text-foreground mb-3">يومي</p>
+      </div>
+      <div className="px-5 space-y-0">
+        {dailyCategories.map((cat, i) => (
           <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="rounded-xl border border-border bg-card p-5"
+            key={cat.key}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: i * 0.03 }}
           >
-            <p className="text-xl font-arabic text-foreground leading-[2] text-right mb-3" dir="rtl">
-              {item.arabic}
-            </p>
-            <p className="text-sm text-muted-foreground mb-2">{item.translation}</p>
-            <span className="inline-block rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">
-              ×{item.count}
-            </span>
+            <button
+              onClick={() => toggle(cat.key)}
+              className="w-full flex items-center justify-between py-4 border-b border-border"
+            >
+              <ChevronDown className={cn(
+                'h-4 w-4 text-muted-foreground transition-transform',
+                expandedKey === cat.key && 'rotate-180'
+              )} />
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-foreground">{cat.label}</span>
+                <cat.icon className="h-6 w-6 text-muted-foreground" />
+              </div>
+            </button>
+            {expandedKey === cat.key && sampleDuas[cat.key] && (
+              <div className="py-3 space-y-3">
+                {sampleDuas[cat.key].map((dua, j) => (
+                  <div key={j} className="rounded-xl bg-card border border-border p-4">
+                    <p className="text-lg font-arabic text-foreground leading-[2] text-center mb-2">{dua.arabic}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{dua.translation}</p>
+                    <span className="text-[10px] text-primary font-medium">×{dua.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Adhkar section */}
+      <div className="px-5 mt-6 mb-2">
+        <p className="text-sm font-bold text-foreground mb-3">أذكار</p>
+      </div>
+      <div className="px-5 space-y-0 mb-8">
+        {adhkarCategories.map((cat, i) => (
+          <motion.div
+            key={cat.key}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 + i * 0.03 }}
+          >
+            <button
+              onClick={() => toggle(cat.key)}
+              className="w-full flex items-center justify-between py-4 border-b border-border"
+            >
+              <ChevronDown className={cn(
+                'h-4 w-4 text-muted-foreground transition-transform',
+                expandedKey === cat.key && 'rotate-180'
+              )} />
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-foreground">{cat.label}</span>
+                <span className="text-2xl">{cat.icon}</span>
+              </div>
+            </button>
+            {expandedKey === cat.key && sampleDuas[cat.key] && (
+              <div className="py-3 space-y-3">
+                {sampleDuas[cat.key].map((dua, j) => (
+                  <div key={j} className="rounded-xl bg-card border border-border p-4">
+                    <p className="text-lg font-arabic text-foreground leading-[2] text-center mb-2">{dua.arabic}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{dua.translation}</p>
+                    <span className="text-[10px] text-primary font-medium">×{dua.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
