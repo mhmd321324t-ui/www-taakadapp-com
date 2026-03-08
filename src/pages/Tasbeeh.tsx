@@ -147,7 +147,7 @@ export default function Tasbeeh() {
               onClick={() => handleSelectDhikr(i)}
               whileTap={{ scale: 0.95 }}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all border min-w-0',
+                'flex flex-col items-center gap-1.5 rounded-2xl p-3.5 transition-all border min-w-0',
                 selected === i
                   ? 'bg-primary text-primary-foreground border-primary shadow-lg glow-emerald'
                   : 'bg-card text-foreground border-border/50 hover:border-primary/30'
