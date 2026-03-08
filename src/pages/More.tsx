@@ -1,15 +1,23 @@
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { Heart, Calendar, BarChart3, Calculator, LogIn, LogOut, User } from 'lucide-react';
+import {
+  Compass, Heart, Calendar, Calculator, Settings, HelpCircle, User,
+  LogIn, LogOut, Moon
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-const items = [
-  { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', color: 'text-primary' },
-  { icon: Calendar, labelKey: 'calendar', path: '/calendar', color: 'text-islamic-green' },
-  { icon: BarChart3, labelKey: 'tracker', path: '/tracker', color: 'text-accent' },
-  { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', color: 'text-islamic-gold' },
+const features = [
+  { icon: Compass, label: 'اتجاه القبلة', path: '/qibla', bg: 'bg-green-500' },
+  { icon: Heart, label: 'عداد التسبيح', path: '/tasbeeh', bg: 'bg-cyan-400' },
+  { icon: Calendar, label: 'التقويم الهجري', path: '/calendar', bg: 'bg-blue-500' },
+  { icon: Moon, label: 'أسماء الله', path: '/duas', bg: 'bg-purple-500' },
+  { icon: Calculator, label: 'حاسبة الزكاة', path: '/zakat', bg: 'bg-green-600' },
+  { icon: Settings, label: 'إعدادات التطبيق', path: '/more', bg: 'bg-gray-400' },
+  { icon: HelpCircle, label: 'مساعدة', path: '/more', bg: 'bg-teal-500' },
+  { icon: User, label: 'ملف المستخدم', path: '/auth', bg: 'bg-blue-600' },
 ];
 
 export default function More() {
@@ -17,31 +25,23 @@ export default function More() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen">
-      <div className="gradient-islamic px-5 pb-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary-foreground">{t('more')}</h1>
-        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
+    <div className="min-h-screen pb-safe" dir="rtl">
+      {/* Header */}
+      <div className="px-5 pt-12 pb-4 text-center">
+        <h1 className="text-xl font-bold text-foreground">الميزات</h1>
       </div>
 
-      <div className="px-5 pt-4 space-y-3">
-        {/* User card */}
+      {/* User card */}
+      <div className="px-5 mb-5">
         {user ? (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center gap-3"
+            className="rounded-2xl border border-border bg-card p-4 flex items-center gap-3"
           >
-            {user.user_metadata?.avatar_url ? (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt=""
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-            )}
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-6 w-6 text-primary" />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground truncate">
                 {user.user_metadata?.full_name || user.email}
@@ -56,31 +56,41 @@ export default function More() {
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <Link
               to="/auth"
-              className="flex items-center gap-4 rounded-xl border border-primary bg-primary/5 p-4 hover:shadow-md transition-all"
+              className="flex items-center justify-center gap-3 rounded-2xl border border-primary bg-primary/5 p-4"
             >
-              <LogIn className="h-6 w-6 text-primary" />
-              <span className="text-primary font-semibold">{t('loginSignup')}</span>
+              <LogIn className="h-5 w-5 text-primary" />
+              <span className="text-primary font-semibold text-sm">{t('loginSignup')}</span>
             </Link>
           </motion.div>
         )}
+      </div>
 
-        {/* Feature items */}
-        {items.map((item, i) => (
-          <motion.div
-            key={item.path}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: (i + 1) * 0.06 }}
-          >
-            <Link
-              to={item.path}
-              className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:shadow-md transition-all active:scale-[0.98]"
-            >
-              <item.icon className={`h-6 w-6 ${item.color}`} />
-              <span className="text-foreground font-medium">{t(item.labelKey)}</span>
-            </Link>
-          </motion.div>
-        ))}
+      {/* Features grid */}
+      <div className="px-5">
+        <div className="rounded-2xl bg-card border border-border p-5">
+          <div className="grid grid-cols-4 gap-4">
+            {features.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+              >
+                <Link
+                  to={item.path}
+                  className="flex flex-col items-center gap-2"
+                >
+                  <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center', item.bg)}>
+                    <item.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-[10px] font-medium text-foreground text-center leading-tight">
+                    {item.label}
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
