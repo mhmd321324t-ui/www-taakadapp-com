@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export interface PrayerTime {
   name: string;
@@ -10,8 +10,11 @@ export interface PrayerTime {
 interface PrayerTimesData {
   prayers: PrayerTime[];
   hijriDate: string;
-  hijriMonth: string;
+  hijriDay: string;
+  hijriMonthAr: string;
+  hijriMonthEn: string;
   hijriYear: string;
+  hijriMonth: string;
   loading: boolean;
   error: string | null;
 }
@@ -25,7 +28,6 @@ function detectIs12Hour(): boolean {
     const formatted = new Intl.DateTimeFormat(navigator.language, {
       hour: 'numeric',
     }).format(testDate);
-    // If formatted doesn't contain "14", it's 12h format
     return !formatted.includes('14');
   } catch {
     return false;
@@ -42,9 +44,6 @@ function to12Hour(time24: string): string {
   return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
 }
 
-/**
- * Format time based on device preference
- */
 function formatTime(time24: string, is12h: boolean): string {
   if (!is12h) return time24;
   return to12Hour(time24);
@@ -54,15 +53,24 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
   const [data, setData] = useState<PrayerTimesData>({
     prayers: [],
     hijriDate: '',
-    hijriMonth: '',
+    hijriDay: '',
+    hijriMonthAr: '',
+    hijriMonthEn: '',
     hijriYear: '',
+    hijriMonth: '',
     loading: true,
     error: null,
   });
 
   const is12h = detectIs12Hour();
+  const lastFetchKey = useRef('');
 
   useEffect(() => {
+    // Create a stable fetch key to prevent duplicate requests
+    const fetchKey = `${latitude}-${longitude}-${method}`;
+    if (fetchKey === lastFetchKey.current) return;
+    lastFetchKey.current = fetchKey;
+
     const fetchPrayers = async () => {
       try {
         const today = new Date();
@@ -77,7 +85,6 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
         const timings = json.data.timings;
         const hijri = json.data.date.hijri;
 
-        // Strip timezone info like " (EET)" from API times
         const cleanTime = (t: string) => t.replace(/\s*\(.*\)$/, '').trim();
 
         const prayers: PrayerTime[] = [
@@ -91,9 +98,12 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
 
         setData({
           prayers,
-          hijriDate: `${hijri.day} ${hijri.month.en} ${hijri.year}`,
-          hijriMonth: hijri.month.ar,
+          hijriDate: `${hijri.day} ${hijri.month.ar} ${hijri.year} هـ`,
+          hijriDay: hijri.day,
+          hijriMonthAr: hijri.month.ar,
+          hijriMonthEn: hijri.month.en,
           hijriYear: hijri.year,
+          hijriMonth: hijri.month.ar,
           loading: false,
           error: null,
         });
@@ -127,7 +137,6 @@ export function getNextPrayer(prayers: PrayerTime[]): { prayer: PrayerTime | nul
     }
   }
 
-  // After Isha, next is Fajr tomorrow
   if (prayers.length > 0) {
     const fajr = prayers[0];
     const [h, m] = fajr.time24.split(':').map(Number);
