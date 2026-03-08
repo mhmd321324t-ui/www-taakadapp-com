@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Check, Flame } from 'lucide-react';
+import { Check, Flame, LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const prayerKeys = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -12,38 +15,85 @@ function getTodayKey() {
 
 export default function PrayerTracker() {
   const { t } = useLocale();
+  const { user } = useAuth();
   const todayKey = getTodayKey();
 
-  const [tracked, setTracked] = useState<Record<string, string[]>>(() => {
-    const saved = localStorage.getItem('prayer-tracker');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [todayPrayers, setTodayPrayers] = useState<string[]>([]);
+  const [allTracking, setAllTracking] = useState<Record<string, string[]>>({});
+  const [loading, setLoading] = useState(true);
 
-  const todayPrayers = tracked[todayKey] || [];
+  // Load data
+  useEffect(() => {
+    if (user) {
+      loadFromDB();
+    } else {
+      // Fallback to localStorage for non-logged-in users
+      const saved = localStorage.getItem('prayer-tracker');
+      const parsed = saved ? JSON.parse(saved) : {};
+      setAllTracking(parsed);
+      setTodayPrayers(parsed[todayKey] || []);
+      setLoading(false);
+    }
+  }, [user, todayKey]);
 
-  const togglePrayer = (key: string) => {
-    setTracked(prev => {
-      const today = prev[todayKey] || [];
-      const updated = today.includes(key) ? today.filter(k => k !== key) : [...today, key];
-      const next = { ...prev, [todayKey]: updated };
-      localStorage.setItem('prayer-tracker', JSON.stringify(next));
-      return next;
+  const loadFromDB = async () => {
+    if (!user) return;
+    setLoading(true);
+    // Load last 30 days for streak calculation
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const { data } = await supabase
+      .from('prayer_tracking')
+      .select('date, prayers_completed')
+      .eq('user_id', user.id)
+      .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
+      .order('date', { ascending: false });
+
+    const trackingMap: Record<string, string[]> = {};
+    data?.forEach(row => {
+      trackingMap[row.date] = row.prayers_completed || [];
     });
+
+    setAllTracking(trackingMap);
+    setTodayPrayers(trackingMap[todayKey] || []);
+    setLoading(false);
+  };
+
+  const togglePrayer = async (key: string) => {
+    const updated = todayPrayers.includes(key)
+      ? todayPrayers.filter(k => k !== key)
+      : [...todayPrayers, key];
+
+    setTodayPrayers(updated);
+    setAllTracking(prev => ({ ...prev, [todayKey]: updated }));
+
+    if (user) {
+      await supabase
+        .from('prayer_tracking')
+        .upsert(
+          { user_id: user.id, date: todayKey, prayers_completed: updated },
+          { onConflict: 'user_id,date' }
+        );
+    } else {
+      const saved = JSON.parse(localStorage.getItem('prayer-tracker') || '{}');
+      saved[todayKey] = updated;
+      localStorage.setItem('prayer-tracker', JSON.stringify(saved));
+    }
   };
 
   // Calculate streak
   const streak = (() => {
     let count = 0;
     const d = new Date();
-    d.setDate(d.getDate() - 1); // start from yesterday
+    d.setDate(d.getDate() - 1);
     while (true) {
       const key = d.toISOString().split('T')[0];
-      if (tracked[key]?.length === 5) {
+      if (allTracking[key]?.length === 5) {
         count++;
         d.setDate(d.getDate() - 1);
       } else break;
     }
-    // Include today if all done
     if (todayPrayers.length === 5) count++;
     return count;
   })();
@@ -58,6 +108,17 @@ export default function PrayerTracker() {
       </div>
 
       <div className="px-5 pt-4">
+        {/* Login prompt */}
+        {!user && (
+          <Link
+            to="/auth"
+            className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 mb-4 text-sm"
+          >
+            <LogIn className="h-4 w-4 text-primary" />
+            <span className="text-primary">سجّل دخولك لحفظ تقدمك عبر الأجهزة</span>
+          </Link>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -96,9 +157,7 @@ export default function PrayerTracker() {
                 onClick={() => togglePrayer(key)}
                 className={cn(
                   'w-full flex items-center justify-between rounded-xl border p-4 transition-all',
-                  done
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-card'
+                  done ? 'border-primary bg-primary/5' : 'border-border bg-card'
                 )}
               >
                 <span className={cn('font-semibold', done ? 'text-primary' : 'text-foreground')}>

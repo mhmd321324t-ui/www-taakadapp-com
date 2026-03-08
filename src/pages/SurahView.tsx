@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLocale } from '@/hooks/useLocale';
-import { ArrowLeft, ArrowRight, Play, Pause } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { ArrowLeft, ArrowRight, Play, Pause, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface Ayah {
   number: number;
@@ -15,11 +18,13 @@ interface Ayah {
 export default function SurahView() {
   const { id } = useParams();
   const { t, isRTL } = useLocale();
+  const { user } = useAuth();
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [surahName, setSurahName] = useState('');
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState<number | null>(null);
   const [audio] = useState(new Audio());
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`)
@@ -31,8 +36,45 @@ export default function SurahView() {
       })
       .catch(() => setLoading(false));
 
+    // Check if bookmarked
+    if (user && id) {
+      supabase
+        .from('quran_bookmarks')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('surah_number', parseInt(id))
+        .is('ayah_number', null)
+        .maybeSingle()
+        .then(({ data }) => setBookmarked(!!data));
+    }
+
     return () => { audio.pause(); };
-  }, [id]);
+  }, [id, user]);
+
+  const toggleBookmark = async () => {
+    if (!user) {
+      toast.error('سجّل دخولك لحفظ المفضلات');
+      return;
+    }
+    const surahNum = parseInt(id!);
+
+    if (bookmarked) {
+      await supabase
+        .from('quran_bookmarks')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('surah_number', surahNum)
+        .is('ayah_number', null);
+      setBookmarked(false);
+      toast.success('تمت إزالة السورة من المفضلات');
+    } else {
+      await supabase
+        .from('quran_bookmarks')
+        .insert({ user_id: user.id, surah_number: surahNum });
+      setBookmarked(true);
+      toast.success('تمت إضافة السورة إلى المفضلات');
+    }
+  };
 
   const playAyah = (ayah: Ayah) => {
     if (playing === ayah.numberInSurah) {
@@ -51,13 +93,25 @@ export default function SurahView() {
   return (
     <div className="min-h-screen">
       <div className="gradient-islamic px-5 pb-6 pt-12">
-        <div className="flex items-center gap-3">
-          <Link to="/quran">
-            <BackIcon className="h-5 w-5 text-primary-foreground" />
-          </Link>
-          <div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/quran">
+              <BackIcon className="h-5 w-5 text-primary-foreground" />
+            </Link>
             <h1 className="text-xl font-bold text-primary-foreground font-arabic">{surahName}</h1>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleBookmark}
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            {bookmarked ? (
+              <BookmarkCheck className="h-5 w-5 fill-current" />
+            ) : (
+              <Bookmark className="h-5 w-5" />
+            )}
+          </Button>
         </div>
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
       </div>
