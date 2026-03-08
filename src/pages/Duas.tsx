@@ -203,7 +203,7 @@ export default function Duas() {
             <button
               key={cat.dataKey}
               onClick={() => openCategory(cat.dataKey)}
-              className="w-full flex items-center justify-between py-4 border-b border-border"
+              className="w-full flex items-center justify-between py-4 border-b border-border/50"
             >
               <div className="flex items-center gap-2">
                 <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
