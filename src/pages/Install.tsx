@@ -81,17 +81,17 @@ export default function Install() {
               <p className="text-sm text-muted-foreground mb-4">تطبيقك الإسلامي الشامل</p>
               
               <div className="grid grid-cols-3 gap-3 text-center mb-6">
-                <div className="rounded-xl bg-muted p-3">
+                <div className="rounded-xl bg-muted p-4">
                   <p className="text-lg font-bold text-foreground">🕌</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">مواقيت الصلاة</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">مواقيت الصلاة</p>
                 </div>
-                <div className="rounded-xl bg-muted p-3">
+                <div className="rounded-xl bg-muted p-4">
                   <p className="text-lg font-bold text-foreground">📖</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">القرآن</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">القرآن</p>
                 </div>
-                <div className="rounded-xl bg-muted p-3">
+                <div className="rounded-xl bg-muted p-4">
                   <p className="text-lg font-bold text-foreground">🧭</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">القبلة</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">القبلة</p>
                 </div>
               </div>
 
