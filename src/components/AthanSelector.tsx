@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ATHAN_OPTIONS, getSelectedAthan, setSelectedAthan, previewAthan, stopAthan } from '@/lib/athanAudio';
+import { ATHAN_OPTIONS, getSelectedAthan, setSelectedAthan, previewAthan, stopAthan, preloadSelectedAthan } from '@/lib/athanAudio';
 import { Volume2, VolumeX, Play, Square, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -15,6 +15,8 @@ export default function AthanSelector() {
     setSelectedAthan(id);
     stopAthan();
     setPlaying(null);
+    // Pre-load the newly selected athan for instant playback
+    preloadSelectedAthan();
   };
 
   const handlePreview = (id: string) => {

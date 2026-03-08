@@ -114,7 +114,7 @@ export default function Tasbeeh() {
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic relative px-5 pb-16 pt-12">
+      <div className="gradient-islamic relative px-5 pb-20 pt-14">
         <div className="absolute inset-0 islamic-pattern opacity-20" />
         <div className="flex items-center justify-between relative z-10">
           <button
@@ -123,7 +123,7 @@ export default function Tasbeeh() {
           >
             <RotateCcw className="h-5 w-5 text-white/80" />
           </button>
-          <h1 className="text-2xl font-bold text-white">{t('tasbeeh')}</h1>
+          <h1 className="text-xl font-bold text-white">{t('tasbeeh')}</h1>
         </div>
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>

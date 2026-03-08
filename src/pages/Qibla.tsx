@@ -160,7 +160,7 @@ export default function Qibla() {
   return (
     <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic relative px-5 pb-16 pt-12">
+      <div className="gradient-islamic relative px-5 pb-20 pt-14">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
@@ -181,14 +181,14 @@ export default function Qibla() {
             </button>
           </div>
           <div className="text-right">
-            <h1 className="text-2xl font-bold text-white">{t('qibla')}</h1>
-            <p className="text-white/60 text-sm mt-1">{t('qiblaDirection')}</p>
+            <h1 className="text-xl font-bold text-white">{t('qibla')}</h1>
+            <p className="text-white/60 text-xs mt-1">{t('qiblaDirection')}</p>
           </div>
         </div>
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>
 
-      <div className="-mt-2 flex w-full flex-col items-center px-5">
+      <div className="-mt-2 flex w-full flex-col items-center px-5 pt-2">
 
         {/* Instructions panel */}
         <AnimatePresence>

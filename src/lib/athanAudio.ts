@@ -75,19 +75,55 @@ export function setSelectedAthan(id: string) {
 
 let currentAudio: HTMLAudioElement | null = null;
 
+// Keep a pre-loaded audio element for faster playback
+let preloadedAudio: HTMLAudioElement | null = null;
+
 function getSavedVolume() {
   return parseFloat(localStorage.getItem('athan-volume') || '0.8');
 }
 
 /**
- * Create audio element and play it.
- * Fixed: removed double-play pattern that caused issues on iOS.
+ * Pre-load the selected athan audio so it plays instantly when needed.
+ * Called on page load and when the user changes athan selection.
  */
-function createAndPlayAudio(url: string): HTMLAudioElement {
+export function preloadSelectedAthan() {
+  const athan = getSelectedAthan();
+  if (!athan.url) return;
+
+  // Don't re-preload the same URL
+  if (preloadedAudio && preloadedAudio.src.endsWith(athan.url)) return;
+
+  if (preloadedAudio) {
+    preloadedAudio.src = '';
+    preloadedAudio = null;
+  }
+
   const audio = new Audio();
   audio.preload = 'auto';
+  audio.src = athan.url;
+  audio.load(); // Start buffering immediately
+  preloadedAudio = audio;
+}
+
+/**
+ * Create audio element and play it instantly.
+ * Uses preloaded audio if available for zero-delay playback.
+ */
+function createAndPlayAudio(url: string): HTMLAudioElement {
+  let audio: HTMLAudioElement;
+
+  // Use preloaded audio if it matches the URL
+  if (preloadedAudio && preloadedAudio.src.endsWith(url)) {
+    audio = preloadedAudio;
+    preloadedAudio = null; // Consumed
+  } else {
+    audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = url;
+  }
+
   audio.volume = getSavedVolume();
-  audio.src = url;
+  audio.currentTime = 0;
 
   audio.addEventListener('error', () => {
     console.warn('Athan audio failed to load:', url);
@@ -100,8 +136,11 @@ function createAndPlayAudio(url: string): HTMLAudioElement {
     if (currentAudio === audio) {
       currentAudio = null;
     }
+    // Re-preload for next time
+    preloadSelectedAthan();
   });
 
+  // Play immediately — if already buffered this is instant
   audio.play().catch(() => {
     console.warn('Athan audio failed to play:', url);
     if (currentAudio === audio) {
@@ -140,3 +179,6 @@ export function previewAthan(id: string): HTMLAudioElement | null {
   currentAudio = createAndPlayAudio(athan.url);
   return currentAudio;
 }
+
+// Auto-preload on module load
+preloadSelectedAthan();
