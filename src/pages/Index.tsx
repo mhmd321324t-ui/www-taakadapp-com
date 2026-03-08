@@ -1,10 +1,13 @@
+import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
+import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import { Link } from 'react-router-dom';
-import { MapPin, Compass, BookOpen, Heart, Calculator, Moon } from 'lucide-react';
+import { MapPin, Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const quickAccessItems = [
   { icon: Compass, labelKey: 'qibla', path: '/qibla', color: 'bg-primary/10 text-primary' },
@@ -19,6 +22,29 @@ export default function Index() {
   const location = useGeoLocation();
   const { prayers, hijriDate, loading } = usePrayerTimes(location.latitude, location.longitude);
   const { prayer: nextPrayer, remaining } = getNextPrayer(prayers);
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem('athan-notifications') === 'true';
+  });
+
+  useAthanNotifications(prayers, notificationsEnabled);
+
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+        localStorage.setItem('athan-notifications', 'true');
+        toast.success('تم تفعيل إشعارات الأذان 🔔');
+      } else {
+        toast.error('لم يتم السماح بالإشعارات');
+      }
+    } else {
+      setNotificationsEnabled(false);
+      localStorage.setItem('athan-notifications', 'false');
+      toast.success('تم إيقاف إشعارات الأذان');
+    }
+  };
 
   return (
     <div className="min-h-screen">
