@@ -272,7 +272,7 @@ export default function Index() {
                     : 'border-border/50 bg-card'
                 )}
               >
-                <p className={cn('text-[11px] mb-0.5 truncate', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
+                <p className={cn('text-xs mb-0.5 truncate', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
                   {t(prayer.key)}
                 </p>
                 <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
