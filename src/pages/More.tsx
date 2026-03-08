@@ -76,7 +76,7 @@ export default function More() {
       <div className="px-5">
         <div className="rounded-2xl bg-card border border-border p-5">
           <div className="grid grid-cols-3 gap-4">
-            {features.map((item, i) => (
+            {allFeatures.map((item, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
