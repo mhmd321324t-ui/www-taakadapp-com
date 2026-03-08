@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdSlot {
@@ -15,6 +15,7 @@ interface AdSlot {
 
 export function AdBanner({ position }: { position: string }) {
   const [ad, setAd] = useState<AdSlot | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase
@@ -28,6 +29,46 @@ export function AdBanner({ position }: { position: string }) {
         if (data) setAd(data as AdSlot);
       });
   }, [position]);
+
+  // Execute scripts inside ad_code for native/script types
+  useEffect(() => {
+    if (!ad || !containerRef.current) return;
+    if ((ad.slot_type === 'native' || ad.slot_type === 'script' || ad.slot_type === 'manual') && ad.ad_code) {
+      const container = containerRef.current;
+      // Parse and execute script tags
+      const temp = document.createElement('div');
+      temp.innerHTML = ad.ad_code;
+      const scripts = temp.querySelectorAll('script');
+      
+      scripts.forEach((origScript) => {
+        const newScript = document.createElement('script');
+        // Copy attributes
+        Array.from(origScript.attributes).forEach((attr) => {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        // Copy inline content
+        if (origScript.textContent) {
+          newScript.textContent = origScript.textContent;
+        }
+        container.appendChild(newScript);
+      });
+
+      // Add non-script HTML
+      const nonScriptHTML = ad.ad_code.replace(/<script[\s\S]*?<\/script>/gi, '');
+      if (nonScriptHTML.trim()) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = nonScriptHTML;
+        container.prepend(wrapper);
+      }
+
+      return () => {
+        // Cleanup scripts on unmount
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+      };
+    }
+  }, [ad]);
 
   if (!ad) return null;
 
@@ -56,17 +97,69 @@ export function AdBanner({ position }: { position: string }) {
     );
   }
 
-  // HTML/JS code type (Adsterra, PropellerAds, AdSense, etc.)
-  if ((ad.slot_type === 'manual' || ad.slot_type === 'adsense' || ad.slot_type === 'script') && ad.ad_code) {
+  // Native Ads / Script / Manual — use ref-based script injection
+  if ((ad.slot_type === 'native' || ad.slot_type === 'script' || ad.slot_type === 'manual' || ad.slot_type === 'adsense') && ad.ad_code) {
     return (
       <div className="w-full flex justify-center my-3 px-4">
         <div
+          ref={containerRef}
           className="w-full max-w-lg rounded-xl overflow-hidden bg-muted/30"
-          dangerouslySetInnerHTML={{ __html: ad.ad_code }}
         />
       </div>
     );
   }
+
+  return null;
+}
+
+/**
+ * PopUnder loader — place once in AppLayout or App.tsx
+ * Loads popunder ad scripts globally (they don't need a visible container)
+ */
+export function PopUnderLoader() {
+  const [scripts, setScripts] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('ad_slots')
+      .select('ad_code')
+      .eq('slot_type', 'popunder')
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (data) {
+          setScripts(data.map((d: any) => d.ad_code).filter(Boolean));
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    const addedScripts: HTMLScriptElement[] = [];
+
+    scripts.forEach((code) => {
+      // Extract script src or inline code
+      const temp = document.createElement('div');
+      temp.innerHTML = code;
+      const scriptTags = temp.querySelectorAll('script');
+
+      scriptTags.forEach((origScript) => {
+        const newScript = document.createElement('script');
+        Array.from(origScript.attributes).forEach((attr) => {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        if (origScript.textContent) {
+          newScript.textContent = origScript.textContent;
+        }
+        document.head.appendChild(newScript);
+        addedScripts.push(newScript);
+      });
+    });
+
+    return () => {
+      addedScripts.forEach((s) => {
+        try { document.head.removeChild(s); } catch {}
+      });
+    };
+  }, [scripts]);
 
   return null;
 }

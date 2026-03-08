@@ -112,7 +112,8 @@ function AdsManager() {
   const addAd = async () => {
     if (!newAd.name) return toast.error('أدخل اسم الإعلان');
     if (newAd.slot_type === 'image' && !newAd.image_url) return toast.error('أدخل رابط الصورة');
-    if (newAd.slot_type !== 'image' && !newAd.ad_code) return toast.error('أدخل كود الإعلان');
+    if (newAd.slot_type === 'popunder' && !newAd.ad_code) return toast.error('أدخل كود PopUnder');
+    if (newAd.slot_type !== 'image' && newAd.slot_type !== 'popunder' && !newAd.ad_code) return toast.error('أدخل كود الإعلان');
 
     const payload: any = {
       name: newAd.name,
@@ -216,11 +217,28 @@ function AdsManager() {
             onChange={e => setNewAd({ ...newAd, slot_type: e.target.value })}
             className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
           >
-            <option value="manual">كود HTML/JS (Adsterra, PropellerAds...)</option>
+            <option value="manual">كود HTML/JS (Adsterra Banner, PropellerAds...)</option>
+            <option value="native">Native Ads (إعلانات أصلية - Adsterra)</option>
+            <option value="popunder">PopUnder (إعلان منبثق - Adsterra)</option>
             <option value="script">كود Script (سكربت خارجي)</option>
             <option value="adsense">Google AdSense</option>
             <option value="image">صورة + رابط</option>
           </select>
+
+          {/* Help text */}
+          {newAd.slot_type === 'native' && (
+            <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
+              <p>📌 <strong>Native Ads:</strong> الصق كود الإعلان الأصلي من Adsterra</p>
+              <p>يتضمن عادةً وسم <code dir="ltr">&lt;script&gt;</code> مع <code dir="ltr">src</code> و <code dir="ltr">div</code> للعرض</p>
+            </div>
+          )}
+          {newAd.slot_type === 'popunder' && (
+            <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
+              <p>📌 <strong>PopUnder:</strong> الصق كود PopUnder من Adsterra</p>
+              <p>هذا الإعلان يعمل بالخلفية ولا يظهر في الصفحة مباشرة</p>
+              <p>الموقع لا يهم — سيتم تحميله تلقائياً عند فتح الموقع</p>
+            </div>
+          )}
 
           {/* Conditional fields */}
           {newAd.slot_type === 'image' ? (
@@ -266,7 +284,12 @@ function AdsManager() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{ad.name}</p>
               <p className="text-xs text-muted-foreground">
-                {ad.position} • {ad.slot_type === 'image' ? '🖼️ صورة' : '💻 كود'} • {ad.platform || 'custom'}
+                {ad.position} • {
+                  ad.slot_type === 'image' ? '🖼️ صورة' :
+                  ad.slot_type === 'native' ? '📰 أصلي' :
+                  ad.slot_type === 'popunder' ? '🪟 منبثق' :
+                  '💻 كود'
+                } • {ad.platform || 'custom'}
               </p>
             </div>
             <Button
