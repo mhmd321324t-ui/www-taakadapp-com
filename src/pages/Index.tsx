@@ -6,7 +6,7 @@ import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import HijriCalendar from '@/components/HijriCalendar';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, User, CheckCircle2 } from 'lucide-react';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, User, CheckCircle2, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
