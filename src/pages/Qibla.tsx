@@ -319,193 +319,213 @@ export default function Qibla() {
           </div>
         )}
 
-        {/* Compass */}
-        <div className="relative w-[300px] h-[300px] mb-6">
-          {/* Outer decorative ring */}
-          <div className="absolute inset-0 rounded-full border-2 border-border" />
-          
-          {/* Tick marks */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 300">
-            {Array.from({ length: 72 }).map((_, i) => {
-              const angle = i * 5;
-              const isMajor = angle % 45 === 0;
-              const r1 = isMajor ? 138 : 142;
-              const r2 = 148;
-              const rad = (angle - 90) * (Math.PI / 180);
-              return (
-                <line
-                  key={i}
-                  x1={150 + r1 * Math.cos(rad)}
-                  y1={150 + r1 * Math.sin(rad)}
-                  x2={150 + r2 * Math.cos(rad)}
-                  y2={150 + r2 * Math.sin(rad)}
-                  className={cn(
-                    isMajor ? 'stroke-foreground/40' : 'stroke-muted-foreground/20'
-                  )}
-                  strokeWidth={isMajor ? 2 : 1}
-                />
-              );
-            })}
-          </svg>
+        {viewMode === 'compass' ? (
+          <>
+            {/* Compass */}
+            <div className="relative w-[300px] h-[300px] mb-6">
+              {/* Outer decorative ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-border" />
+              
+              {/* Tick marks */}
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 300">
+                {Array.from({ length: 72 }).map((_, i) => {
+                  const angle = i * 5;
+                  const isMajor = angle % 45 === 0;
+                  const r1 = isMajor ? 138 : 142;
+                  const r2 = 148;
+                  const rad = (angle - 90) * (Math.PI / 180);
+                  return (
+                    <line
+                      key={i}
+                      x1={150 + r1 * Math.cos(rad)}
+                      y1={150 + r1 * Math.sin(rad)}
+                      x2={150 + r2 * Math.cos(rad)}
+                      y2={150 + r2 * Math.sin(rad)}
+                      className={cn(
+                        isMajor ? 'stroke-foreground/40' : 'stroke-muted-foreground/20'
+                      )}
+                      strokeWidth={isMajor ? 2 : 1}
+                    />
+                  );
+                })}
+              </svg>
 
-          {/* Rotating compass body */}
-          <motion.div
-            className="absolute inset-3 rounded-full bg-card border border-border shadow-lg"
-            animate={{ rotate: -compass }}
-            transition={{ type: 'spring', stiffness: 60, damping: 20 }}
-          >
-            {/* Cardinal direction labels */}
-            {compassDirections.map(({ label, angle }) => {
-              const rad = (angle - 90) * (Math.PI / 180);
-              const r = label.length === 1 ? 105 : 108;
-              const isPrimary = label.length === 1;
-              return (
-                <motion.span
-                  key={label}
-                  className={cn(
-                    'absolute text-center font-bold',
-                    isPrimary ? 'text-sm text-foreground' : 'text-[9px] text-muted-foreground',
-                    label === 'N' && 'text-primary'
-                  )}
-                  style={{
-                    left: `calc(50% + ${r * Math.cos(rad)}px)`,
-                    top: `calc(50% + ${r * Math.sin(rad)}px)`,
-                    transform: `translate(-50%, -50%)`,
-                  }}
-                  animate={{ rotate: compass }}
-                  transition={{ type: 'spring', stiffness: 60, damping: 20 }}
+              {/* Rotating compass body */}
+              <motion.div
+                className="absolute inset-3 rounded-full bg-card border border-border shadow-lg"
+                animate={{ rotate: -compass }}
+                transition={{ type: 'spring', stiffness: 60, damping: 20 }}
+              >
+                {/* Cardinal direction labels */}
+                {compassDirections.map(({ label, angle }) => {
+                  const rad = (angle - 90) * (Math.PI / 180);
+                  const r = label.length === 1 ? 105 : 108;
+                  const isPrimary = label.length === 1;
+                  return (
+                    <motion.span
+                      key={label}
+                      className={cn(
+                        'absolute text-center font-bold',
+                        isPrimary ? 'text-sm text-foreground' : 'text-[9px] text-muted-foreground',
+                        label === 'N' && 'text-primary'
+                      )}
+                      style={{
+                        left: `calc(50% + ${r * Math.cos(rad)}px)`,
+                        top: `calc(50% + ${r * Math.sin(rad)}px)`,
+                        transform: `translate(-50%, -50%)`,
+                      }}
+                      animate={{ rotate: compass }}
+                      transition={{ type: 'spring', stiffness: 60, damping: 20 }}
+                    >
+                      {label}
+                    </motion.span>
+                  );
+                })}
+
+                {/* Qibla indicator */}
+                <div
+                  className="absolute inset-0"
+                  style={{ transform: `rotate(${qiblaAngle}deg)` }}
                 >
-                  {label}
-                </motion.span>
-              );
-            })}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-3 flex flex-col items-center">
+                    <motion.div
+                      animate={isAligned ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                      transition={{ repeat: isAligned ? Infinity : 0, duration: 1.2 }}
+                      className="text-3xl"
+                      style={{ transform: `rotate(${-qiblaAngle + compass}deg)` }}
+                    >
+                      🕋
+                    </motion.div>
+                  </div>
+                </div>
 
-            {/* Qibla indicator */}
-            <div
-              className="absolute inset-0"
-              style={{ transform: `rotate(${qiblaAngle}deg)` }}
-            >
-              <div className="absolute left-1/2 -translate-x-1/2 top-3 flex flex-col items-center">
+                {/* Inner decorative circle */}
+                <div className="absolute inset-[35%] rounded-full border border-border/50" />
+
+                {/* Qibla line */}
+                <div
+                  className="absolute inset-0"
+                  style={{ transform: `rotate(${qiblaAngle}deg)` }}
+                >
+                  <div className={cn(
+                    "absolute left-1/2 top-[18%] -translate-x-[0.5px] w-[2px] h-[32%] rounded-full transition-colors duration-500",
+                    isAligned
+                      ? "bg-gradient-to-b from-primary to-primary/40"
+                      : "bg-gradient-to-b from-muted-foreground/50 to-muted-foreground/10"
+                  )} />
+                </div>
+              </motion.div>
+
+              {/* Center point */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <motion.div
-                  animate={isAligned ? { scale: [1, 1.3, 1] } : { scale: 1 }}
-                  transition={{ repeat: isAligned ? Infinity : 0, duration: 1.2 }}
-                  className="text-3xl"
-                  style={{ transform: `rotate(${-qiblaAngle + compass}deg)` }}
-                >
-                  🕋
-                </motion.div>
+                  animate={isAligned ? { scale: [1, 1.3, 1], boxShadow: ['0 0 0 0 hsl(var(--primary) / 0)', '0 0 20px 8px hsl(var(--primary) / 0.3)', '0 0 0 0 hsl(var(--primary) / 0)'] } : {}}
+                  transition={{ repeat: isAligned ? Infinity : 0, duration: 1.5 }}
+                  className={cn(
+                    'w-4 h-4 rounded-full border-2 transition-colors duration-500',
+                    isAligned
+                      ? 'bg-primary border-primary'
+                      : 'bg-card border-primary/50'
+                  )}
+                />
+              </div>
+
+              {/* Top indicator (fixed) */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1">
+                <div className={cn(
+                  "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] transition-colors duration-500",
+                  isAligned ? "border-t-primary" : "border-t-muted-foreground"
+                )} />
               </div>
             </div>
 
-            {/* Inner decorative circle */}
-            <div className="absolute inset-[35%] rounded-full border border-border/50" />
-
-            {/* Qibla line */}
-            <div
-              className="absolute inset-0"
-              style={{ transform: `rotate(${qiblaAngle}deg)` }}
-            >
-              <div className={cn(
-                "absolute left-1/2 top-[18%] -translate-x-[0.5px] w-[2px] h-[32%] rounded-full transition-colors duration-500",
-                isAligned
-                  ? "bg-gradient-to-b from-primary to-primary/40"
-                  : "bg-gradient-to-b from-muted-foreground/50 to-muted-foreground/10"
-              )} />
-            </div>
-          </motion.div>
-
-          {/* Center point */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <motion.div
-              animate={isAligned ? { scale: [1, 1.3, 1], boxShadow: ['0 0 0 0 hsl(var(--primary) / 0)', '0 0 20px 8px hsl(var(--primary) / 0.3)', '0 0 0 0 hsl(var(--primary) / 0)'] } : {}}
-              transition={{ repeat: isAligned ? Infinity : 0, duration: 1.5 }}
-              className={cn(
-                'w-4 h-4 rounded-full border-2 transition-colors duration-500',
-                isAligned
-                  ? 'bg-primary border-primary'
-                  : 'bg-card border-primary/50'
+            {/* Alignment indicator */}
+            <AnimatePresence>
+              {isAligned && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="mb-4 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20"
+                >
+                  <p className="text-sm font-bold text-primary">🕋 هذا اتجاه القبلة ✓</p>
+                </motion.div>
               )}
+            </AnimatePresence>
+
+            {/* Angle display */}
+            <div className="text-center mb-6">
+              <p className="text-5xl font-bold text-foreground tabular-nums">
+                {Math.round(qiblaAngle)}°
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {qiblaAngle > 315 || qiblaAngle <= 45 ? t('qiblaFromNorth') || 'من الشمال' :
+                 qiblaAngle > 45 && qiblaAngle <= 135 ? t('qiblaFromEast') || 'من الشرق' :
+                 qiblaAngle > 135 && qiblaAngle <= 225 ? t('qiblaFromSouth') || 'من الجنوب' :
+                 t('qiblaFromWest') || 'من الغرب'}
+              </p>
+            </div>
+
+            {/* Info cards */}
+            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+              <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                <MapPin className="h-5 w-5 text-primary mx-auto mb-2" />
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                  {t('distanceToMakkah')}
+                </p>
+                <p className="text-lg font-bold text-foreground">
+                  {Math.round(distance).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-muted-foreground">{t('km')}</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                <span className="text-xl block mb-1">📍</span>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                  {t('location')}
+                </p>
+                <p className="text-sm font-bold text-foreground truncate">
+                  {location.city || '...'}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {location.country || t('detectLocation')}
+                </p>
+              </div>
+            </div>
+
+            {/* Accuracy info */}
+            {accuracy != null && (
+              <div className="mt-4 flex items-center gap-2 text-[10px] text-muted-foreground">
+                <div className={cn(
+                  'w-2 h-2 rounded-full',
+                  accuracy <= 10 ? 'bg-primary' :
+                  accuracy <= 25 ? 'bg-[hsl(var(--islamic-gold))]' :
+                  'bg-destructive'
+                )} />
+                <span>
+                  {accuracy <= 10 ? 'دقة عالية' :
+                   accuracy <= 25 ? 'دقة متوسطة' :
+                   'دقة منخفضة - يرجى المعايرة'}
+                  {' '}(±{Math.round(accuracy)}°)
+                </span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <QiblaMap
+              userLat={location.latitude}
+              userLng={location.longitude}
+              city={location.city}
             />
-          </div>
-
-          {/* Top indicator (fixed) */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1">
-            <div className={cn(
-              "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] transition-colors duration-500",
-              isAligned ? "border-t-primary" : "border-t-muted-foreground"
-            )} />
-          </div>
-        </div>
-
-        {/* Alignment indicator */}
-        <AnimatePresence>
-          {isAligned && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="mb-4 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20"
-            >
-              <p className="text-sm font-bold text-primary">🕋 هذا اتجاه القبلة ✓</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Angle display */}
-        <div className="text-center mb-6">
-          <p className="text-5xl font-bold text-foreground tabular-nums">
-            {Math.round(qiblaAngle)}°
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {qiblaAngle > 315 || qiblaAngle <= 45 ? t('qiblaFromNorth') || 'من الشمال' :
-             qiblaAngle > 45 && qiblaAngle <= 135 ? t('qiblaFromEast') || 'من الشرق' :
-             qiblaAngle > 135 && qiblaAngle <= 225 ? t('qiblaFromSouth') || 'من الجنوب' :
-             t('qiblaFromWest') || 'من الغرب'}
-          </p>
-        </div>
-
-        {/* Info cards */}
-        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-          <div className="rounded-2xl border border-border bg-card p-4 text-center">
-            <MapPin className="h-5 w-5 text-primary mx-auto mb-2" />
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {t('distanceToMakkah')}
-            </p>
-            <p className="text-lg font-bold text-foreground">
-              {Math.round(distance).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-muted-foreground">{t('km')}</p>
-          </div>
-          <div className="rounded-2xl border border-border bg-card p-4 text-center">
-            <span className="text-xl block mb-1">📍</span>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              {t('location')}
-            </p>
-            <p className="text-sm font-bold text-foreground truncate">
-              {location.city || '...'}
-            </p>
-            <p className="text-[10px] text-muted-foreground truncate">
-              {location.country || t('detectLocation')}
-            </p>
-          </div>
-        </div>
-
-        {/* Accuracy info */}
-        {accuracy != null && (
-          <div className="mt-4 flex items-center gap-2 text-[10px] text-muted-foreground">
-            <div className={cn(
-              'w-2 h-2 rounded-full',
-              accuracy <= 10 ? 'bg-primary' :
-              accuracy <= 25 ? 'bg-[hsl(var(--islamic-gold))]' :
-              'bg-destructive'
-            )} />
-            <span>
-              {accuracy <= 10 ? 'دقة عالية' :
-               accuracy <= 25 ? 'دقة متوسطة' :
-               'دقة منخفضة - يرجى المعايرة'}
-              {' '}(±{Math.round(accuracy)}°)
-            </span>
-          </div>
+            <div className="text-center mt-5 mb-4">
+              <p className="text-3xl font-bold text-foreground tabular-nums">
+                {Math.round(qiblaAngle)}°
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('distanceToMakkah')}: {Math.round(distance).toLocaleString()} {t('km')}
+              </p>
+            </div>
+          </>
         )}
       </div>
     </div>
