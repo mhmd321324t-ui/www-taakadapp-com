@@ -8,6 +8,9 @@ interface AdSlot {
   ad_code: string | null;
   position: string;
   is_active: boolean;
+  image_url: string | null;
+  link_url: string | null;
+  platform: string | null;
 }
 
 export function AdBanner({ position }: { position: string }) {
@@ -26,14 +29,44 @@ export function AdBanner({ position }: { position: string }) {
       });
   }, [position]);
 
-  if (!ad || !ad.ad_code) return null;
+  if (!ad) return null;
 
-  return (
-    <div className="w-full flex justify-center my-3 px-4">
-      <div
-        className="w-full max-w-lg rounded-xl overflow-hidden bg-muted/30"
-        dangerouslySetInnerHTML={{ __html: ad.ad_code }}
+  // Image + link type ad
+  if (ad.slot_type === 'image' && ad.image_url) {
+    const img = (
+      <img
+        src={ad.image_url}
+        alt={ad.name}
+        className="w-full rounded-xl"
+        loading="lazy"
       />
-    </div>
-  );
+    );
+    return (
+      <div className="w-full flex justify-center my-3 px-4">
+        <div className="w-full max-w-lg rounded-xl overflow-hidden">
+          {ad.link_url ? (
+            <a href={ad.link_url} target="_blank" rel="noopener noreferrer nofollow">
+              {img}
+            </a>
+          ) : (
+            img
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // HTML/JS code type (Adsterra, PropellerAds, AdSense, etc.)
+  if ((ad.slot_type === 'manual' || ad.slot_type === 'adsense' || ad.slot_type === 'script') && ad.ad_code) {
+    return (
+      <div className="w-full flex justify-center my-3 px-4">
+        <div
+          className="w-full max-w-lg rounded-xl overflow-hidden bg-muted/30"
+          dangerouslySetInnerHTML={{ __html: ad.ad_code }}
+        />
+      </div>
+    );
+  }
+
+  return null;
 }

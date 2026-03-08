@@ -78,7 +78,16 @@ export default function AdminDashboard() {
 function AdsManager() {
   const [ads, setAds] = useState<any[]>([]);
   const [adsenseId, setAdsenseId] = useState('');
-  const [newAd, setNewAd] = useState({ name: '', position: 'home-top', slot_type: 'manual', ad_code: '', is_active: true });
+  const [newAd, setNewAd] = useState({
+    name: '',
+    position: 'home-top',
+    slot_type: 'manual',
+    ad_code: '',
+    is_active: true,
+    image_url: '',
+    link_url: '',
+    platform: 'custom',
+  });
 
   useEffect(() => {
     loadAds();
@@ -102,10 +111,31 @@ function AdsManager() {
 
   const addAd = async () => {
     if (!newAd.name) return toast.error('أدخل اسم الإعلان');
-    const { error } = await supabase.from('ad_slots').insert([newAd]);
+    if (newAd.slot_type === 'image' && !newAd.image_url) return toast.error('أدخل رابط الصورة');
+    if (newAd.slot_type !== 'image' && !newAd.ad_code) return toast.error('أدخل كود الإعلان');
+
+    const payload: any = {
+      name: newAd.name,
+      position: newAd.position,
+      slot_type: newAd.slot_type,
+      is_active: true,
+      platform: newAd.platform,
+    };
+
+    if (newAd.slot_type === 'image') {
+      payload.image_url = newAd.image_url;
+      payload.link_url = newAd.link_url || null;
+      payload.ad_code = null;
+    } else {
+      payload.ad_code = newAd.ad_code;
+      payload.image_url = null;
+      payload.link_url = null;
+    }
+
+    const { error } = await supabase.from('ad_slots').insert([payload]);
     if (error) return toast.error('خطأ: ' + error.message);
     toast.success('تمت إضافة الإعلان');
-    setNewAd({ name: '', position: 'home-top', slot_type: 'manual', ad_code: '', is_active: true });
+    setNewAd({ name: '', position: 'home-top', slot_type: 'manual', ad_code: '', is_active: true, image_url: '', link_url: '', platform: 'custom' });
     loadAds();
   };
 
@@ -119,6 +149,16 @@ function AdsManager() {
     await supabase.from('ad_slots').update({ is_active: !active }).eq('id', id);
     loadAds();
   };
+
+  const platforms = [
+    { value: 'custom', label: 'كود يدوي' },
+    { value: 'adsense', label: 'Google AdSense' },
+    { value: 'adsterra', label: 'Adsterra' },
+    { value: 'propellerads', label: 'PropellerAds' },
+    { value: 'monetag', label: 'Monetag' },
+    { value: 'hilltopads', label: 'HilltopAds' },
+    { value: 'other', label: 'منصة أخرى' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -143,6 +183,19 @@ function AdsManager() {
         <h3 className="font-bold text-foreground mb-3">➕ إضافة مساحة إعلانية</h3>
         <div className="space-y-3">
           <Input value={newAd.name} onChange={e => setNewAd({ ...newAd, name: e.target.value })} placeholder="اسم الإعلان" />
+
+          {/* Platform */}
+          <select
+            value={newAd.platform}
+            onChange={e => setNewAd({ ...newAd, platform: e.target.value })}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+          >
+            {platforms.map(p => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
+          </select>
+
+          {/* Position */}
           <select
             value={newAd.position}
             onChange={e => setNewAd({ ...newAd, position: e.target.value })}
@@ -156,21 +209,45 @@ function AdsManager() {
             <option value="duas">صفحة الأدعية</option>
             <option value="stories">صفحة القصص</option>
           </select>
+
+          {/* Ad Type */}
           <select
             value={newAd.slot_type}
             onChange={e => setNewAd({ ...newAd, slot_type: e.target.value })}
             className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
           >
-            <option value="manual">كود يدوي (HTML)</option>
+            <option value="manual">كود HTML/JS (Adsterra, PropellerAds...)</option>
+            <option value="script">كود Script (سكربت خارجي)</option>
             <option value="adsense">Google AdSense</option>
+            <option value="image">صورة + رابط</option>
           </select>
-          <textarea
-            value={newAd.ad_code}
-            onChange={e => setNewAd({ ...newAd, ad_code: e.target.value })}
-            placeholder={newAd.slot_type === 'adsense' ? 'كود وحدة AdSense الإعلانية' : 'كود HTML للإعلان'}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm min-h-[80px]"
-            dir="ltr"
-          />
+
+          {/* Conditional fields */}
+          {newAd.slot_type === 'image' ? (
+            <>
+              <Input
+                value={newAd.image_url}
+                onChange={e => setNewAd({ ...newAd, image_url: e.target.value })}
+                placeholder="رابط الصورة (URL)"
+                dir="ltr"
+              />
+              <Input
+                value={newAd.link_url}
+                onChange={e => setNewAd({ ...newAd, link_url: e.target.value })}
+                placeholder="رابط الإعلان عند الضغط (اختياري)"
+                dir="ltr"
+              />
+            </>
+          ) : (
+            <textarea
+              value={newAd.ad_code}
+              onChange={e => setNewAd({ ...newAd, ad_code: e.target.value })}
+              placeholder="الصق كود الإعلان هنا من المنصة الإعلانية"
+              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm min-h-[100px] font-mono"
+              dir="ltr"
+            />
+          )}
+
           <Button onClick={addAd} className="w-full">
             <Plus className="h-4 w-4 ml-2" /> إضافة
           </Button>
@@ -179,13 +256,18 @@ function AdsManager() {
 
       {/* Ads list */}
       <div className="space-y-2">
-        <h3 className="font-bold text-foreground">📋 الإعلانات الحالية</h3>
+        <h3 className="font-bold text-foreground">📋 الإعلانات الحالية ({ads.length})</h3>
         {ads.length === 0 && <p className="text-sm text-muted-foreground">لا توجد إعلانات بعد</p>}
         {ads.map(ad => (
           <div key={ad.id} className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
+            {ad.slot_type === 'image' && ad.image_url && (
+              <img src={ad.image_url} alt="" className="h-12 w-12 rounded-lg object-cover shrink-0" />
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{ad.name}</p>
-              <p className="text-xs text-muted-foreground">{ad.position} • {ad.slot_type}</p>
+              <p className="text-xs text-muted-foreground">
+                {ad.position} • {ad.slot_type === 'image' ? '🖼️ صورة' : '💻 كود'} • {ad.platform || 'custom'}
+              </p>
             </div>
             <Button
               variant={ad.is_active ? "default" : "outline"}
