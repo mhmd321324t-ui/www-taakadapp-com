@@ -381,7 +381,7 @@ export default function Stories() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className="rounded-2xl bg-card border border-border p-4 cursor-pointer hover:border-primary/30 transition-all"
+                        className="rounded-2xl bg-card border border-border p-5 cursor-pointer hover:border-primary/30 transition-all"
                         onClick={() => openStory(story)}
                       >
                         <div className="flex items-start justify-between mb-2">

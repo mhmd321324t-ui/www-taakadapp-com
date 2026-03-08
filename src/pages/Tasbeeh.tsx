@@ -147,14 +147,14 @@ export default function Tasbeeh() {
               onClick={() => handleSelectDhikr(i)}
               whileTap={{ scale: 0.95 }}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all border min-w-0',
+                'flex flex-col items-center gap-1.5 rounded-2xl p-3.5 transition-all border min-w-0',
                 selected === i
                   ? 'bg-primary text-primary-foreground border-primary shadow-lg glow-emerald'
                   : 'bg-card text-foreground border-border/50 hover:border-primary/30'
               )}
             >
               <span className="text-xl shrink-0">{opt.emoji}</span>
-              <span className="text-[10px] font-medium leading-tight text-center w-full break-words">
+              <span className="text-[10px] font-medium leading-normal text-center w-full break-words">
                 {t(opt.key)}
               </span>
             </motion.button>
@@ -270,13 +270,13 @@ export default function Tasbeeh() {
 
           {/* Stats row */}
           <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-            <div className="rounded-3xl border border-border/50 bg-card p-4 text-center shadow-elevated">
+            <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                 {t('today')}
               </p>
               <p className="text-2xl font-bold text-foreground tabular-nums">{count}</p>
             </div>
-            <div className="rounded-3xl border border-border/50 bg-card p-4 text-center shadow-elevated">
+            <div className="rounded-3xl border border-border/50 bg-card p-5 text-center shadow-elevated">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                 {t('total')}
               </p>

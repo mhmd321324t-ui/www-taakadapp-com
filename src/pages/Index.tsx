@@ -160,15 +160,15 @@ export default function Index() {
             <div className="flex-1">
               <p className="text-sm font-bold text-foreground">أكمل أهداف اليوم</p>
               <div className="flex flex-wrap gap-3 mt-1.5">
-                <span className="flex items-center gap-1.5 text-xs">
+                <span className="flex items-center gap-1.5 text-xs leading-relaxed">
                   <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                   <span className="text-muted-foreground">{prayersDone}/5 الصلاة</span>
                 </span>
-                <span className="flex items-center gap-1.5 text-xs">
+                <span className="flex items-center gap-1.5 text-xs leading-relaxed">
                   <span className="h-2 w-2 rounded-full bg-islamic-teal shrink-0" />
                   <span className="text-muted-foreground">0/1 القرآن</span>
                 </span>
-                <span className="flex items-center gap-1.5 text-xs">
+                <span className="flex items-center gap-1.5 text-xs leading-relaxed">
                   <span className="h-2 w-2 rounded-full bg-accent shrink-0" />
                   <span className="text-muted-foreground">{tasbeehDone}/4 ذكر</span>
                 </span>
@@ -208,7 +208,7 @@ export default function Index() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15, type: 'spring', damping: 20 }}
-            className="rounded-3xl bg-card border border-border/50 p-4 flex items-center justify-center shadow-elevated"
+            className="rounded-3xl bg-card border border-border/50 p-5 flex items-center justify-center shadow-elevated"
           >
             <div className="relative">
               <svg width="120" height="120" viewBox="0 0 120 120">
@@ -281,16 +281,16 @@ export default function Index() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 + i * 0.04 }}
                 className={cn(
-                  'rounded-2xl border p-3 text-center transition-all min-w-0',
+                  'rounded-2xl border p-4 text-center transition-all min-w-0',
                   isNext
                     ? 'border-primary/40 bg-primary/8 shadow-sm glow-emerald'
                     : 'border-border/50 bg-card'
                 )}
               >
-                <p className={cn('text-xs mb-0.5 truncate', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
-                  {t(prayer.key)}
-                </p>
-                <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
+              <p className={cn('text-xs mb-1 truncate leading-relaxed', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
+                {t(prayer.key)}
+              </p>
+              <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
                   {prayer.time}
                 </p>
               </motion.div>
