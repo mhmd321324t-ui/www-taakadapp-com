@@ -2,22 +2,22 @@ import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import {
-  Compass, Heart, Calendar, Calculator, Settings, HelpCircle, User,
-  LogIn, LogOut, Moon
+  Compass, Heart, Calculator, User,
+  LogIn, LogOut, Moon, BookOpen, Clock, CheckCircle2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const features = [
-  { icon: Compass, label: 'اتجاه القبلة', path: '/qibla', bg: 'bg-green-500' },
-  { icon: Heart, label: 'عداد التسبيح', path: '/tasbeeh', bg: 'bg-cyan-400' },
-  { icon: Calendar, label: 'التقويم الهجري', path: '/calendar', bg: 'bg-blue-500' },
-  { icon: Moon, label: 'أسماء الله', path: '/duas', bg: 'bg-purple-500' },
-  { icon: Calculator, label: 'حاسبة الزكاة', path: '/zakat', bg: 'bg-green-600' },
-  { icon: Settings, label: 'إعدادات التطبيق', path: '/more', bg: 'bg-gray-400' },
-  { icon: HelpCircle, label: 'مساعدة', path: '/more', bg: 'bg-teal-500' },
-  { icon: User, label: 'ملف المستخدم', path: '/auth', bg: 'bg-blue-600' },
+  { icon: Compass, label: 'اتجاه القبلة', path: '/qibla', bg: 'bg-primary' },
+  { icon: Heart, label: 'عداد التسبيح', path: '/tasbeeh', bg: 'bg-primary' },
+  { icon: Clock, label: 'مواقيت الصلاة', path: '/prayer-times', bg: 'bg-primary' },
+  { icon: BookOpen, label: 'القرآن', path: '/quran', bg: 'bg-primary' },
+  { icon: Moon, label: 'الأدعية', path: '/duas', bg: 'bg-primary' },
+  { icon: Calculator, label: 'حاسبة الزكاة', path: '/zakat', bg: 'bg-primary' },
+  { icon: CheckCircle2, label: 'متابعة الصلاة', path: '/tracker', bg: 'bg-primary' },
+  { icon: User, label: 'حسابي', path: '/auth', bg: 'bg-primary' },
 ];
 
 export default function More() {
@@ -81,7 +81,7 @@ export default function More() {
                   className="flex flex-col items-center gap-2"
                 >
                   <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center', item.bg)}>
-                    <item.icon className="h-6 w-6 text-white" />
+                    <item.icon className="h-6 w-6 text-primary-foreground" />
                   </div>
                   <span className="text-[10px] font-medium text-foreground text-center leading-tight">
                     {item.label}

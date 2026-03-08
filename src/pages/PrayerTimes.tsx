@@ -4,6 +4,7 @@ import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { Clock, Sun, Sunrise, Sunset, Moon, CloudSun, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const prayerIcons: Record<string, React.ReactNode> = {
   fajr: <Sunrise className="h-6 w-6" />,
@@ -28,6 +29,24 @@ export default function PrayerTimes() {
   const dayName = today.toLocaleDateString('ar-EG', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  const handleShare = async () => {
+    const prayerText = prayers
+      .map(p => `${t(p.key)}: ${p.time}`)
+      .join('\n');
+    const shareText = `🕌 مواقيت الصلاة - ${location.city || ''}\n${dayName}، ${dateStr}\n${hijriDate}\n\n${prayerText}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'مواقيت الصلاة', text: shareText });
+      } catch {
+        // User cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      toast.success('تم نسخ مواقيت الصلاة');
+    }
+  };
+
   return (
     <div className="min-h-screen pb-safe" dir="rtl">
       {/* Header */}
@@ -38,7 +57,7 @@ export default function PrayerTimes() {
       {/* Date + share */}
       <div className="px-5 mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{dayName}، {dateStr}</p>
-        <button className="p-2">
+        <button className="p-2" onClick={handleShare}>
           <Share2 className="h-5 w-5 text-muted-foreground" />
         </button>
       </div>
@@ -66,7 +85,6 @@ export default function PrayerTimes() {
                 )}
               >
                 <div className="flex items-center gap-3">
-                  {/* Athan bell indicator */}
                   <div className={cn(
                     'flex items-center justify-center',
                     isNext ? 'text-primary' : 'text-primary'
@@ -107,36 +125,17 @@ export default function PrayerTimes() {
         )}
       </div>
 
-      {/* Calculation method info */}
+      {/* Location info */}
       <div className="px-5 mt-4 mb-8">
-        <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
+        <div className="rounded-2xl bg-card border border-border p-4">
           <div className="flex items-center justify-between">
-            <ChevronBtn />
             <div className="text-right">
-              <p className="text-sm font-bold text-foreground">المذهب الفقهي</p>
-              <p className="text-xs text-muted-foreground">الشافعي / المالكي / حنبلي</p>
-            </div>
-          </div>
-          <div className="border-t border-border" />
-          <div className="flex items-center justify-between">
-            <ChevronBtn />
-            <div className="text-right">
-              <p className="text-sm font-bold text-foreground">طريقة الحساب</p>
-              <p className="text-xs text-muted-foreground">رابطة العالم الإسلامي</p>
+              <p className="text-sm font-bold text-foreground">📍 {location.city || '...'}</p>
+              <p className="text-xs text-muted-foreground">{location.country || ''} • {hijriDate}</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ChevronBtn() {
-  return (
-    <div className="h-8 w-8 rounded-full border border-border flex items-center justify-center">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M8 2L4 6L8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
     </div>
   );
 }

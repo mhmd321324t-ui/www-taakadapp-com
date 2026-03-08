@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
+import { useAuth } from '@/hooks/useAuth';
 import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import HijriCalendar from '@/components/HijriCalendar';
@@ -21,6 +22,7 @@ const quickAccessItems = [
 
 export default function Index() {
   const { t, isRTL } = useLocale();
+  const { user } = useAuth();
   const location = useGeoLocation();
   const { prayers, hijriDate, hijriDay, hijriMonthNumber, hijriYear, loading } = usePrayerTimes(
     location.latitude,
@@ -32,6 +34,23 @@ export default function Index() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     return localStorage.getItem('athan-notifications') === 'true';
   });
+
+  // Load real daily goals
+  const [prayersDone, setPrayersDone] = useState(0);
+  const [tasbeehDone, setTasbeehDone] = useState(0);
+
+  useEffect(() => {
+    const todayKey = new Date().toISOString().split('T')[0];
+    // Prayer tracker
+    const prayerData = localStorage.getItem('prayer-tracker');
+    if (prayerData) {
+      const parsed = JSON.parse(prayerData);
+      setPrayersDone(parsed[todayKey]?.length || 0);
+    }
+    // Tasbeeh - count completed dhikr types
+    const tasbeehTotal = parseInt(localStorage.getItem('tasbeeh-total') || '0');
+    setTasbeehDone(Math.min(tasbeehTotal > 0 ? 1 : 0, 4));
+  }, []);
 
   // Countdown circle progress
   const [progress, setProgress] = useState(0);
@@ -123,7 +142,7 @@ export default function Index() {
               <div className="flex gap-3 mt-1">
                 <span className="flex items-center gap-1 text-[10px]">
                   <span className="h-2 w-2 rounded-full bg-primary" />
-                  <span className="text-muted-foreground">1/5 الصلاة</span>
+                  <span className="text-muted-foreground">{prayersDone}/5 الصلاة</span>
                 </span>
                 <span className="flex items-center gap-1 text-[10px]">
                   <span className="h-2 w-2 rounded-full bg-islamic-teal" />
@@ -131,16 +150,16 @@ export default function Index() {
                 </span>
                 <span className="flex items-center gap-1 text-[10px]">
                   <span className="h-2 w-2 rounded-full bg-islamic-gold" />
-                  <span className="text-muted-foreground">0/4 ذكر</span>
+                  <span className="text-muted-foreground">{tasbeehDone}/4 ذكر</span>
                 </span>
               </div>
             </div>
           </div>
           <Link
-            to="/prayer-tracker"
+            to="/tracker"
             className="block w-full text-center rounded-xl bg-primary text-primary-foreground py-2.5 text-sm font-semibold"
           >
-            افحص ملفك الشخصي
+            متابعة الصلاة اليوم
           </Link>
         </motion.div>
       </div>
