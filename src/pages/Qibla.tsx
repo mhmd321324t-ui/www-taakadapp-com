@@ -162,11 +162,24 @@ export default function Qibla() {
       {/* Header */}
       <div className="gradient-islamic relative px-5 pb-16 pt-12">
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => setShowInstructions(!showInstructions)}
-            className="glass-card rounded-full p-2.5"
-          >
-            <Info className="h-5 w-5 text-white/80" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowInstructions(!showInstructions)}
+              className="glass-card rounded-full p-2.5"
+            >
+              <Info className="h-5 w-5 text-white/80" />
+            </button>
+            <button
+              onClick={() => setViewMode(viewMode === 'compass' ? 'map' : 'compass')}
+              className="glass-card rounded-full p-2.5"
+            >
+              {viewMode === 'compass' ? (
+                <Map className="h-5 w-5 text-white/80" />
+              ) : (
+                <Compass className="h-5 w-5 text-white/80" />
+              )}
+            </button>
+          </div>
           </button>
           <div className="text-right">
             <h1 className="text-2xl font-bold text-white">{t('qibla')}</h1>
