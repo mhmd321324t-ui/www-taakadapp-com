@@ -116,7 +116,7 @@ export default function Quran() {
   const bookmarkedSurahs = surahs.filter(s => bookmarks.includes(s.number));
 
   return (
-    <div className="min-h-screen pb-safe" dir="rtl">
+    <div className="min-h-screen pb-24" dir="rtl">
       {/* Header */}
       <div className="px-5 pt-12 pb-3 flex items-center justify-between">
         <div className="flex gap-3">

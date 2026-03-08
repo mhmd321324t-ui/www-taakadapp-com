@@ -91,7 +91,7 @@ export default function SurahView() {
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24" dir="rtl">
       <div className="gradient-islamic px-5 pb-6 pt-12">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
