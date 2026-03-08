@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { PrayerTime } from './usePrayerTimes';
+import { schedulePrayerNotifications } from '@/lib/prayerNotifications';
 
 /**
  * Request notification permission
@@ -13,81 +14,20 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 /**
- * Send a browser notification
- */
-function sendNotification(title: string, body: string) {
-  if (Notification.permission !== 'granted') return;
-  
-  const notification = new Notification(title, {
-    body,
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
-    tag: 'athan-notification',
-    requireInteraction: true,
-    silent: false,
-  });
-
-  // Auto close after 30 seconds
-  setTimeout(() => notification.close(), 30000);
-}
-
-/**
- * Hook: monitors prayer times and sends notifications at athan time
+ * Hook: monitors prayer times and sends notifications via Service Worker
  */
 export function useAthanNotifications(prayers: PrayerTime[], enabled: boolean = true) {
-  const notifiedRef = useRef<Set<string>>(new Set());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const checkPrayerTimes = useCallback(() => {
-    if (!enabled || prayers.length === 0) return;
-
-    const now = new Date();
-    const currentH = now.getHours();
-    const currentM = now.getMinutes();
-    const todayKey = now.toISOString().split('T')[0];
-
-    for (const prayer of prayers) {
-      if (prayer.key === 'sunrise') continue;
-
-      const [h, m] = prayer.time24.split(':').map(Number);
-
-      // Notify at exact prayer time (within 1 minute window)
-      if (currentH === h && currentM === m) {
-        const notifKey = `${todayKey}-${prayer.key}`;
-        if (!notifiedRef.current.has(notifKey)) {
-          notifiedRef.current.add(notifKey);
-
-          const prayerNames: Record<string, string> = {
-            fajr: '🌅 الفجر - Fajr',
-            dhuhr: '🌞 الظهر - Dhuhr',
-            asr: '🌤️ العصر - Asr',
-            maghrib: '🌅 المغرب - Maghrib',
-            isha: '🌙 العشاء - Isha',
-          };
-
-          sendNotification(
-            'حان وقت الصلاة 🕌',
-            `${prayerNames[prayer.key] || prayer.key} - ${prayer.time}`
-          );
-        }
-      }
-    }
-
-    // Reset notifications at midnight
-    if (currentH === 0 && currentM === 0) {
-      notifiedRef.current.clear();
-    }
-  }, [prayers, enabled]);
+  const scheduledRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || prayers.length === 0) return;
+    if (scheduledRef.current) return;
 
-    // Check every 30 seconds
-    checkPrayerTimes();
-    intervalRef.current = setInterval(checkPrayerTimes, 30000);
+    scheduledRef.current = true;
+    schedulePrayerNotifications(prayers);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      scheduledRef.current = false;
     };
-  }, [checkPrayerTimes, enabled]);
+  }, [prayers, enabled]);
 }
