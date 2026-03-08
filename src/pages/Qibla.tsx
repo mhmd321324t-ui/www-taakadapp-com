@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
-import { MapPin, AlertTriangle, RotateCcw, Smartphone, Info } from 'lucide-react';
+import { MapPin, AlertTriangle, RotateCcw, Smartphone, Info, Map, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import QiblaMap from '@/components/QiblaMap';
 
 function calculateQiblaDirection(lat: number, lng: number): number {
   const makkahLat = 21.4225 * (Math.PI / 180);
