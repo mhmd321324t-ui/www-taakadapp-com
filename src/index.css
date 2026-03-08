@@ -66,22 +66,22 @@
   .dark {
     /* 2030 Futuristic Islamic — Dark: obsidian + neon emerald + gold */
     --background: 160 18% 5%;
-    --foreground: 40 15% 90%;
+    --foreground: 40 15% 93%;
 
-    --card: 160 15% 8%;
-    --card-foreground: 40 15% 90%;
+    --card: 160 12% 10%;
+    --card-foreground: 40 15% 93%;
 
-    --popover: 160 15% 8%;
-    --popover-foreground: 40 15% 90%;
+    --popover: 160 12% 10%;
+    --popover-foreground: 40 15% 93%;
 
     --primary: 155 65% 42%;
     --primary-foreground: 160 20% 5%;
 
     --secondary: 160 12% 12%;
-    --secondary-foreground: 40 15% 70%;
+    --secondary-foreground: 40 15% 78%;
 
-    --muted: 160 10% 11%;
-    --muted-foreground: 40 10% 50%;
+    --muted: 160 10% 14%;
+    --muted-foreground: 40 12% 60%;
 
     --accent: 42 80% 52%;
     --accent-foreground: 35 50% 8%;
@@ -89,8 +89,8 @@
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 160 12% 14%;
-    --input: 160 12% 14%;
+    --border: 160 12% 18%;
+    --input: 160 12% 18%;
     --ring: 155 65% 42%;
 
     --islamic-green: 155 60% 40%;
