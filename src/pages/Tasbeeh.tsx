@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { RotateCcw, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { RotateCcw, LogIn, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
 const dhikrOptions = [
-  { key: 'subhanAllah', arabic: 'سُبْحَانَ اللّهِ', target: 33 },
-  { key: 'alhamdulillah', arabic: 'الْحَمْدُ لِلّهِ', target: 33 },
-  { key: 'allahuAkbar', arabic: 'اللّهُ أَكْبَرُ', target: 34 },
-  { key: 'istighfar', arabic: 'أَسْتَغْفِرُ اللّهَ', target: 100 },
+  { key: 'subhanAllah', arabic: 'سُبْحَانَ اللّهِ', target: 33, emoji: '📿' },
+  { key: 'alhamdulillah', arabic: 'الْحَمْدُ لِلّهِ', target: 33, emoji: '🤲' },
+  { key: 'allahuAkbar', arabic: 'اللّهُ أَكْبَرُ', target: 34, emoji: '🕌' },
+  { key: 'istighfar', arabic: 'أَسْتَغْفِرُ اللّهَ', target: 100, emoji: '💚' },
 ];
 
 function getTodayKey() {
@@ -26,11 +25,11 @@ export default function Tasbeeh() {
   const [count, setCount] = useState(0);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showComplete, setShowComplete] = useState(false);
 
   const dhikr = dhikrOptions[selected];
   const today = getTodayKey();
 
-  // Load data
   useEffect(() => {
     if (user) {
       loadFromDB();
@@ -45,8 +44,6 @@ export default function Tasbeeh() {
   const loadFromDB = async () => {
     if (!user) return;
     setLoading(true);
-
-    // Get today's count for selected dhikr
     const { data: todayData } = await supabase
       .from('tasbeeh_counts')
       .select('count, total')
@@ -55,7 +52,6 @@ export default function Tasbeeh() {
       .eq('date', today)
       .maybeSingle();
 
-    // Get overall total
     const { data: totalData } = await supabase
       .from('tasbeeh_counts')
       .select('total')
@@ -63,7 +59,6 @@ export default function Tasbeeh() {
       .eq('dhikr_key', dhikr.key);
 
     const overallTotal = totalData?.reduce((sum, row) => sum + (row.total || 0), 0) || 0;
-
     setCount(todayData?.count || 0);
     setTotal(overallTotal);
     setLoading(false);
@@ -76,6 +71,13 @@ export default function Tasbeeh() {
     setTotal(newTotal);
 
     if (navigator.vibrate) navigator.vibrate(30);
+
+    // Show completion animation
+    if (newCount === dhikr.target) {
+      setShowComplete(true);
+      if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+      setTimeout(() => setShowComplete(false), 2000);
+    }
 
     if (user) {
       await supabase
@@ -107,91 +109,191 @@ export default function Tasbeeh() {
   };
 
   const progress = Math.min((count / dhikr.target) * 100, 100);
+  const circumference = 2 * Math.PI * 92;
+  const isComplete = count >= dhikr.target;
 
   return (
-    <div className="min-h-screen">
-      <div className="gradient-islamic px-5 pb-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary-foreground">{t('tasbeeh')}</h1>
-        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
+    <div className="min-h-screen pb-safe" dir="rtl">
+      {/* Header */}
+      <div className="gradient-islamic relative px-5 pb-16 pt-12">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleReset}
+            className="glass-card rounded-full p-2.5 transition-transform active:scale-90"
+          >
+            <RotateCcw className="h-5 w-5 text-white/80" />
+          </button>
+          <h1 className="text-2xl font-bold text-white">{t('tasbeeh')}</h1>
+        </div>
+        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>
 
-      <div className="px-5 pt-4">
+      <div className="px-5 -mt-2">
         {!user && (
           <Link
             to="/auth"
-            className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 mb-4 text-sm"
+            className="flex items-center justify-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3 mb-5 text-sm"
           >
+            <span className="text-primary font-medium">{t('loginPrompt')}</span>
             <LogIn className="h-4 w-4 text-primary" />
-            <span className="text-primary">{t('loginPrompt')}</span>
           </Link>
         )}
 
-        {/* Dhikr selector */}
-        <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide">
+        {/* Dhikr selector cards */}
+        <div className="grid grid-cols-4 gap-2 mb-8">
           {dhikrOptions.map((opt, i) => (
-            <button
+            <motion.button
               key={opt.key}
               onClick={() => handleSelectDhikr(i)}
+              whileTap={{ scale: 0.95 }}
               className={cn(
-                'whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
+                'flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all border',
                 selected === i
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
+                  : 'bg-card text-foreground border-border hover:border-primary/30'
               )}
             >
-              {t(opt.key)}
-            </button>
+              <span className="text-xl">{opt.emoji}</span>
+              <span className="text-[10px] font-medium leading-tight text-center">
+                {t(opt.key)}
+              </span>
+            </motion.button>
           ))}
         </div>
 
-        {/* Counter */}
+        {/* Main counter area */}
         <div className="flex flex-col items-center">
-          <p className="text-3xl font-arabic text-foreground mb-8">{dhikr.arabic}</p>
+          {/* Arabic text */}
+          <motion.p
+            key={selected}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-arabic text-foreground mb-6"
+          >
+            {dhikr.arabic}
+          </motion.p>
 
           {/* Circular counter */}
-          <div className="relative mb-6">
-            <svg className="w-56 h-56 -rotate-90" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="90" fill="none" className="stroke-muted" strokeWidth="6" />
+          <div className="relative mb-8">
+            {/* Outer glow ring on completion */}
+            <AnimatePresence>
+              {showComplete && (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1.05, opacity: 1 }}
+                  exit={{ scale: 1.1, opacity: 0 }}
+                  className="absolute inset-0 rounded-full border-4 border-primary/40"
+                  style={{ filter: 'blur(8px)' }}
+                />
+              )}
+            </AnimatePresence>
+
+            <svg className="w-64 h-64 -rotate-90" viewBox="0 0 200 200">
+              {/* Background track */}
               <circle
-                cx="100" cy="100" r="90" fill="none"
-                className="stroke-primary transition-all duration-300"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 90}`}
-                strokeDashoffset={`${2 * Math.PI * 90 * (1 - progress / 100)}`}
+                cx="100" cy="100" r="92"
+                fill="none"
+                className="stroke-muted"
+                strokeWidth="5"
               />
+              {/* Subtle inner ring */}
+              <circle
+                cx="100" cy="100" r="82"
+                fill="none"
+                className="stroke-muted/30"
+                strokeWidth="1"
+              />
+              {/* Progress arc */}
+              <motion.circle
+                cx="100" cy="100" r="92"
+                fill="none"
+                className={cn(
+                  'transition-colors duration-500',
+                  isComplete ? 'stroke-[hsl(var(--islamic-gold))]' : 'stroke-primary'
+                )}
+                strokeWidth="5"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                initial={false}
+                animate={{
+                  strokeDashoffset: circumference * (1 - progress / 100),
+                }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              />
+              {/* Progress dot */}
+              {count > 0 && (
+                <circle
+                  cx={100 + 92 * Math.cos((progress / 100) * 2 * Math.PI - Math.PI / 2)}
+                  cy={100 + 92 * Math.sin((progress / 100) * 2 * Math.PI - Math.PI / 2)}
+                  r="4"
+                  className={cn(
+                    isComplete ? 'fill-[hsl(var(--islamic-gold))]' : 'fill-primary'
+                  )}
+                />
+              )}
             </svg>
+
+            {/* Tap area */}
             <motion.button
-              className="absolute inset-0 flex flex-col items-center justify-center"
+              className="absolute inset-0 flex flex-col items-center justify-center rounded-full active:bg-primary/5 transition-colors"
               onClick={handleTap}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.97 }}
             >
               <AnimatePresence mode="popLayout">
-                <motion.span
-                  key={count}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -20, opacity: 0 }}
-                  className="text-5xl font-bold text-foreground"
-                >
-                  {count}
-                </motion.span>
+                {showComplete ? (
+                  <motion.div
+                    key="complete"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0 }}
+                    className="flex flex-col items-center gap-1"
+                  >
+                    <Sparkles className="h-10 w-10 text-[hsl(var(--islamic-gold))]" />
+                    <span className="text-sm font-bold text-[hsl(var(--islamic-gold))]">
+                      {t('completed')}!
+                    </span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="counter"
+                    className="flex flex-col items-center"
+                  >
+                    <motion.span
+                      key={count}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      className="text-6xl font-bold text-foreground tabular-nums"
+                    >
+                      {count}
+                    </motion.span>
+                    <span className="text-sm text-muted-foreground mt-1">/ {dhikr.target}</span>
+                  </motion.div>
+                )}
               </AnimatePresence>
-              <span className="text-sm text-muted-foreground">/ {dhikr.target}</span>
             </motion.button>
           </div>
 
-          {/* Reset */}
-          <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 mb-6">
-            <RotateCcw className="h-4 w-4" />
-            {t('reset')}
-          </Button>
-
-          {/* Total */}
-          <div className="rounded-xl border border-border bg-card p-4 text-center w-full max-w-xs">
-            <p className="text-xs text-muted-foreground">{t('total')}</p>
-            <p className="text-2xl font-bold text-foreground">{total.toLocaleString()}</p>
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                {t('today')}
+              </p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{count}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                {t('total')}
+              </p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">
+                {total.toLocaleString()}
+              </p>
+            </div>
           </div>
+
+          {/* Reset hint */}
+          <p className="text-[10px] text-muted-foreground mt-6">{t('tasbeeh')} — {t('count')}</p>
         </div>
       </div>
     </div>
