@@ -200,7 +200,7 @@ export default function Qibla() {
               exit={{ opacity: 0, height: 0 }}
               className="w-full max-w-sm mb-5 overflow-hidden"
             >
-              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-4">
                 <div className="flex items-center gap-2 justify-end">
                   <h3 className="font-bold text-foreground text-base">📋 كيف تستخدم البوصلة</h3>
                 </div>
