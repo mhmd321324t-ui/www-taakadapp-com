@@ -301,11 +301,11 @@ export default function ZakatCalculator() {
 
         {/* Action buttons */}
         <div className="flex gap-3">
-          <Button onClick={calculate} className="flex-1 rounded-xl gap-2 h-12">
+          <Button onClick={calculate} className="flex-1 rounded-2xl gap-2 h-12 font-bold">
             <Calculator className="h-4 w-4" />
             {t('calculateZakat')}
           </Button>
-          <Button variant="outline" onClick={resetAll} className="rounded-xl h-12 px-4">
+          <Button variant="outline" onClick={resetAll} className="rounded-2xl h-12 px-4 border-border/50">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
