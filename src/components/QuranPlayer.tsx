@@ -1,11 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
-  Play, Pause, SkipForward, SkipBack, Repeat, Repeat1,
-  X, ChevronDown, Search, Volume2, Moon
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Repeat,
+  Repeat1,
+  X,
+  ChevronDown,
+  Search,
+  Volume2,
+  Moon,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { normalizeArabicForSearch } from '@/lib/arabicNormalize';
 
 interface Surah {
   number: number;
@@ -14,47 +25,52 @@ interface Surah {
   numberOfAyahs: number;
 }
 
-// Reciters using mp3quran.net CDN (reliable full-surah audio)
-// Format: https://server{X}.mp3quran.net/{folder}/{surah_number_padded}.mp3
+// Curated working servers (mp3quran) — must point to folders that contain 001.mp3 ... 114.mp3
 const RECITERS = [
-  { id: 'alafasy', name: 'مشاري العفاسي', server: 'https://server8.mp3quran.net/afs' },
-  { id: 'sudais', name: 'عبد الرحمن السديس', server: 'https://server11.mp3quran.net/sds' },
-  { id: 'shuraym', name: 'سعود الشريم', server: 'https://server7.mp3quran.net/shur' },
-  { id: 'abdulbasit', name: 'عبد الباسط عبد الصمد', server: 'https://server7.mp3quran.net/basit/Almusshaf-Al-Mojawwad' },
-  { id: 'husary', name: 'محمود خليل الحصري', server: 'https://server13.mp3quran.net/husr' },
-  { id: 'minshawi', name: 'محمد صديق المنشاوي', server: 'https://server10.mp3quran.net/minsh' },
-  { id: 'ajamy', name: 'أحمد بن علي العجمي', server: 'https://server10.mp3quran.net/ajm' },
-  { id: 'maher', name: 'ماهر المعيقلي', server: 'https://server12.mp3quran.net/maher' },
-  { id: 'hani', name: 'هاني الرفاعي', server: 'https://server9.mp3quran.net/hani' },
-  { id: 'ayyoub', name: 'محمد أيوب', server: 'https://server8.mp3quran.net/ayyub' },
-  { id: 'shaatri', name: 'أبو بكر الشاطري', server: 'https://server11.mp3quran.net/shatri' },
-  { id: 'hudhaify', name: 'علي بن عبدالرحمن الحذيفي', server: 'https://server11.mp3quran.net/hthfi' },
-  { id: 'tablawi', name: 'محمد الطبلاوي', server: 'https://server8.mp3quran.net/tblawi' },
-  { id: 'yasser', name: 'ياسر الدوسري', server: 'https://server11.mp3quran.net/yasser' },
-  { id: 'nasser', name: 'ناصر القطامي', server: 'https://server6.mp3quran.net/qtm' },
-  { id: 'banna', name: 'محمود علي البنا', server: 'https://server8.mp3quran.net/bna' },
-  { id: 'fares', name: 'فارس عباد', server: 'https://server8.mp3quran.net/frs_a' },
-  { id: 'ghamdi', name: 'سعد الغامدي', server: 'https://server7.mp3quran.net/s_gmd' },
-  { id: 'bukhatir', name: 'أحمد بن خاطر', server: 'https://server13.mp3quran.net/bukhtr' },
-  { id: 'juhany', name: 'عبدالله الجهني', server: 'https://server11.mp3quran.net/a_jhn' },
-];
+  { id: 'alafasy', name: 'مشاري العفاسي', server: 'https://server8.mp3quran.net/afs/' },
+  { id: 'sudais', name: 'عبد الرحمن السديس', server: 'https://server11.mp3quran.net/sds/' },
+  { id: 'shuraym', name: 'سعود الشريم', server: 'https://server7.mp3quran.net/shur/' },
+  { id: 'abdulbasit', name: 'عبد الباسط عبد الصمد', server: 'https://server7.mp3quran.net/basit/Almusshaf-Al-Mojawwad/' },
+  { id: 'husary', name: 'محمود خليل الحصري', server: 'https://server13.mp3quran.net/husr/' },
+  { id: 'minshawi', name: 'محمد صديق المنشاوي', server: 'https://server10.mp3quran.net/minsh/' },
+  { id: 'ajamy', name: 'أحمد بن علي العجمي', server: 'https://server10.mp3quran.net/ajm/' },
+  { id: 'maher', name: 'ماهر المعيقلي', server: 'https://server12.mp3quran.net/maher/' },
+  { id: 'hani', name: 'هاني الرفاعي', server: 'https://server9.mp3quran.net/hani/' },
+  { id: 'ayyoub', name: 'محمد أيوب', server: 'https://server8.mp3quran.net/ayyub/' },
+  { id: 'shaatri', name: 'أبو بكر الشاطري', server: 'https://server11.mp3quran.net/shatri/' },
+  { id: 'hudhaify', name: 'علي بن عبدالرحمن الحذيفي', server: 'https://server11.mp3quran.net/hthfi/' },
+  { id: 'tablawi', name: 'محمد الطبلاوي', server: 'https://server8.mp3quran.net/tblawi/' },
+  { id: 'yasser', name: 'ياسر الدوسري', server: 'https://server11.mp3quran.net/yasser/' },
+  { id: 'nasser', name: 'ناصر القطامي', server: 'https://server6.mp3quran.net/qtm/' },
+  { id: 'banna', name: 'محمود علي البنا', server: 'https://server8.mp3quran.net/bna/' },
+  { id: 'fares', name: 'فارس عباد', server: 'https://server8.mp3quran.net/frs_a/' },
+  { id: 'ghamdi', name: 'سعد الغامدي', server: 'https://server7.mp3quran.net/s_gmd/' },
+  { id: 'bukhatir', name: 'أحمد بن خاطر', server: 'https://server13.mp3quran.net/bukhtr/' },
+  { id: 'juhany', name: 'عبدالله الجهني', server: 'https://server11.mp3quran.net/a_jhn/' },
+] as const;
 
+type ReciterId = (typeof RECITERS)[number]['id'];
 type RepeatMode = 'none' | 'one' | 'all';
 
-// Strip Arabic diacritics for search
-const stripTashkeel = (str: string) =>
-  str.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0890\u0891\u08D3-\u08FF\u0640]/g, '')
-     .replace(/[ٱإأآ]/g, 'ا')
-     .replace(/ة/g, 'ه')
-     .replace(/ى/g, 'ي')
-     .trim();
+function getReciterById(id: string) {
+  return RECITERS.find(r => r.id === id) || RECITERS[0];
+}
+
+function getSurahAudioUrl({ surahNumber, reciterId }: { surahNumber: number; reciterId: string }) {
+  const rec = getReciterById(reciterId);
+  const padded = String(surahNumber).padStart(3, '0');
+  return `${rec.server}${padded}.mp3`;
+}
 
 export default function QuranPlayer() {
   const [isOpen, setIsOpen] = useState(false);
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [search, setSearch] = useState('');
   const [selectedSurah, setSelectedSurah] = useState<number | null>(null);
-  const [reciter, setReciter] = useState(() => localStorage.getItem('quran-reciter') || RECITERS[0].id);
+  const [reciter, setReciter] = useState<ReciterId>(() => {
+    const saved = localStorage.getItem('quran-reciter');
+    return (saved as ReciterId) || RECITERS[0].id;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('none');
   const [loading, setLoading] = useState(false);
@@ -62,8 +78,26 @@ export default function QuranPlayer() {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const progressInterval = useRef<ReturnType<typeof setInterval>>();
+
+  // Stable audio element (do NOT replace the Audio object; just change src)
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
+
+  // Keep latest state for event handlers
+  const selectedSurahRef = useRef<number | null>(null);
+  const repeatModeRef = useRef<RepeatMode>('none');
+  const reciterRef = useRef<ReciterId>(reciter);
+
+  useEffect(() => {
+    selectedSurahRef.current = selectedSurah;
+  }, [selectedSurah]);
+
+  useEffect(() => {
+    repeatModeRef.current = repeatMode;
+  }, [repeatMode]);
+
+  useEffect(() => {
+    reciterRef.current = reciter;
+  }, [reciter]);
 
   // Load surahs list
   useEffect(() => {
@@ -73,140 +107,196 @@ export default function QuranPlayer() {
       .catch(() => {});
   }, []);
 
-  const normalizedSearch = stripTashkeel(search);
-  const filteredSurahs = surahs.filter(s => {
-    if (!search) return true;
-    return stripTashkeel(s.name).includes(normalizedSearch) ||
-      s.englishName.toLowerCase().includes(search.toLowerCase()) ||
-      String(s.number) === search.trim();
-  });
-
-  const getReciter = (id: string) => RECITERS.find(r => r.id === id) || RECITERS[0];
-
-  const getAudioUrl = (surahNum: number, reciterId: string) => {
-    const rec = getReciter(reciterId);
-    const padded = String(surahNum).padStart(3, '0');
-    return `${rec.server}/${padded}.mp3`;
-  };
-
-  const playSurah = useCallback((surahNum: number, reciterId?: string) => {
-    const rid = reciterId || reciter;
-    setSelectedSurah(surahNum);
-    setLoading(true);
-    setShowSurahList(false);
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-    }
-
-    const audio = new Audio(getAudioUrl(surahNum, rid));
-    audioRef.current = audio;
-
-    audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
-      setLoading(false);
-    });
-
-    audio.addEventListener('canplay', () => {
-      audio.play();
-      setIsPlaying(true);
-      setLoading(false);
-    }, { once: true });
-
-    audio.addEventListener('error', () => {
-      setLoading(false);
-      setIsPlaying(false);
-    });
-
-    // Progress tracking
-    if (progressInterval.current) clearInterval(progressInterval.current);
-    progressInterval.current = setInterval(() => {
-      if (audio && !audio.paused) {
-        setCurrentTime(audio.currentTime);
-        setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
-      }
-    }, 500);
-  }, [reciter]);
-
-  // Handle ended event
+  // Attach audio listeners once
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    audio.preload = 'auto';
 
-    const handleEnded = () => {
-      if (repeatMode === 'one' && selectedSurah) {
-        playSurah(selectedSurah);
-      } else if (repeatMode === 'all' && selectedSurah) {
-        const nextSurah = selectedSurah >= 114 ? 1 : selectedSurah + 1;
-        playSurah(nextSurah);
-      } else if (repeatMode === 'none' && selectedSurah) {
-        if (selectedSurah < 114) {
-          playSurah(selectedSurah + 1);
-        } else {
-          setIsPlaying(false);
-        }
+    const onLoadedMetadata = () => {
+      setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+      setLoading(false);
+    };
+
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime || 0);
+      setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
+    };
+
+    const onEnded = () => {
+      const current = selectedSurahRef.current;
+      const mode = repeatModeRef.current;
+      const rid = reciterRef.current;
+
+      if (!current) {
+        setIsPlaying(false);
+        return;
+      }
+
+      if (mode === 'one') {
+        void startSurah(current, rid, { autoplay: true, silentErrors: true });
+        return;
+      }
+
+      if (mode === 'all') {
+        const next = current >= 114 ? 1 : current + 1;
+        void startSurah(next, rid, { autoplay: true, silentErrors: true });
+        return;
+      }
+
+      // none: auto-next to help "sleep listening"
+      if (current < 114) {
+        void startSurah(current + 1, rid, { autoplay: true, silentErrors: true });
+      } else {
+        setIsPlaying(false);
       }
     };
 
-    audio.addEventListener('ended', handleEnded);
-    return () => audio.removeEventListener('ended', handleEnded);
-  }, [repeatMode, selectedSurah, playSurah]);
-
-  // Auto-switch when reciter changes while a surah is playing
-  const handleReciterChange = (newReciterId: string) => {
-    setReciter(newReciterId);
-    localStorage.setItem('quran-reciter', newReciterId);
-    if (selectedSurah) {
-      playSurah(selectedSurah, newReciterId);
-    }
-  };
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
+    const onError = () => {
+      setLoading(false);
       setIsPlaying(false);
-    } else {
-      audioRef.current.play();
+      toast.error('تعذر تشغيل الصوت لهذا القارئ/السورة');
+    };
+
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('error', onError);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('error', onError);
+      audio.pause();
+      audio.src = '';
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const normalizedQuery = useMemo(() => normalizeArabicForSearch(search), [search]);
+
+  const filteredSurahs = useMemo(() => {
+    if (!search.trim()) return surahs;
+
+    return surahs.filter(s => {
+      if (String(s.number) === search.trim()) return true;
+      const nameNorm = normalizeArabicForSearch(s.name);
+      const engNorm = normalizeArabicForSearch(s.englishName);
+      return nameNorm.includes(normalizedQuery) || engNorm.includes(normalizedQuery);
+    });
+  }, [surahs, search, normalizedQuery]);
+
+  async function startSurah(
+    surahNumber: number,
+    reciterId: string,
+    opts: { autoplay: boolean; silentErrors?: boolean }
+  ) {
+    const audio = audioRef.current;
+
+    setSelectedSurah(surahNumber);
+    setShowSurahList(false);
+    setLoading(true);
+
+    // Stop current audio cleanly
+    audio.pause();
+    audio.currentTime = 0;
+
+    const url = getSurahAudioUrl({ surahNumber, reciterId });
+    audio.src = url;
+    audio.load();
+
+    if (!opts.autoplay) {
+      setIsPlaying(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // IMPORTANT: call play() immediately while still in user gesture (onClick/onChange)
+      await audio.play();
       setIsPlaying(true);
+    } catch {
+      setIsPlaying(false);
+      setLoading(false);
+      if (!opts.silentErrors) {
+        toast.error('المتصفح منع التشغيل التلقائي — اضغط تشغيل مرة واحدة');
+      }
+    }
+  }
+
+  const handleReciterChange = async (newReciterId: ReciterId) => {
+    const audio = audioRef.current;
+    const wasPlaying = !audio.paused;
+
+    setReciter(newReciterId);
+    reciterRef.current = newReciterId;
+    localStorage.setItem('quran-reciter', newReciterId);
+
+    // If a surah is selected, reload it with the new reciter.
+    if (selectedSurahRef.current) {
+      await startSurah(selectedSurahRef.current, newReciterId, { autoplay: wasPlaying });
     }
   };
 
-  const nextSurah = () => {
-    if (!selectedSurah) return;
-    playSurah(selectedSurah >= 114 ? 1 : selectedSurah + 1);
+  const togglePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio.src) return;
+
+    if (!audio.paused) {
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      setIsPlaying(false);
+      toast.error('تعذر تشغيل الصوت');
+    }
   };
 
-  const prevSurah = () => {
-    if (!selectedSurah) return;
-    playSurah(selectedSurah <= 1 ? 114 : selectedSurah - 1);
+  const nextSurah = async () => {
+    const current = selectedSurahRef.current;
+    if (!current) return;
+    const next = current >= 114 ? 1 : current + 1;
+    await startSurah(next, reciterRef.current, { autoplay: true, silentErrors: true });
+  };
+
+  const prevSurah = async () => {
+    const current = selectedSurahRef.current;
+    if (!current) return;
+    const prev = current <= 1 ? 114 : current - 1;
+    await startSurah(prev, reciterRef.current, { autoplay: true, silentErrors: true });
   };
 
   const cycleRepeat = () => {
-    setRepeatMode(prev =>
-      prev === 'none' ? 'all' : prev === 'all' ? 'one' : 'none'
-    );
+    setRepeatMode(prev => (prev === 'none' ? 'all' : prev === 'all' ? 'one' : 'none'));
   };
 
   const seekTo = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current || !duration) return;
+    const audio = audioRef.current;
+    if (!audio.duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
+    // RTL: right side = 0%, left side = 100%
     const pct = 1 - (e.clientX - rect.left) / rect.width;
-    audioRef.current.currentTime = pct * duration;
+    audio.currentTime = Math.max(0, Math.min(audio.duration, pct * audio.duration));
   };
 
   const closePlayer = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
-    if (progressInterval.current) clearInterval(progressInterval.current);
+    const audio = audioRef.current;
+    audio.pause();
+    audio.currentTime = 0;
+    // Keep src so reopening keeps current selection; user asked mainly switching reliability
     setIsOpen(false);
     setIsPlaying(false);
     setSelectedSurah(null);
     setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+    setSearch('');
+    setShowSurahList(false);
   };
 
   const formatTime = (secs: number) => {
@@ -217,17 +307,8 @@ export default function QuranPlayer() {
 
   const currentSurah = surahs.find(s => s.number === selectedSurah);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
-      if (progressInterval.current) clearInterval(progressInterval.current);
-    };
-  }, []);
-
   return (
     <>
-      {/* Entry card on home */}
       {!isOpen && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -253,7 +334,6 @@ export default function QuranPlayer() {
         </motion.div>
       )}
 
-      {/* Player panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -263,7 +343,6 @@ export default function QuranPlayer() {
             className="px-4 mb-4"
           >
             <div className="rounded-3xl bg-card border border-border/50 overflow-hidden shadow-elevated">
-              {/* Header */}
               <div className="gradient-islamic p-4 flex items-center justify-between relative overflow-hidden">
                 <div className="absolute inset-0 islamic-pattern opacity-20" />
                 <button onClick={closePlayer} className="p-1.5 rounded-full bg-white/10 relative z-10">
@@ -279,28 +358,35 @@ export default function QuranPlayer() {
                 </div>
               </div>
 
-              {/* Reciter selector */}
               <div className="p-4 border-b border-border/50">
-                <label className="text-[10px] text-muted-foreground mb-1.5 block text-right">القارئ ({RECITERS.length} قارئ)</label>
+                <label className="text-[10px] text-muted-foreground mb-1.5 block text-right">
+                  القارئ ({RECITERS.length} قارئ)
+                </label>
                 <select
                   value={reciter}
-                  onChange={e => handleReciterChange(e.target.value)}
+                  onChange={e => void handleReciterChange(e.target.value as ReciterId)}
                   className="w-full rounded-2xl bg-muted border-0 p-2.5 text-sm text-foreground text-right"
                   dir="rtl"
                 >
                   {RECITERS.map(r => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
-              {/* Surah selector */}
               <div className="p-4 border-b border-border/50">
                 <button
                   onClick={() => setShowSurahList(!showSurahList)}
                   className="w-full flex items-center justify-between rounded-2xl bg-muted p-3"
                 >
-                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", showSurahList && "rotate-180")} />
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 text-muted-foreground transition-transform',
+                      showSurahList && 'rotate-180'
+                    )}
+                  />
                   <span className="text-sm font-medium text-foreground">
                     {currentSurah ? `${currentSurah.number}. ${currentSurah.name}` : 'اختر سورة'}
                   </span>
@@ -328,12 +414,12 @@ export default function QuranPlayer() {
                           {filteredSurahs.map(s => (
                             <button
                               key={s.number}
-                              onClick={() => playSurah(s.number)}
+                              onClick={() => void startSurah(s.number, reciterRef.current, { autoplay: true })}
                               className={cn(
-                                "w-full flex items-center justify-between p-2.5 rounded-xl text-right transition-colors",
+                                'w-full flex items-center justify-between p-2.5 rounded-xl text-right transition-colors',
                                 selectedSurah === s.number
-                                  ? "bg-primary/10 text-primary"
-                                  : "hover:bg-muted"
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'hover:bg-muted'
                               )}
                             >
                               <span className="text-[10px] text-muted-foreground">{s.numberOfAyahs} آية</span>
@@ -350,14 +436,9 @@ export default function QuranPlayer() {
                 </AnimatePresence>
               </div>
 
-              {/* Player controls */}
               {selectedSurah && (
                 <div className="p-4">
-                  {/* Progress bar */}
-                  <div
-                    className="w-full h-1.5 rounded-full bg-muted mb-2 cursor-pointer"
-                    onClick={seekTo}
-                  >
+                  <div className="w-full h-1.5 rounded-full bg-muted mb-2 cursor-pointer" onClick={seekTo}>
                     <div
                       className="h-full rounded-full bg-primary transition-all duration-300"
                       style={{ width: `${progress}%`, marginRight: 'auto', marginLeft: 0 }}
@@ -368,22 +449,26 @@ export default function QuranPlayer() {
                     <span>{formatTime(duration)}</span>
                   </div>
 
-                  {/* Controls */}
                   <div className="flex items-center justify-center gap-5">
                     <button onClick={cycleRepeat} className="p-2">
                       {repeatMode === 'one' ? (
                         <Repeat1 className="h-5 w-5 text-primary" />
                       ) : (
-                        <Repeat className={cn("h-5 w-5", repeatMode === 'all' ? "text-primary" : "text-muted-foreground")} />
+                        <Repeat
+                          className={cn(
+                            'h-5 w-5',
+                            repeatMode === 'all' ? 'text-primary' : 'text-muted-foreground'
+                          )}
+                        />
                       )}
                     </button>
 
-                    <button onClick={nextSurah} className="p-2">
+                    <button onClick={() => void nextSurah()} className="p-2">
                       <SkipForward className="h-5 w-5 text-foreground" />
                     </button>
 
                     <button
-                      onClick={selectedSurah && !isPlaying && !audioRef.current ? () => playSurah(selectedSurah) : togglePlay}
+                      onClick={() => void togglePlay()}
                       disabled={loading}
                       className="h-14 w-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
                     >
@@ -396,7 +481,7 @@ export default function QuranPlayer() {
                       )}
                     </button>
 
-                    <button onClick={prevSurah} className="p-2">
+                    <button onClick={() => void prevSurah()} className="p-2">
                       <SkipBack className="h-5 w-5 text-foreground" />
                     </button>
 
