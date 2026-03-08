@@ -101,7 +101,7 @@ export default function Install() {
                   تثبيت التطبيق
                 </Button>
               ) : isIOS ? (
-                <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 text-right space-y-3">
+                <div className="rounded-xl bg-primary/5 border border-primary/20 p-5 text-right space-y-3">
                   <p className="text-sm font-bold text-foreground">لتثبيت التطبيق على iPhone:</p>
                   <div className="flex items-center gap-3 justify-end">
                     <p className="text-xs text-muted-foreground">
