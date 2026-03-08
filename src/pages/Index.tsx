@@ -17,6 +17,7 @@ const quickAccessItems = [
   { icon: Compass, labelKey: 'qibla', path: '/qibla', color: 'text-primary' },
   { icon: BookOpen, labelKey: 'quran', path: '/quran', color: 'text-primary' },
   { icon: Moon, labelKey: 'duas', path: '/duas', color: 'text-primary' },
+  { icon: MessageSquare, label: 'قصص', path: '/stories', color: 'text-primary' },
   { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', color: 'text-primary' },
 ];
 
