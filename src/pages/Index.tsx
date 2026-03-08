@@ -40,6 +40,13 @@ export default function Index() {
     return localStorage.getItem('athan-notifications') === 'true';
   });
 
+  // Full-screen athan alert state
+  const [alertPrayer, setAlertPrayer] = useState<{ key: string; time: string } | null>(null);
+
+  const handleAthanAlert = useCallback((prayerKey: string, prayerTime: string) => {
+    setAlertPrayer({ key: prayerKey, time: prayerTime });
+  }, []);
+
   const [prayersDone, setPrayersDone] = useState(0);
   const [tasbeehDone, setTasbeehDone] = useState(0);
 
@@ -63,7 +70,7 @@ export default function Index() {
     setProgress(Math.max(0, Math.min(1, 1 - totalSecs / maxSecs)));
   }, [remaining, nextPrayer]);
 
-  useAthanNotifications(prayers, notificationsEnabled);
+  useAthanNotifications(prayers, notificationsEnabled, handleAthanAlert);
   useAutoTheme(prayers);
 
   const toggleNotifications = async () => {
