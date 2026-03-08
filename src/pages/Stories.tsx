@@ -270,8 +270,8 @@ export default function Stories() {
   return (
     <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       {/* Header */}
-      <div className="gradient-islamic px-5 pb-10 pt-14">
-        <div className="flex items-center justify-between">
+      <div className="gradient-islamic px-5 pb-14 pt-16">
+        <div className="flex items-center justify-between relative z-10">
           {viewMode !== 'categories' ? (
             <button onClick={goBack} className="glass-card rounded-full p-2.5">
               <ArrowRight className="h-5 w-5 text-white/80" />
