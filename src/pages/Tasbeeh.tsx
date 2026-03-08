@@ -154,7 +154,7 @@ export default function Tasbeeh() {
               )}
             >
               <span className="text-xl shrink-0">{opt.emoji}</span>
-              <span className="text-[10px] font-medium leading-tight text-center w-full break-words">
+              <span className="text-[10px] font-medium leading-normal text-center w-full break-words">
                 {t(opt.key)}
               </span>
             </motion.button>
