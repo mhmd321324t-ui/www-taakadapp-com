@@ -251,26 +251,28 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Ramadan Fajr/Maghrib bar */}
-      <div className="px-4 mb-5">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden"
-        >
-          <div className="absolute inset-0 islamic-pattern opacity-20" />
-          <div className="text-white text-sm relative z-10">
-            <span className="text-white/50 text-xs font-medium uppercase tracking-wider">إفطار</span>
-            <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
-          </div>
-          <span className="text-3xl relative z-10">🌙</span>
-          <div className="text-white text-sm text-left relative z-10">
-            <span className="text-white/50 text-xs font-medium uppercase tracking-wider">الفجر</span>
-            <p className="font-bold tabular-nums text-lg">{fajrTime}</p>
-          </div>
-        </motion.div>
-      </div>
+      {/* Ramadan Fajr/Maghrib bar - only in Ramadan */}
+      {isRamadan(hijriMonthNumber) && (
+        <div className="px-4 mb-5">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden"
+          >
+            <div className="absolute inset-0 islamic-pattern opacity-20" />
+            <div className="text-white text-sm relative z-10">
+              <span className="text-white/50 text-xs font-medium uppercase tracking-wider">إفطار</span>
+              <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
+            </div>
+            <span className="text-3xl relative z-10">🌙</span>
+            <div className="text-white text-sm text-left relative z-10">
+              <span className="text-white/50 text-xs font-medium uppercase tracking-wider">الفجر</span>
+              <p className="font-bold tabular-nums text-lg">{fajrTime}</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Today's Prayers */}
       <div className="px-4 mb-5">
