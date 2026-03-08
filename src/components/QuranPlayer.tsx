@@ -366,7 +366,7 @@ export default function QuranPlayer() {
               </div>
 
               <div className="p-4 border-b border-border/50">
-                <label className="text-[10px] text-muted-foreground mb-1.5 block text-right">
+                <label className="text-xs text-muted-foreground mb-1.5 block text-right">
                   القارئ ({RECITERS.length} قارئ)
                 </label>
                 <select
