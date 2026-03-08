@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      prayer_tracking: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          prayers_completed: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          prayers_completed?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          prayers_completed?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          calculation_method: number | null
+          created_at: string
+          dark_mode: boolean | null
+          display_name: string | null
+          id: string
+          language: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          calculation_method?: number | null
+          created_at?: string
+          dark_mode?: boolean | null
+          display_name?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          calculation_method?: number | null
+          created_at?: string
+          dark_mode?: boolean | null
+          display_name?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quran_bookmarks: {
+        Row: {
+          ayah_number: number | null
+          created_at: string
+          id: string
+          surah_number: number
+          user_id: string
+        }
+        Insert: {
+          ayah_number?: number | null
+          created_at?: string
+          id?: string
+          surah_number: number
+          user_id: string
+        }
+        Update: {
+          ayah_number?: number | null
+          created_at?: string
+          id?: string
+          surah_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
