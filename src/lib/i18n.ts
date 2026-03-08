@@ -1,263 +1,213 @@
-export type Locale = 'ar' | 'en' | 'fr' | 'tr' | 'ur';
+const GOOGLE_TRANSLATE_API_KEY = 'AIzaSyBwFHv3bkEEWemeykzLK8oqB-ps6OrO5po';
 
-const translations: Record<Locale, Record<string, string>> = {
-  ar: {
-    appName: 'أذاني',
-    home: 'الرئيسية',
-    prayerTimes: 'مواقيت الصلاة',
-    qibla: 'القبلة',
-    quran: 'القرآن',
-    more: 'المزيد',
-    tasbeeh: 'المسبحة',
-    duas: 'الأدعية',
-    calendar: 'التقويم',
-    tracker: 'متتبع الصلاة',
-    settings: 'الإعدادات',
-    fajr: 'الفجر',
-    sunrise: 'الشروق',
-    dhuhr: 'الظهر',
-    asr: 'العصر',
-    maghrib: 'المغرب',
-    isha: 'العشاء',
-    nextPrayer: 'الصلاة القادمة',
-    timeRemaining: 'الوقت المتبقي',
-    today: 'اليوم',
-    hijriDate: 'التاريخ الهجري',
-    location: 'الموقع',
-    detectLocation: 'تحديد الموقع',
-    quickAccess: 'وصول سريع',
-    distanceToMakkah: 'المسافة إلى مكة',
-    qiblaDirection: 'اتجاه القبلة',
-    surah: 'سورة',
-    juz: 'جزء',
-    search: 'بحث',
-    bookmarks: 'المفضلة',
-    reset: 'إعادة ضبط',
-    count: 'العدد',
-    total: 'المجموع',
-    subhanAllah: 'سبحان الله',
-    alhamdulillah: 'الحمد لله',
-    allahuAkbar: 'الله أكبر',
-    morningAdhkar: 'أذكار الصباح',
-    eveningAdhkar: 'أذكار المساء',
-    completed: 'مكتملة',
-    streak: 'سلسلة',
-    days: 'أيام',
-    zakatCalculator: 'حاسبة الزكاة',
-    loading: 'جاري التحميل...',
-    error: 'خطأ',
-    retry: 'إعادة المحاولة',
-    noResults: 'لا توجد نتائج',
-  },
-  en: {
-    appName: 'Athani',
-    home: 'Home',
-    prayerTimes: 'Prayer Times',
-    qibla: 'Qibla',
-    quran: 'Quran',
-    more: 'More',
-    tasbeeh: 'Tasbeeh',
-    duas: 'Duas',
-    calendar: 'Calendar',
-    tracker: 'Prayer Tracker',
-    settings: 'Settings',
-    fajr: 'Fajr',
-    sunrise: 'Sunrise',
-    dhuhr: 'Dhuhr',
-    asr: 'Asr',
-    maghrib: 'Maghrib',
-    isha: 'Isha',
-    nextPrayer: 'Next Prayer',
-    timeRemaining: 'Time Remaining',
-    today: 'Today',
-    hijriDate: 'Hijri Date',
-    location: 'Location',
-    detectLocation: 'Detect Location',
-    quickAccess: 'Quick Access',
-    distanceToMakkah: 'Distance to Makkah',
-    qiblaDirection: 'Qibla Direction',
-    surah: 'Surah',
-    juz: 'Juz',
-    search: 'Search',
-    bookmarks: 'Bookmarks',
-    reset: 'Reset',
-    count: 'Count',
-    total: 'Total',
-    subhanAllah: 'SubhanAllah',
-    alhamdulillah: 'Alhamdulillah',
-    allahuAkbar: 'Allahu Akbar',
-    morningAdhkar: 'Morning Adhkar',
-    eveningAdhkar: 'Evening Adhkar',
-    completed: 'Completed',
-    streak: 'Streak',
-    days: 'Days',
-    zakatCalculator: 'Zakat Calculator',
-    loading: 'Loading...',
-    error: 'Error',
-    retry: 'Retry',
-    noResults: 'No results',
-  },
-  fr: {
-    appName: 'Athani',
-    home: 'Accueil',
-    prayerTimes: 'Horaires de prière',
-    qibla: 'Qibla',
-    quran: 'Coran',
-    more: 'Plus',
-    tasbeeh: 'Tasbeeh',
-    duas: 'Duas',
-    calendar: 'Calendrier',
-    tracker: 'Suivi de prière',
-    settings: 'Paramètres',
-    fajr: 'Fajr',
-    sunrise: 'Lever du soleil',
-    dhuhr: 'Dhuhr',
-    asr: 'Asr',
-    maghrib: 'Maghrib',
-    isha: 'Isha',
-    nextPrayer: 'Prière suivante',
-    timeRemaining: 'Temps restant',
-    today: "Aujourd'hui",
-    hijriDate: 'Date Hijri',
-    location: 'Localisation',
-    detectLocation: 'Détecter',
-    quickAccess: 'Accès rapide',
-    distanceToMakkah: 'Distance à la Mecque',
-    qiblaDirection: 'Direction de la Qibla',
-    surah: 'Sourate',
-    juz: 'Juz',
-    search: 'Rechercher',
-    bookmarks: 'Favoris',
-    reset: 'Réinitialiser',
-    count: 'Compte',
-    total: 'Total',
-    subhanAllah: 'SubhanAllah',
-    alhamdulillah: 'Alhamdulillah',
-    allahuAkbar: 'Allahu Akbar',
-    morningAdhkar: 'Adhkar du matin',
-    eveningAdhkar: 'Adhkar du soir',
-    completed: 'Complété',
-    streak: 'Série',
-    days: 'Jours',
-    zakatCalculator: 'Calculateur de Zakat',
-    loading: 'Chargement...',
-    error: 'Erreur',
-    retry: 'Réessayer',
-    noResults: 'Aucun résultat',
-  },
-  tr: {
-    appName: 'Athani',
-    home: 'Ana Sayfa',
-    prayerTimes: 'Namaz Vakitleri',
-    qibla: 'Kıble',
-    quran: 'Kuran',
-    more: 'Daha',
-    tasbeeh: 'Tesbih',
-    duas: 'Dualar',
-    calendar: 'Takvim',
-    tracker: 'Namaz Takibi',
-    settings: 'Ayarlar',
-    fajr: 'İmsak',
-    sunrise: 'Güneş',
-    dhuhr: 'Öğle',
-    asr: 'İkindi',
-    maghrib: 'Akşam',
-    isha: 'Yatsı',
-    nextPrayer: 'Sonraki Namaz',
-    timeRemaining: 'Kalan Süre',
-    today: 'Bugün',
-    hijriDate: 'Hicri Tarih',
-    location: 'Konum',
-    detectLocation: 'Konumu Bul',
-    quickAccess: 'Hızlı Erişim',
-    distanceToMakkah: "Mekke'ye Uzaklık",
-    qiblaDirection: 'Kıble Yönü',
-    surah: 'Sure',
-    juz: 'Cüz',
-    search: 'Ara',
-    bookmarks: 'Yer İşaretleri',
-    reset: 'Sıfırla',
-    count: 'Sayı',
-    total: 'Toplam',
-    subhanAllah: 'Sübhanallah',
-    alhamdulillah: 'Elhamdülillah',
-    allahuAkbar: 'Allahu Ekber',
-    morningAdhkar: 'Sabah Zikirleri',
-    eveningAdhkar: 'Akşam Zikirleri',
-    completed: 'Tamamlandı',
-    streak: 'Seri',
-    days: 'Gün',
-    zakatCalculator: 'Zekat Hesaplayıcı',
-    loading: 'Yükleniyor...',
-    error: 'Hata',
-    retry: 'Tekrar Dene',
-    noResults: 'Sonuç yok',
-  },
-  ur: {
-    appName: 'اذانی',
-    home: 'ہوم',
-    prayerTimes: 'نماز کے اوقات',
-    qibla: 'قبلہ',
-    quran: 'قرآن',
-    more: 'مزید',
-    tasbeeh: 'تسبیح',
-    duas: 'دعائیں',
-    calendar: 'کیلنڈر',
-    tracker: 'نماز ٹریکر',
-    settings: 'ترتیبات',
-    fajr: 'فجر',
-    sunrise: 'طلوع آفتاب',
-    dhuhr: 'ظہر',
-    asr: 'عصر',
-    maghrib: 'مغرب',
-    isha: 'عشاء',
-    nextPrayer: 'اگلی نماز',
-    timeRemaining: 'باقی وقت',
-    today: 'آج',
-    hijriDate: 'ہجری تاریخ',
-    location: 'مقام',
-    detectLocation: 'مقام تلاش کریں',
-    quickAccess: 'فوری رسائی',
-    distanceToMakkah: 'مکہ سے فاصلہ',
-    qiblaDirection: 'قبلہ کی سمت',
-    surah: 'سورہ',
-    juz: 'پارہ',
-    search: 'تلاش',
-    bookmarks: 'بک مارکس',
-    reset: 'ری سیٹ',
-    count: 'شمار',
-    total: 'کل',
-    subhanAllah: 'سبحان اللہ',
-    alhamdulillah: 'الحمد للہ',
-    allahuAkbar: 'اللہ اکبر',
-    morningAdhkar: 'صبح کے اذکار',
-    eveningAdhkar: 'شام کے اذکار',
-    completed: 'مکمل',
-    streak: 'سلسلہ',
-    days: 'دن',
-    zakatCalculator: 'زکوٰة کیلکولیٹر',
-    loading: 'لوڈ ہو رہا ہے...',
-    error: 'خرابی',
-    retry: 'دوبارہ کوشش',
-    noResults: 'کوئی نتیجہ نہیں',
-  },
+// All UI strings in Arabic (source language)
+const arabicStrings: Record<string, string> = {
+  appName: 'أذاني',
+  home: 'الرئيسية',
+  prayerTimes: 'مواقيت الصلاة',
+  qibla: 'القبلة',
+  quran: 'القرآن',
+  more: 'المزيد',
+  tasbeeh: 'المسبحة',
+  duas: 'الأدعية',
+  calendar: 'التقويم',
+  tracker: 'متتبع الصلاة',
+  settings: 'الإعدادات',
+  fajr: 'الفجر',
+  sunrise: 'الشروق',
+  dhuhr: 'الظهر',
+  asr: 'العصر',
+  maghrib: 'المغرب',
+  isha: 'العشاء',
+  nextPrayer: 'الصلاة القادمة',
+  timeRemaining: 'الوقت المتبقي',
+  today: 'اليوم',
+  hijriDate: 'التاريخ الهجري',
+  location: 'الموقع',
+  detectLocation: 'تحديد الموقع',
+  quickAccess: 'وصول سريع',
+  distanceToMakkah: 'المسافة إلى مكة',
+  qiblaDirection: 'اتجاه القبلة',
+  surah: 'سورة',
+  juz: 'جزء',
+  search: 'بحث',
+  bookmarks: 'المفضلة',
+  reset: 'إعادة ضبط',
+  count: 'العدد',
+  total: 'المجموع',
+  subhanAllah: 'سبحان الله',
+  alhamdulillah: 'الحمد لله',
+  allahuAkbar: 'الله أكبر',
+  morningAdhkar: 'أذكار الصباح',
+  eveningAdhkar: 'أذكار المساء',
+  completed: 'مكتملة',
+  streak: 'سلسلة',
+  days: 'أيام',
+  zakatCalculator: 'حاسبة الزكاة',
+  loading: 'جاري التحميل...',
+  error: 'خطأ',
+  retry: 'إعادة المحاولة',
+  noResults: 'لا توجد نتائج',
+  loginPrompt: 'سجّل دخولك لحفظ تقدمك عبر الأجهزة',
+  loginSignup: 'تسجيل الدخول / إنشاء حساب',
+  loginWithGoogle: 'تسجيل الدخول بحساب Google',
+  or: 'أو',
+  name: 'الاسم',
+  email: 'البريد الإلكتروني',
+  password: 'كلمة المرور',
+  login: 'تسجيل الدخول',
+  signup: 'إنشاء حساب',
+  noAccount: 'ليس لديك حساب؟',
+  hasAccount: 'لديك حساب بالفعل؟',
+  yourIslamicApp: 'تطبيقك الإسلامي الشامل',
+  loginSuccess: 'تم تسجيل الدخول بنجاح',
+  signupSuccess: 'تم إنشاء الحساب! تحقق من بريدك الإلكتروني',
+  addedToFavorites: 'تمت إضافة السورة إلى المفضلات',
+  removedFromFavorites: 'تمت إزالة السورة من المفضلات',
+  loginToSave: 'سجّل دخولك لحفظ المفضلات',
+  languageChanged: 'تم تغيير اللغة',
+  cashBalance: 'النقد والرصيد البنكي',
+  goldValue: 'قيمة الذهب',
+  silverValue: 'قيمة الفضة',
+  stocksInvestments: 'الأسهم والاستثمارات',
+  debtsOwed: 'الديون المستحقة',
+  calculateZakat: 'حساب الزكاة',
+  yourZakat: 'زكاتك (٢.٥٪)',
+  ayahs: 'آيات',
 };
 
-const rtlLocales: Locale[] = ['ar', 'ur'];
+// RTL languages
+const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi', 'ku'];
 
-export function detectLocale(): Locale {
-  const lang = navigator.language?.split('-')[0] as Locale;
-  return translations[lang] ? lang : 'ar';
+// Cache translated strings
+const translationCache: Record<string, Record<string, string>> = {
+  ar: { ...arabicStrings },
+};
+
+/**
+ * Detect device language - returns the 2-letter language code
+ */
+export function detectDeviceLanguage(): string {
+  const lang = navigator.language || (navigator as any).userLanguage || 'ar';
+  return lang.split('-')[0].toLowerCase();
 }
 
-export function isRTL(locale: Locale): boolean {
-  return rtlLocales.includes(locale);
+/**
+ * Check if language is RTL
+ */
+export function isRTLLanguage(lang: string): boolean {
+  return rtlLanguages.includes(lang);
 }
 
-export function t(key: string, locale: Locale): string {
-  return translations[locale]?.[key] || translations.en[key] || key;
+/**
+ * Get direction for language
+ */
+export function getDirection(lang: string): 'rtl' | 'ltr' {
+  return isRTLLanguage(lang) ? 'rtl' : 'ltr';
 }
 
-export function getDirection(locale: Locale): 'rtl' | 'ltr' {
-  return isRTL(locale) ? 'rtl' : 'ltr';
+/**
+ * Translate all strings to target language using Google Translate API
+ */
+async function translateBatch(targetLang: string): Promise<Record<string, string>> {
+  if (translationCache[targetLang]) {
+    return translationCache[targetLang];
+  }
+
+  // If target is Arabic, return source strings
+  if (targetLang === 'ar') {
+    return arabicStrings;
+  }
+
+  try {
+    const keys = Object.keys(arabicStrings);
+    const texts = Object.values(arabicStrings);
+
+    // Google Translate API - batch translate
+    const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TRANSLATE_API_KEY}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: texts,
+        source: 'ar',
+        target: targetLang,
+        format: 'text',
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Translation API error:', response.status);
+      return arabicStrings;
+    }
+
+    const data = await response.json();
+    const translations = data.data.translations;
+
+    const result: Record<string, string> = {};
+    keys.forEach((key, i) => {
+      result[key] = translations[i]?.translatedText || arabicStrings[key];
+    });
+
+    // Cache the result
+    translationCache[targetLang] = result;
+
+    // Also cache in localStorage for offline use
+    try {
+      localStorage.setItem(`translations-${targetLang}`, JSON.stringify(result));
+    } catch {}
+
+    return result;
+  } catch (error) {
+    console.error('Translation failed:', error);
+
+    // Try loading from localStorage cache
+    try {
+      const cached = localStorage.getItem(`translations-${targetLang}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        translationCache[targetLang] = parsed;
+        return parsed;
+      }
+    } catch {}
+
+    return arabicStrings;
+  }
+}
+
+/**
+ * Load translations for a language (with caching)
+ */
+export async function loadTranslations(lang: string): Promise<Record<string, string>> {
+  // Check memory cache first
+  if (translationCache[lang]) {
+    return translationCache[lang];
+  }
+
+  // Check localStorage cache
+  try {
+    const cached = localStorage.getItem(`translations-${lang}`);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      translationCache[lang] = parsed;
+      return parsed;
+    }
+  } catch {}
+
+  // Fetch from API
+  return translateBatch(lang);
+}
+
+/**
+ * Get a single translation key (synchronous - uses cache)
+ */
+export function getTranslation(key: string, lang: string): string {
+  return translationCache[lang]?.[key] || arabicStrings[key] || key;
+}
+
+/**
+ * Get all Arabic source strings
+ */
+export function getArabicStrings(): Record<string, string> {
+  return arabicStrings;
 }

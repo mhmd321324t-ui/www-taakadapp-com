@@ -1,35 +1,45 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Locale, detectLocale, t as translate, getDirection } from '@/lib/i18n';
+import { detectDeviceLanguage, getDirection, isRTLLanguage, loadTranslations, getTranslation } from '@/lib/i18n';
 
 interface LocaleContextType {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
+  locale: string;
   t: (key: string) => string;
   dir: 'rtl' | 'ltr';
   isRTL: boolean;
+  ready: boolean;
+  setLocale: (locale: string) => void;
 }
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(() => {
-    const saved = localStorage.getItem('app-locale') as Locale;
-    return saved || detectLocale();
-  });
+  const [locale, setLocaleState] = useState<string>(() => detectDeviceLanguage());
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [ready, setReady] = useState(false);
 
   const dir = getDirection(locale);
-  const isRTL = dir === 'rtl';
+  const isRTL = isRTLLanguage(locale);
 
   useEffect(() => {
-    localStorage.setItem('app-locale', locale);
     document.documentElement.dir = dir;
     document.documentElement.lang = locale;
+
+    // Load translations for detected language
+    setReady(false);
+    loadTranslations(locale).then(t => {
+      setTranslations(t);
+      setReady(true);
+    });
   }, [locale, dir]);
 
-  const t = (key: string) => translate(key, locale);
+  const t = (key: string) => translations[key] || getTranslation(key, locale) || key;
+
+  const setLocale = (newLocale: string) => {
+    setLocaleState(newLocale);
+  };
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale, t, dir, isRTL }}>
+    <LocaleContext.Provider value={{ locale, t, dir, isRTL, ready, setLocale }}>
       {children}
     </LocaleContext.Provider>
   );
