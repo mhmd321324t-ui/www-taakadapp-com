@@ -42,6 +42,7 @@ const App = () => (
                 <Route path="/more" element={<More />} />
                 <Route path="/tracker" element={<PrayerTracker />} />
                 <Route path="/zakat" element={<ZakatCalculator />} />
+                <Route path="/stories" element={<Stories />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
