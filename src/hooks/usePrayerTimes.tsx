@@ -20,10 +20,16 @@ interface PrayerTimesData {
  * Detect if user's device uses 12-hour format
  */
 function detectIs12Hour(): boolean {
-  const formatted = new Intl.DateTimeFormat(navigator.language, {
-    hour: 'numeric',
-  }).resolvedOptions();
-  return formatted.hourCycle === 'h12' || formatted.hourCycle === 'h11';
+  try {
+    const testDate = new Date(2024, 0, 1, 14, 0);
+    const formatted = new Intl.DateTimeFormat(navigator.language, {
+      hour: 'numeric',
+    }).format(testDate);
+    // If formatted doesn't contain "14", it's 12h format
+    return !formatted.includes('14');
+  } catch {
+    return false;
+  }
 }
 
 /**
