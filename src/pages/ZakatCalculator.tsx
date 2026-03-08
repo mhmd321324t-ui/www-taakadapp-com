@@ -233,7 +233,7 @@ export default function ZakatCalculator() {
         <div className="rounded-3xl border border-border/50 bg-card p-5 shadow-elevated">
           <label className="text-sm font-semibold text-foreground mb-2 block">العملة</label>
           <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-            <SelectTrigger className="rounded-xl">
+            <SelectTrigger className="rounded-2xl">
               <SelectValue placeholder={geoLoading ? 'جاري التحديد...' : 'اختر العملة'} />
             </SelectTrigger>
             <SelectContent>
