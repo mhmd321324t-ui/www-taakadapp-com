@@ -60,6 +60,8 @@ export default {
           "navy-foreground": "hsl(var(--islamic-navy-foreground))",
           teal: "hsl(var(--islamic-teal))",
           "teal-light": "hsl(var(--islamic-teal-light))",
+          purple: "hsl(var(--islamic-purple))",
+          "purple-light": "hsl(var(--islamic-purple-light))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

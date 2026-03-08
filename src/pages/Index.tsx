@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import HijriCalendar from '@/components/HijriCalendar';
+import MosqueScene from '@/components/MosqueScene';
 import { Link } from 'react-router-dom';
-import { MapPin, Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff } from 'lucide-react';
+import { MapPin, Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, Clock, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const quickAccessItems = [
-  { icon: Compass, labelKey: 'qibla', path: '/qibla', color: 'bg-primary/10 text-primary' },
-  { icon: BookOpen, labelKey: 'quran', path: '/quran', color: 'bg-islamic-green/10 text-islamic-green' },
-  { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', color: 'bg-accent/10 text-accent-foreground' },
-  { icon: Moon, labelKey: 'duas', path: '/duas', color: 'bg-secondary text-secondary-foreground' },
-  { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', color: 'bg-islamic-gold/10 text-islamic-gold' },
+  { icon: Compass, labelKey: 'qibla', path: '/qibla', gradient: 'from-primary to-accent' },
+  { icon: BookOpen, labelKey: 'quran', path: '/quran', gradient: 'from-accent to-islamic-teal' },
+  { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', gradient: 'from-primary to-islamic-purple' },
+  { icon: Moon, labelKey: 'duas', path: '/duas', gradient: 'from-accent to-primary' },
+  { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', gradient: 'from-islamic-gold to-accent' },
 ];
 
 export default function Index() {
@@ -53,75 +54,79 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="gradient-islamic islamic-pattern relative overflow-hidden px-5 pb-8 pt-12">
+      {/* Hero Section with 3D */}
+      <div className="gradient-islamic islamic-pattern relative overflow-hidden pb-16 pt-10">
         <div className="relative z-10">
-          {/* Location & Notification toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-1.5 text-primary-foreground/80 text-sm">
-              <MapPin className="h-3.5 w-3.5" />
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-5 mb-2">
+            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+              <MapPin className="h-3 w-3" />
               <span>{location.loading ? '...' : `${location.city}, ${location.country}`}</span>
             </div>
             <button
               onClick={toggleNotifications}
-              className="flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs text-primary-foreground backdrop-blur-sm transition-all active:scale-95"
+              className="flex items-center gap-1 rounded-full glass-card px-3 py-1.5 text-xs text-white transition-all active:scale-95"
             >
               {notificationsEnabled ? (
-                <Bell className="h-3.5 w-3.5 fill-current" />
+                <Bell className="h-3 w-3 fill-current" />
               ) : (
-                <BellOff className="h-3.5 w-3.5" />
+                <BellOff className="h-3 w-3" />
               )}
               <span>{notificationsEnabled ? '🔔' : '🔕'}</span>
             </button>
           </div>
 
-          {/* Next Prayer */}
+          {/* 3D Mosque */}
+          <MosqueScene />
+
+          {/* Next Prayer overlay */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-primary-foreground"
+            className="text-center text-white px-5 -mt-4"
           >
-            <p className="text-sm opacity-80 mb-1">{t('nextPrayer')}</p>
-            <h1 className="text-4xl font-bold font-arabic mb-2">
+            <p className="text-xs text-white/60 mb-0.5">{t('nextPrayer')}</p>
+            <h1 className="text-3xl font-bold mb-1">
               {nextPrayer ? t(nextPrayer.key) : '—'}
             </h1>
-            <p className="text-5xl font-light tabular-nums tracking-tight mb-2">
+            <p className="text-4xl font-light tabular-nums tracking-tight mb-2">
               {nextPrayer?.time || '—'}
             </p>
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-4 py-1.5 text-sm backdrop-blur-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-islamic-gold animate-pulse-glow" />
+            <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5 text-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-glow" />
               <span>{t('timeRemaining')}: {remaining || '—'}</span>
             </div>
           </motion.div>
         </div>
 
-        {/* Decorative arc */}
+        {/* Curved bottom */}
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[50%] bg-background" />
       </div>
 
-      {/* Hijri Date */}
-      <div className="px-5 -mt-1 mb-5">
-        <div className="rounded-xl border border-border bg-card p-4 text-center shadow-sm">
-          <p className="text-xs text-muted-foreground mb-0.5">{t('hijriDate')}</p>
+      {/* Hijri Date Card */}
+      <div className="px-5 -mt-2 mb-5">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-2xl border border-border bg-card p-4 text-center shadow-lg glow-purple"
+        >
+          <p className="text-[10px] text-muted-foreground mb-0.5">{t('hijriDate')}</p>
           <p className="text-lg font-arabic font-bold text-foreground">
             {loading ? '...' : hijriDate}
           </p>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Hijri Calendar & Events */}
+      {/* Today's Prayers */}
       <div className="px-5 mb-5">
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3">{t('hijriCalendar')}</h2>
-        <HijriCalendar
-          hijriDay={hijriDay}
-          hijriMonth={hijriMonthNumber || undefined}
-          hijriYear={hijriYear}
-        />
-      </div>
-
-      {/* Today's Prayers Mini */}
-      <div className="px-5 mb-6">
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3">{t('prayerTimes')}</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-foreground">{t('prayerTimes')}</h2>
+          <Link to="/prayer-times" className="text-xs text-primary font-medium flex items-center gap-0.5">
+            {t('more')}
+            <ChevronLeft className="h-3 w-3" />
+          </Link>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {prayers.filter(p => p.key !== 'sunrise').map((prayer, i) => {
             const isNext = nextPrayer?.key === prayer.key;
@@ -130,18 +135,18 @@ export default function Index() {
                 key={prayer.key}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: 0.15 + i * 0.04 }}
                 className={cn(
-                  'rounded-xl border p-3 text-center transition-all',
+                  'rounded-2xl border p-3 text-center transition-all',
                   isNext
-                    ? 'border-primary bg-primary/5 shadow-sm'
+                    ? 'border-primary/50 bg-primary/8 shadow-md glow-purple'
                     : 'border-border bg-card'
                 )}
               >
-                <p className={cn('text-xs mb-1', isNext ? 'text-primary font-semibold' : 'text-muted-foreground')}>
+                <p className={cn('text-[10px] mb-0.5', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
                   {t(prayer.key)}
                 </p>
-                <p className={cn('text-lg font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
+                <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
                   {prayer.time}
                 </p>
               </motion.div>
@@ -151,28 +156,38 @@ export default function Index() {
       </div>
 
       {/* Quick Access */}
-      <div className="px-5 mb-8">
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3">{t('quickAccess')}</h2>
+      <div className="px-5 mb-5">
+        <h2 className="text-sm font-semibold text-foreground mb-3">{t('quickAccess')}</h2>
         <div className="grid grid-cols-3 gap-3">
           {quickAccessItems.map((item, i) => (
             <motion.div
               key={item.path}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + i * 0.05 }}
+              transition={{ delay: 0.25 + i * 0.04 }}
             >
               <Link
                 to={item.path}
-                className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all active:scale-95"
+                className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all active:scale-95"
               >
-                <div className={cn('rounded-full p-2.5', item.color)}>
-                  <item.icon className="h-5 w-5" />
+                <div className={cn('rounded-xl p-2.5 bg-gradient-to-br', item.gradient)}>
+                  <item.icon className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-foreground">{t(item.labelKey)}</span>
+                <span className="text-[11px] font-medium text-foreground">{t(item.labelKey)}</span>
               </Link>
             </motion.div>
           ))}
         </div>
+      </div>
+
+      {/* Hijri Calendar */}
+      <div className="px-5 mb-8">
+        <h2 className="text-sm font-semibold text-foreground mb-3">{t('hijriCalendar')}</h2>
+        <HijriCalendar
+          hijriDay={hijriDay}
+          hijriMonth={hijriMonthNumber || undefined}
+          hijriYear={hijriYear}
+        />
       </div>
     </div>
   );
