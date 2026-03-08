@@ -108,7 +108,11 @@ export default function Index() {
       {/* Hijri Calendar & Events */}
       <div className="px-5 mb-5">
         <h2 className="text-sm font-semibold text-muted-foreground mb-3">{t('hijriCalendar')}</h2>
-        <HijriCalendar />
+        <HijriCalendar
+          hijriDay={hijriDay}
+          hijriMonth={hijriMonthAr === 'رَمَضان' ? 9 : undefined}
+          hijriYear={hijriYear}
+        />
       </div>
 
       {/* Today's Prayers Mini */}
