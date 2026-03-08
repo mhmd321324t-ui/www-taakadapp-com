@@ -119,17 +119,17 @@ export default function QiblaMap({ userLat, userLng, city }: QiblaMapProps) {
   }, [userLat, userLng, city]);
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm min-w-0">
       <div
         ref={mapRef}
-        className="w-full h-[350px] rounded-2xl overflow-hidden border border-border shadow-lg"
+        className="h-[350px] w-full overflow-hidden rounded-2xl border border-border shadow-lg"
       />
-      <div className="flex items-center justify-between mt-3 px-1">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-[2px] border-t-2 border-dashed border-primary" />
-          <span className="text-[10px] text-muted-foreground">خط اتجاه القبلة</span>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-[2px] w-4 border-t-2 border-dashed border-primary" />
+          <span className="text-[10px] text-muted-foreground break-words">خط اتجاه القبلة</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           <span className="text-xs">🕋</span>
           <span className="text-[10px] text-muted-foreground">الكعبة</span>
           <span className="mx-1 text-muted-foreground/30">|</span>

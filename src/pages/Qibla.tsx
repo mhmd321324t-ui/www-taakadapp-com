@@ -158,7 +158,7 @@ export default function Qibla() {
   };
 
   return (
-    <div className="min-h-screen pb-24" dir="rtl">
+    <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       {/* Header */}
       <div className="gradient-islamic relative px-5 pb-16 pt-12">
         <div className="flex items-center justify-between">
@@ -188,7 +188,7 @@ export default function Qibla() {
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>
 
-      <div className="flex flex-col items-center px-5 -mt-2">
+      <div className="-mt-2 flex w-full flex-col items-center px-5">
 
         {/* Instructions panel */}
         <AnimatePresence>
@@ -205,25 +205,25 @@ export default function Qibla() {
                 </div>
                 <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
                   <div className="flex items-start gap-2 justify-end">
-                    <p className="text-right">
+                    <p className="min-w-0 break-words text-right">
                       <span className="text-primary font-bold">١.</span> ضع الهاتف بشكل <span className="text-foreground font-medium">أفقي مسطّح</span> على راحة يدك
                     </p>
                     <span className="text-lg">📱</span>
                   </div>
                   <div className="flex items-start gap-2 justify-end">
-                    <p className="text-right">
+                    <p className="min-w-0 break-words text-right">
                       <span className="text-primary font-bold">٢.</span> ابتعد عن <span className="text-foreground font-medium">المعادن والأجهزة الإلكترونية</span> (سماعات، لابتوب)
                     </p>
                     <span className="text-lg">🧲</span>
                   </div>
                   <div className="flex items-start gap-2 justify-end">
-                    <p className="text-right">
+                    <p className="min-w-0 break-words text-right">
                       <span className="text-primary font-bold">٣.</span> لمعايرة البوصلة: حرّك الهاتف بشكل <span className="text-foreground font-medium">رقم 8</span> عدة مرات
                     </p>
                     <span className="text-lg">♾️</span>
                   </div>
                   <div className="flex items-start gap-2 justify-end">
-                    <p className="text-right">
+                    <p className="min-w-0 break-words text-right">
                       <span className="text-primary font-bold">٤.</span> أدِر جسمك حتى تظهر <span className="text-foreground font-medium">🕋 في الأعلى</span> ويتحول اللون إلى <span className="text-primary font-medium">أخضر</span>
                     </p>
                     <span className="text-lg">🧭</span>
@@ -260,7 +260,7 @@ export default function Qibla() {
               <p className="text-sm font-bold text-destructive">البوصلة غير متاحة</p>
               <AlertTriangle className="h-5 w-5 text-destructive" />
             </div>
-            <p className="text-xs text-muted-foreground text-right leading-relaxed">
+            <p className="text-xs text-muted-foreground text-right leading-relaxed break-words">
               جهازك لا يدعم البوصلة الرقمية أو أنك تستخدم متصفح كمبيوتر. استخدم الزاوية المعروضة ({Math.round(qiblaAngle)}°) مع بوصلة خارجية أو تطبيق خرائط.
             </p>
           </div>
@@ -273,18 +273,18 @@ export default function Qibla() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full max-w-sm mb-4 rounded-xl border border-[hsl(var(--islamic-gold))]/30 bg-[hsl(var(--islamic-gold))]/5 p-3 flex items-center gap-2 justify-between"
+              className="mb-4 flex w-full max-w-sm flex-col gap-2 rounded-xl border border-[hsl(var(--islamic-gold))]/30 bg-[hsl(var(--islamic-gold))]/5 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <button
                 onClick={calibrate}
-                className="text-xs bg-[hsl(var(--islamic-gold))]/20 text-[hsl(var(--islamic-gold))] px-3 py-1.5 rounded-full font-medium flex items-center gap-1"
+                className="flex items-center justify-center gap-1 self-start rounded-full bg-[hsl(var(--islamic-gold))]/20 px-3 py-1.5 text-xs font-medium text-[hsl(var(--islamic-gold))] sm:self-auto"
               >
                 <RotateCcw className="h-3 w-3" />
                 معايرة
               </button>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground">دقة البوصلة منخفضة - حرّك الهاتف بشكل ∞</p>
-                <AlertTriangle className="h-4 w-4 text-[hsl(var(--islamic-gold))]" />
+              <div className="flex min-w-0 items-center gap-2">
+                <p className="min-w-0 text-xs text-muted-foreground break-words">دقة البوصلة منخفضة - حرّك الهاتف بشكل ∞</p>
+                <AlertTriangle className="h-4 w-4 shrink-0 text-[hsl(var(--islamic-gold))]" />
               </div>
             </motion.div>
           )}
@@ -313,16 +313,16 @@ export default function Qibla() {
 
         {/* No location warning */}
         {isNoLocation && (
-          <div className="w-full max-w-sm mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 justify-end">
-            <p className="text-xs text-muted-foreground">لم يتم تحديد موقعك - فعّل خدمات الموقع</p>
-            <MapPin className="h-4 w-4 text-destructive" />
+          <div className="mb-4 flex w-full max-w-sm items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 justify-end">
+            <p className="min-w-0 text-xs text-muted-foreground break-words text-right">لم يتم تحديد موقعك - فعّل خدمات الموقع</p>
+            <MapPin className="h-4 w-4 shrink-0 text-destructive" />
           </div>
         )}
 
         {viewMode === 'compass' ? (
           <>
             {/* Compass */}
-            <div className="relative w-[300px] h-[300px] mb-6">
+            <div className="relative mb-6 aspect-square w-full max-w-[300px]">
               {/* Outer decorative ring */}
               <div className="absolute inset-0 rounded-full border-2 border-border" />
               

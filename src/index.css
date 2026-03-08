@@ -110,7 +110,15 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border box-border;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
