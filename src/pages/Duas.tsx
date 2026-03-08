@@ -318,7 +318,7 @@ export default function Duas() {
                   <button
                     key={i}
                     onClick={() => openSubCategory(i)}
-                    className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors shadow-elevated"
                   >
                     <div className="flex items-center gap-2">
                       <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
