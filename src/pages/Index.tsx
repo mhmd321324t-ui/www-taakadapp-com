@@ -282,23 +282,22 @@ export default function Index() {
       {/* Quick Access */}
       <div className="px-4 mb-4">
         <h2 className="text-sm font-semibold text-foreground mb-3">{t('quickAccess')}</h2>
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+        <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
           {quickAccessItems.map((item, i) => (
             <motion.div
               key={item.path}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 + i * 0.04 }}
-              className="flex-shrink-0"
             >
               <Link
                 to={item.path}
-                className="flex flex-col items-center gap-2"
+                className="flex flex-col items-center gap-2 min-w-0"
               >
-                <div className="h-14 w-14 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm">
+                <div className="h-14 w-14 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm shrink-0">
                   <item.icon className={cn('h-6 w-6', item.color)} />
                 </div>
-                <span className="text-[10px] font-medium text-foreground">{(item as any).label || t((item as any).labelKey)}</span>
+                <span className="text-[11px] font-medium text-foreground text-center w-full break-words leading-tight">{(item as any).label || t((item as any).labelKey)}</span>
               </Link>
             </motion.div>
           ))}
