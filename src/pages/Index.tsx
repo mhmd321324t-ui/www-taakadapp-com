@@ -329,6 +329,9 @@ export default function Index() {
         </motion.div>
       </div>
 
+      {/* Quran Audio Player */}
+      <QuranPlayer />
+
       {/* Quran goal card */}
       <div className="px-4 mb-4">
         <motion.div
