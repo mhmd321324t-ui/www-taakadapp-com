@@ -12,17 +12,19 @@ function isInStandaloneMode() {
     (navigator as any).standalone === true;
 }
 
+const DISMISSED_KEY = 'install-banner-dismissed';
+
 export default function InstallBanner() {
   const [show, setShow] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     if (isInStandaloneMode()) return;
+    if (localStorage.getItem(DISMISSED_KEY)) return;
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show banner once prompt is ready
       setShow(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
