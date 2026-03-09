@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocale } from '@/hooks/useLocale';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Play, Square, ExternalLink, Shield, Volume2, X, Youtube } from 'lucide-react';
