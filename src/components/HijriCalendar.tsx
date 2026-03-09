@@ -168,6 +168,27 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
 
   return (
     <div className="space-y-4">
+      {/* Calendar Type Toggle */}
+      <div className="flex rounded-2xl border border-border/50 overflow-hidden bg-card">
+        <button
+          onClick={() => setCalendarType('hijri')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-bold transition-all',
+            calendarType === 'hijri' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+          )}
+        >
+          {t('hijriCalendar2')}
+        </button>
+        <button
+          onClick={() => setCalendarType('gregorian')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-bold transition-all',
+            calendarType === 'gregorian' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+          )}
+        >
+          {t('gregorianCalendar')}
+        </button>
+      </div>
       {/* Ramadan Countdown or Mubarak */}
       {ramadanCountdown > 0 && (
         <motion.div
