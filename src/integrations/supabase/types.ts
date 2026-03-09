@@ -292,6 +292,42 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          calculation_method: number | null
+          created_at: string
+          endpoint: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          p256dh: string
+          updated_at: string
+        }
+        Insert: {
+          auth_key: string
+          calculation_method?: number | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          p256dh: string
+          updated_at?: string
+        }
+        Update: {
+          auth_key?: string
+          calculation_method?: number | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          p256dh?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quran_bookmarks: {
         Row: {
           ayah_number: number | null
