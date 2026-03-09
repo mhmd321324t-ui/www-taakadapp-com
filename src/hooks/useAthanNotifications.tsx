@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { PrayerTime } from './usePrayerTimes';
 import { schedulePrayerNotifications, setAthanAlertCallback, AthanAlertCallback } from '@/lib/prayerNotifications';
 
