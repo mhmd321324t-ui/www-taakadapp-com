@@ -89,6 +89,8 @@ export default function MosquePrayerTimesPage() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [timesSource, setTimesSource] = useState<'api' | 'manual'>('api');
+  const [textSearch, setTextSearch] = useState('');
+  const [textSearching, setTextSearching] = useState(false);
   const autoSearched = useRef(false);
 
   useEffect(() => {
@@ -137,22 +139,29 @@ export default function MosquePrayerTimesPage() {
     setTimesLoading(false);
   };
 
-  const searchMosques = useCallback(async () => {
+  const searchMosques = useCallback(async (query?: string) => {
     if (!location.latitude || !location.longitude) { toast.error('يرجى تفعيل الموقع أولاً'); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('search-mosques', {
-        body: { lat: location.latitude, lon: location.longitude, radius: 10000 },
-      });
+      const body: any = { lat: location.latitude, lon: location.longitude, radius: 15000 };
+      if (query) body.textQuery = query;
+      const { data, error } = await supabase.functions.invoke('search-mosques', { body });
       if (error) throw error;
       const sorted = (data?.mosques || [])
         .map((m: Mosque) => ({ ...m, _dist: distanceKm(location.latitude!, location.longitude!, m.latitude, m.longitude) }))
         .sort((a: any, b: any) => a._dist - b._dist);
       setMosques(sorted);
-      if (sorted.length === 0) toast('لم يتم العثور على مساجد قريبة');
+      if (sorted.length === 0) toast('لم يتم العثور على مساجد — جرّب البحث بالاسم');
     } catch { toast.error('خطأ في البحث عن المساجد'); }
     finally { setLoading(false); }
   }, [location.latitude, location.longitude]);
+
+  const handleTextSearch = useCallback(async () => {
+    if (!textSearch.trim()) return;
+    setTextSearching(true);
+    await searchMosques(textSearch.trim());
+    setTextSearching(false);
+  }, [textSearch, searchMosques]);
 
   useEffect(() => {
     if (location.latitude && location.longitude && !autoSearched.current) {
@@ -250,7 +259,7 @@ export default function MosquePrayerTimesPage() {
               {location.city ? `📍 ${location.city}` : 'جارٍ تحديد الموقع...'}
             </p>
           </div>
-          <button onClick={searchMosques} disabled={loading} className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95">
+          <button onClick={() => searchMosques()} disabled={loading} className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95">
             <RefreshCw className={cn("h-4 w-4 text-foreground", loading && "animate-spin")} />
           </button>
         </div>
@@ -258,7 +267,26 @@ export default function MosquePrayerTimesPage() {
       </div>
 
       <div className="px-5 -mt-4 relative z-10">
-        {/* Selected mosque card */}
+        {/* Text search bar */}
+        <div className="mb-4 flex gap-2">
+          <Input
+            type="text"
+            placeholder="ابحث باسم المسجد (مثل: Tawba Moschee)..."
+            value={textSearch}
+            onChange={(e) => setTextSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleTextSearch()}
+            className="flex-1 rounded-2xl h-11 text-sm"
+            dir="auto"
+          />
+          <Button
+            onClick={handleTextSearch}
+            disabled={textSearching || !textSearch.trim()}
+            size="sm"
+            className="rounded-2xl h-11 px-4"
+          >
+            {textSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          </Button>
+        </div>
         {selectedMosque && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
             <div className="rounded-3xl border border-primary/20 bg-card p-5 shadow-elevated">
