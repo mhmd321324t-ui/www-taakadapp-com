@@ -606,7 +606,7 @@ export default function Stories() {
 
                 {/* Media type selector */}
                 <div className="flex gap-2 justify-center mb-4">
-                  {MEDIA_TYPES.map(mt => (
+                  {getMEDIA_TYPES(t).map(mt => (
                     <button
                       key={mt.key}
                       onClick={() => { setNewMediaType(mt.key); setMediaFile(null); }}
