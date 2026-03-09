@@ -813,7 +813,7 @@ export default function MosquePrayerTimesPage() {
               اختر مسجدك لعرض أوقات الصلاة حسبه
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              المساجد المحيطة بك ضمن نطاق 10 كم
+              المساجد المحيطة بك ضمن نطاق 5 كم
             </p>
           </div>
         )}
