@@ -5,6 +5,7 @@ import { MapPin, AlertTriangle, RotateCcw, Smartphone, Info, Map, Compass } from
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import QiblaMap from '@/components/QiblaMap';
+import PageHeader from '@/components/PageHeader';
 
 function calculateQiblaDirection(lat: number, lng: number): number {
   const makkahLat = 21.4225 * (Math.PI / 180);
