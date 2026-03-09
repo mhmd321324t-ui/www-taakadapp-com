@@ -533,6 +533,9 @@ export default function MosquePrayerTimesPage() {
                       <Button size="sm" variant="ghost" onClick={() => startEditing('diffs')} className="gap-1 text-xs h-8 px-2" title="ضبط فرق الدقائق">
                         <Settings2 className="h-3 w-3" />
                       </Button>
+                      <Button size="sm" variant="ghost" onClick={shareMosqueTimes} className="text-xs h-8 px-2" title="مشاركة الأوقات">
+                        <Share2 className="h-3 w-3" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={unlinkMosque} className="text-xs h-8 px-2 text-destructive">
                         <Unlink className="h-3 w-3" />
                       </Button>
