@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocale } from '@/hooks/useLocale';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Play, Square, ExternalLink, Shield, Volume2, X, Youtube } from 'lucide-react';
@@ -31,6 +32,8 @@ interface RuqyahTrack {
 type ViewMode = 'categories' | 'tracks';
 
 export default function Ruqyah() {
+  const { t, locale } = useLocale();
+  const isArabic = locale === 'ar';
   const [categories, setCategories] = useState<RuqyahCategory[]>([]);
   const [tracks, setTracks] = useState<RuqyahTrack[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<RuqyahCategory | null>(null);
@@ -138,8 +141,8 @@ export default function Ruqyah() {
   return (
     <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       <PageHeader
-        title="🛡️ العلاج بالرقية الشرعية"
-        subtitle="رقية شرعية من القرآن والسنة"
+        title={t('ruqyahTitle')}
+        subtitle={t('ruqyahSubtitle')}
         image="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=1200&q=85"
         actionsLeft={
           viewMode === 'tracks' ? (
@@ -153,8 +156,7 @@ export default function Ruqyah() {
       <div className="px-5 pt-4">
         <div className="rounded-2xl bg-accent/10 border border-accent/20 p-4 mb-5">
           <p className="text-xs text-muted-foreground leading-relaxed text-center">
-            ⚠️ الرقية الشرعية مأخوذة من القرآن الكريم والسنة النبوية الشريفة.
-            هذا القسم للاستماع والتحصين وليس بديلاً عن العلاج الطبي.
+            {t('ruqyahDisclaimer')}
           </p>
         </div>
 
@@ -216,9 +218,9 @@ export default function Ruqyah() {
                         {cat.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-foreground">{cat.name_ar}</p>
-                        {cat.name_en && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{cat.name_en}</p>
+                        <p className="font-bold text-foreground">{isArabic ? cat.name_ar : (cat.name_en || cat.name_ar)}</p>
+                        {!isArabic && cat.name_en && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{cat.name_ar}</p>
                         )}
                       </div>
                       <ArrowRight className="h-4 w-4 text-muted-foreground rotate-180 rtl:rotate-0 shrink-0" />
@@ -235,8 +237,8 @@ export default function Ruqyah() {
                     {selectedCategory.emoji}
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-foreground">{selectedCategory.name_ar}</h2>
-                    <p className="text-xs text-muted-foreground">{tracks.length} رقية</p>
+                    <h2 className="text-lg font-bold text-foreground">{isArabic ? selectedCategory.name_ar : (selectedCategory.name_en || selectedCategory.name_ar)}</h2>
+                    <p className="text-xs text-muted-foreground">{tracks.length} {t('ruqyahCount')}</p>
                   </div>
                 </div>
 
@@ -247,7 +249,7 @@ export default function Ruqyah() {
                 ) : tracks.length === 0 ? (
                   <div className="text-center py-16">
                     <span className="text-5xl mb-4 block">🕌</span>
-                    <p className="text-sm text-muted-foreground">لا توجد رقيات في هذا القسم بعد</p>
+                    <p className="text-sm text-muted-foreground">{t('noRuqyahYet')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">

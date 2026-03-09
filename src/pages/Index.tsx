@@ -26,13 +26,13 @@ const QuranPlayer = lazy(() => import('@/components/QuranPlayer'));
 const SuggestedGoals = lazy(() => import('@/components/SuggestedGoals'));
 const HijriCalendar = lazy(() => import('@/components/HijriCalendar'));
 
-const quickAccessItems = [
-  { icon: Heart, label: 'تسبيح', path: '/tasbeeh', gradient: 'from-primary/20 to-primary/5' },
-  { icon: Compass, label: 'القبلة', path: '/qibla', gradient: 'from-accent/20 to-accent/5' },
-  { icon: BookOpen, label: 'القرآن', path: '/quran', gradient: 'from-primary/20 to-primary/5' },
-  { icon: Moon, label: 'الأدعية', path: '/duas', gradient: 'from-islamic-purple/20 to-islamic-purple/5' },
-  { icon: MessageSquare, label: 'قصص', path: '/stories', gradient: 'from-islamic-copper/20 to-accent/5' },
-  { icon: Calculator, label: 'الزكاة', path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/5' },
+const getQuickAccessItems = (t: (key: string) => string) => [
+  { icon: Heart, label: t('quickTasbeeh'), path: '/tasbeeh', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Compass, label: t('quickQibla'), path: '/qibla', gradient: 'from-accent/20 to-accent/5' },
+  { icon: BookOpen, label: t('quickQuran'), path: '/quran', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Moon, label: t('quickDuas'), path: '/duas', gradient: 'from-islamic-purple/20 to-islamic-purple/5' },
+  { icon: MessageSquare, label: t('quickStories'), path: '/stories', gradient: 'from-islamic-copper/20 to-accent/5' },
+  { icon: Calculator, label: t('quickZakat'), path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/5' },
 ];
 
 export default function Index() {
@@ -123,7 +123,7 @@ export default function Index() {
   const todayDua = dailyDuas[Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000) % dailyDuas.length];
 
   const prayerNames: Record<string, string> = {
-    fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء'
+    fajr: t('fajr'), sunrise: t('sunrise'), dhuhr: t('dhuhr'), asr: t('asr'), maghrib: t('maghrib'), isha: t('isha')
   };
 
   const prayerIcons: Record<string, string> = {
@@ -214,7 +214,7 @@ export default function Index() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[10px] text-muted-foreground mb-0.5">متبقي</span>
+                <span className="text-[10px] text-muted-foreground mb-0.5">{t('remaining')}</span>
                 <span className="text-lg font-bold tabular-nums text-foreground leading-none">
                   {remaining || '00:00'}
                 </span>
@@ -223,7 +223,7 @@ export default function Index() {
 
             {/* Next prayer info */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-1">الصلاة القادمة</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('nextPrayerLabel')}</p>
               <p className="text-2xl font-bold text-foreground leading-tight">
                 {nextPrayer ? prayerNames[nextPrayer.key] || t(nextPrayer.key) : '—'}
               </p>
@@ -235,14 +235,14 @@ export default function Index() {
                   to="/tracker"
                   className="text-xs text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-xl transition-all active:scale-95"
                 >
-                  متابعة الصلاة
+                  {t('prayerTracking')}
                 </Link>
                 <Link
                   to="/notifications"
                   className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-xl transition-all active:scale-95"
                 >
                   <Volume2 className="h-3 w-3 inline me-1" />
-                  الأذان
+                  {t('athanLabel')}
                 </Link>
               </div>
             </div>
@@ -263,7 +263,7 @@ export default function Index() {
               onClick={() => location.detectLocation()}
               className="rounded-2xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold transition-all active:scale-95"
             >
-              تفعيل الموقع
+              {t('enableLocation')}
             </button>
           </div>
         </div>
@@ -276,10 +276,10 @@ export default function Index() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-base">🕌</span>
-            <h3 className="text-sm font-bold text-foreground">مواقيت الصلاة</h3>
+            <h3 className="text-sm font-bold text-foreground">{t('prayerTimes')}</h3>
           </div>
           <Link to="/prayer-times" className="text-xs text-primary font-semibold flex items-center gap-0.5">
-            المزيد
+            {t('moreLabel')}
             <ChevronLeft className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -290,18 +290,18 @@ export default function Index() {
               <Building2 className="h-3.5 w-3.5" />
               {mosqueName}
               {mosqueSource === 'mawaqit' && (
-                <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">مباشر</span>
+                <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">{t('liveLabel')}</span>
               )}
             </p>
             <button
               onClick={() => {
                 unlinkMosque();
-                toast.success('تم إلغاء ربط المسجد');
+                toast.success(t('mosqueUnlinked'));
               }}
               className="flex items-center gap-0.5 text-[10px] text-destructive"
             >
               <Unlink className="h-2.5 w-2.5" />
-              إلغاء
+              {t('unlinkMosque')}
             </button>
           </div>
         )}
@@ -341,8 +341,8 @@ export default function Index() {
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">أوقات المساجد</p>
-              <p className="text-[10px] text-muted-foreground">اختر مسجدك القريب</p>
+              <p className="text-sm font-bold text-foreground">{t('mosqueTimes')}</p>
+              <p className="text-[10px] text-muted-foreground">{t('chooseNearbyMosque')}</p>
             </div>
           </div>
           <ChevronLeft className="h-4 w-4 text-muted-foreground" />
@@ -356,12 +356,12 @@ export default function Index() {
             <div className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden active:scale-[0.98] transition-transform">
               <div className="absolute inset-0 islamic-pattern opacity-20" />
               <div className="text-white text-sm relative z-10">
-                <span className="text-white/50 text-xs font-medium">إفطار</span>
+                <span className="text-white/50 text-xs font-medium">{t('iftar')}</span>
                 <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
               </div>
               <div className="text-center relative z-10">
                 <span className="text-3xl">🌙</span>
-                <p className="text-white/70 text-[10px] mt-1">تحدي رمضان</p>
+                <p className="text-white/70 text-[10px] mt-1">{t('ramadanChallenge')}</p>
               </div>
               <div className="text-white text-sm text-start relative z-10">
                 <span className="text-white/50 text-xs font-medium">الفجر</span>
@@ -398,14 +398,14 @@ export default function Index() {
         >
           <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
           <span className="inline-block rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-bold text-primary mb-3">
-            دعاء اليوم
+            {t('duaOfDay')}
           </span>
           <p className="text-sm font-bold text-foreground mb-2">{todayDua.subtitle}</p>
           <p className="text-lg font-arabic text-foreground leading-[2.2] text-center mb-3 line-clamp-2">
             {todayDua.arabic}
           </p>
           <span className="inline-block rounded-2xl border border-primary/30 bg-primary/5 px-5 py-2 text-xs font-bold text-primary transition-all">
-            اقرأ مع الترجمة →
+            {t('readWithTranslation')}
           </span>
         </div>
       </div>
@@ -419,10 +419,10 @@ export default function Index() {
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Zap className="h-4 w-4 text-accent" />
-          <h3 className="text-sm font-bold text-foreground">وصول سريع</h3>
+          <h3 className="text-sm font-bold text-foreground">{t('quickAccessLabel')}</h3>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          {quickAccessItems.map((item) => (
+          {getQuickAccessItems(t).map((item) => (
             <Link key={item.path} to={item.path} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/40 transition-all active:scale-95">
               <div className={cn(
                 'h-12 w-12 rounded-2xl bg-gradient-to-br flex items-center justify-center',
@@ -443,15 +443,15 @@ export default function Index() {
         <div className="rounded-3xl bg-card border border-border/40 p-5 shadow-elevated relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/5 to-transparent rounded-tr-full" />
           <span className="inline-block rounded-full bg-accent/10 border border-accent/20 px-3 py-1 text-[11px] font-bold text-accent-foreground mb-2">
-            📖 إتمام القرآن
+            {t('quranCompletion')}
           </span>
-          <p className="text-sm font-bold text-foreground mb-1">ابدأ تلاوة القرآن يوميًا</p>
-          <p className="text-xs text-muted-foreground mb-3">حدّد وتيرتك واحصل على تذكيرات يومية</p>
+          <p className="text-sm font-bold text-foreground mb-1">{t('startDailyRecitation')}</p>
+          <p className="text-xs text-muted-foreground mb-3">{t('setYourPace')}</p>
           <Link
             to="/quran-goal"
             className="inline-block rounded-2xl bg-primary/10 border border-primary/20 px-5 py-2 text-xs font-bold text-primary transition-all active:scale-95"
           >
-            حدّد هدف القرآن →
+            {t('setQuranGoal')}
           </Link>
         </div>
       </div>
@@ -460,7 +460,7 @@ export default function Index() {
       <div className="px-4 mb-8">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">📅</span>
-          <h3 className="text-sm font-bold text-foreground">التقويم الهجري</h3>
+          <h3 className="text-sm font-bold text-foreground">{t('hijriCalendarTitle')}</h3>
         </div>
         <Suspense fallback={<div className="h-48" />}>
           <HijriCalendar

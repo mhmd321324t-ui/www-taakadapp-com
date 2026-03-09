@@ -87,7 +87,7 @@ export default function Quran() {
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
-      toast.error('سجّل دخولك لحفظ المفضلة');
+      toast.error(t('loginToSaveBookmarks'));
       return;
     }
     if (bookmarks.includes(surahNum)) {
@@ -98,13 +98,13 @@ export default function Quran() {
         .eq('surah_number', surahNum)
         .is('ayah_number', null);
       setBookmarks(prev => prev.filter(n => n !== surahNum));
-      toast.success('تم الإزالة من المفضلة');
+      toast.success(t('removedFromBookmarks'));
     } else {
       await supabase
         .from('quran_bookmarks')
         .insert({ user_id: user.id, surah_number: surahNum });
       setBookmarks(prev => [...prev, surahNum]);
-      toast.success('تم الإضافة للمفضلة');
+      toast.success(t('addedToBookmarks'));
     }
   };
 
@@ -133,7 +133,7 @@ export default function Quran() {
     <div className="min-h-screen pb-24" dir="rtl">
       <PageHeader
         title={t('quran')}
-        subtitle="القرآن الكريم"
+        subtitle={t('quranSubtitle')}
         image="https://images.unsplash.com/photo-1558617861-07ffd51a4782?w=1200&q=85"
         compact
         actionsLeft={
@@ -243,7 +243,7 @@ export default function Quran() {
             <div className="text-center py-20">
               <Bookmark className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">
-                {user ? 'لا توجد سور محفوظة بعد' : 'سجّل دخولك لحفظ المفضلة'}
+                {user ? t('noBookmarksYet') : t('loginToSaveBookmarksQuran')}
               </p>
             </div>
           ) : (

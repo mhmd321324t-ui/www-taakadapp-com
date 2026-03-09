@@ -88,6 +88,12 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
 
   const [viewYear, setViewYear] = useState(today.year);
   const [viewMonth, setViewMonth] = useState(today.month);
+  const [calendarType, setCalendarType] = useState<'hijri' | 'gregorian'>('hijri');
+
+  // Gregorian calendar state
+  const now = new Date();
+  const [gYear, setGYear] = useState(now.getFullYear());
+  const [gMonth, setGMonth] = useState(now.getMonth()); // 0-indexed
 
   const daysInMonth = getDaysInHijriMonth(viewMonth, viewYear);
   const firstDay = getFirstDayOfHijriMonth(viewYear, viewMonth);
@@ -104,7 +110,7 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
     return Math.max(0, diff);
   }, [today]);
 
-  const navigate = (dir: number) => {
+  const navigateHijri = (dir: number) => {
     let newMonth = viewMonth + dir;
     let newYear = viewYear;
     if (newMonth > 12) { newMonth = 1; newYear++; }
@@ -113,10 +119,32 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
     setViewYear(newYear);
   };
 
-  const goToToday = () => {
+  const navigateGregorian = (dir: number) => {
+    let newMonth = gMonth + dir;
+    let newYear = gYear;
+    if (newMonth > 11) { newMonth = 0; newYear++; }
+    if (newMonth < 0) { newMonth = 11; newYear--; }
+    setGMonth(newMonth);
+    setGYear(newYear);
+  };
+
+  const goToTodayHijri = () => {
     setViewMonth(today.month);
     setViewYear(today.year);
   };
+
+  const goToTodayGregorian = () => {
+    setGMonth(now.getMonth());
+    setGYear(now.getFullYear());
+  };
+
+  // Gregorian calendar helpers
+  const gDaysInMonth = new Date(gYear, gMonth + 1, 0).getDate();
+  const gFirstDay = new Date(gYear, gMonth, 1).getDay();
+  const gregorianMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
 
   // Upcoming events
   const upcomingEvents = useMemo(() => {
@@ -140,6 +168,27 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
 
   return (
     <div className="space-y-4">
+      {/* Calendar Type Toggle */}
+      <div className="flex rounded-2xl border border-border/50 overflow-hidden bg-card">
+        <button
+          onClick={() => setCalendarType('hijri')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-bold transition-all',
+            calendarType === 'hijri' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+          )}
+        >
+          {t('hijriCalendar2')}
+        </button>
+        <button
+          onClick={() => setCalendarType('gregorian')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-bold transition-all',
+            calendarType === 'gregorian' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+          )}
+        >
+          {t('gregorianCalendar')}
+        </button>
+      </div>
       {/* Ramadan Countdown or Mubarak */}
       {ramadanCountdown > 0 && (
         <motion.div
@@ -166,66 +215,105 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
         </motion.div>
       )}
 
-      {/* Calendar */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => navigate(1)}
-            aria-label="الشهر التالي"
-            className="rounded-full p-1.5 hover:bg-muted transition-colors"
-          >
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </button>
-          <button onClick={goToToday} className="text-center">
-            <p className="text-sm font-bold text-foreground">
-              {hijriMonthsArabic[viewMonth - 1]} {viewYear} هـ
-            </p>
-          </button>
-          <button
-            onClick={() => navigate(-1)}
-            aria-label="الشهر السابق"
-            className="rounded-full p-1.5 hover:bg-muted transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
+      {/* Hijri Calendar */}
+      {calendarType === 'hijri' && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigateHijri(1)} aria-label={t('nextMonth')} className="rounded-full p-1.5 hover:bg-muted transition-colors">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <button onClick={goToTodayHijri} className="text-center">
+              <p className="text-sm font-bold text-foreground">
+                {hijriMonthsArabic[viewMonth - 1]} {viewYear} هـ
+              </p>
+            </button>
+            <button onClick={() => navigateHijri(-1)} aria-label={t('prevMonth')} className="rounded-full p-1.5 hover:bg-muted transition-colors">
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
 
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {dayLabels.map(d => (
-            <div key={d} className="text-center text-[10px] text-muted-foreground font-medium">{d}</div>
-          ))}
-        </div>
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {dayLabels.map(d => (
+              <div key={d} className="text-center text-[10px] text-muted-foreground font-medium">{d}</div>
+            ))}
+          </div>
 
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`empty-${i}`} />
-          ))}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const isToday = viewYear === today.year && viewMonth === today.month && day === today.day;
-            const eventKey = `${viewMonth}-${day}`;
-            const event = islamicEvents[eventKey];
-
-            return (
-              <motion.div
-                key={day}
-                whileTap={{ scale: 0.9 }}
-                className={cn(
-                  'relative flex flex-col items-center justify-center rounded-lg p-1 text-xs h-9 transition-all cursor-default',
-                  isToday && 'bg-primary text-primary-foreground font-bold',
-                  event && !isToday && 'bg-accent/30 font-semibold',
-                  !isToday && !event && 'text-foreground hover:bg-muted'
-                )}
-              >
-                <span>{day}</span>
-                {event && (
-                  <span className="absolute -top-0.5 -right-0.5 text-[8px]">{event.emoji}</span>
-                )}
-              </motion.div>
-            );
-          })}
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }).map((_, i) => (
+              <div key={`empty-${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const isToday = viewYear === today.year && viewMonth === today.month && day === today.day;
+              const eventKey = `${viewMonth}-${day}`;
+              const event = islamicEvents[eventKey];
+              return (
+                <motion.div
+                  key={day}
+                  whileTap={{ scale: 0.9 }}
+                  className={cn(
+                    'relative flex flex-col items-center justify-center rounded-lg p-1 text-xs h-9 transition-all cursor-default',
+                    isToday && 'bg-primary text-primary-foreground font-bold',
+                    event && !isToday && 'bg-accent/30 font-semibold',
+                    !isToday && !event && 'text-foreground hover:bg-muted'
+                  )}
+                >
+                  <span>{day}</span>
+                  {event && <span className="absolute -top-0.5 -right-0.5 text-[8px]">{event.emoji}</span>}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Gregorian Calendar */}
+      {calendarType === 'gregorian' && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigateGregorian(1)} aria-label={t('nextMonth')} className="rounded-full p-1.5 hover:bg-muted transition-colors">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <button onClick={goToTodayGregorian} className="text-center">
+              <p className="text-sm font-bold text-foreground">
+                {gregorianMonths[gMonth]} {gYear}
+              </p>
+            </button>
+            <button onClick={() => navigateGregorian(-1)} aria-label={t('prevMonth')} className="rounded-full p-1.5 hover:bg-muted transition-colors">
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {dayLabels.map(d => (
+              <div key={d} className="text-center text-[10px] text-muted-foreground font-medium">{d}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: gFirstDay }).map((_, i) => (
+              <div key={`gempty-${i}`} />
+            ))}
+            {Array.from({ length: gDaysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const isToday = gYear === now.getFullYear() && gMonth === now.getMonth() && day === now.getDate();
+              return (
+                <motion.div
+                  key={day}
+                  whileTap={{ scale: 0.9 }}
+                  className={cn(
+                    'relative flex flex-col items-center justify-center rounded-lg p-1 text-xs h-9 transition-all cursor-default',
+                    isToday && 'bg-primary text-primary-foreground font-bold',
+                    !isToday && 'text-foreground hover:bg-muted'
+                  )}
+                >
+                  <span>{day}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Upcoming Events */}
       <div className="rounded-xl border border-border bg-card p-4">

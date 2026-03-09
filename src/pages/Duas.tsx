@@ -20,49 +20,49 @@ interface CatItem {
   useEmoji?: boolean;
 }
 
-const dailyCategories: CatItem[] = [
-  { icon: Bed, label: 'النوم', dataKey: 'sleep' },
-  { icon: Droplets, label: 'الوضوء', dataKey: 'wudu' },
-  { icon: Landmark, label: 'مسجد', dataKey: 'mosque' },
-  { icon: Heart, label: 'صلاة', dataKey: 'salah' },
-  { icon: Home, label: 'منزل', dataKey: 'home' },
-  { icon: Shirt, label: 'ملابس', dataKey: 'clothes' },
-  { icon: Plane, label: 'سفر', dataKey: 'travel' },
-  { icon: UtensilsCrossed, label: 'طعام', dataKey: 'food' },
+const getDailyCategories = (t: (k: string) => string): CatItem[] => [
+  { icon: Bed, label: t('catSleep'), dataKey: 'sleep' },
+  { icon: Droplets, label: t('catWudu'), dataKey: 'wudu' },
+  { icon: Landmark, label: t('catMosque'), dataKey: 'mosque' },
+  { icon: Heart, label: t('catSalah'), dataKey: 'salah' },
+  { icon: Home, label: t('catHome'), dataKey: 'home' },
+  { icon: Shirt, label: t('catClothes'), dataKey: 'clothes' },
+  { icon: Plane, label: t('catTravel'), dataKey: 'travel' },
+  { icon: UtensilsCrossed, label: t('catFood'), dataKey: 'food' },
 ];
 
-const adhkarCategories: CatItem[] = [
-  { icon: '📿', label: 'الذكر اليومي', dataKey: 'daily-dhikr', useEmoji: true },
-  { icon: '🌙', label: 'إحياء الذكرى اليومي', dataKey: 'daily-revival', useEmoji: true },
-  { icon: '🤲', label: 'بعد الصلوات', dataKey: 'after-prayer', useEmoji: true },
-  { icon: '🍎', label: 'رزق', dataKey: 'rizq', useEmoji: true },
-  { icon: '📖', label: 'معرفة', dataKey: 'knowledge', useEmoji: true },
-  { icon: '🕌', label: 'الإيمان', dataKey: 'faith', useEmoji: true },
-  { icon: '⚖️', label: 'يوم الحساب', dataKey: 'judgment', useEmoji: true },
-  { icon: '💚', label: 'مغفرة', dataKey: 'forgiveness', useEmoji: true },
-  { icon: '🤲', label: 'مشيداً بالله', dataKey: 'praising', useEmoji: true },
+const getAdhkarCategories = (t: (k: string) => string): CatItem[] => [
+  { icon: '📿', label: t('catDailyDhikr'), dataKey: 'daily-dhikr', useEmoji: true },
+  { icon: '🌙', label: t('catDailyRevival'), dataKey: 'daily-revival', useEmoji: true },
+  { icon: '🤲', label: t('catAfterPrayer'), dataKey: 'after-prayer', useEmoji: true },
+  { icon: '🍎', label: t('catRizq'), dataKey: 'rizq', useEmoji: true },
+  { icon: '📖', label: t('catKnowledge'), dataKey: 'knowledge', useEmoji: true },
+  { icon: '🕌', label: t('catFaith'), dataKey: 'faith', useEmoji: true },
+  { icon: '⚖️', label: t('catJudgment'), dataKey: 'judgment', useEmoji: true },
+  { icon: '💚', label: t('catForgiveness'), dataKey: 'forgiveness', useEmoji: true },
+  { icon: '🤲', label: t('catPraising'), dataKey: 'praising', useEmoji: true },
 ];
 
-const moreCategories: CatItem[] = [
-  { icon: Users, label: 'عائلة', dataKey: 'family' },
-  { icon: Stethoscope, label: 'الصحة / المرض', dataKey: 'health' },
-  { icon: Frown, label: 'الخسارة / الفشل', dataKey: 'loss' },
-  { icon: SmilePlus, label: 'الحزن / السعادة', dataKey: 'sadness' },
-  { icon: Shield, label: 'الصبر', dataKey: 'patience' },
-  { icon: Heart, label: 'الدّين', dataKey: 'debt' },
-  { icon: Heart, label: 'أثناء الحيض', dataKey: 'menstruation' },
+const getMoreCategories = (t: (k: string) => string): CatItem[] => [
+  { icon: Users, label: t('catFamily'), dataKey: 'family' },
+  { icon: Stethoscope, label: t('catHealth'), dataKey: 'health' },
+  { icon: Frown, label: t('catLoss'), dataKey: 'loss' },
+  { icon: SmilePlus, label: t('catSadness'), dataKey: 'sadness' },
+  { icon: Shield, label: t('catPatience'), dataKey: 'patience' },
+  { icon: Heart, label: t('catDebt'), dataKey: 'debt' },
+  { icon: Heart, label: t('catMenstruation'), dataKey: 'menstruation' },
 ];
 
-const occasionalCategories: CatItem[] = [
-  { icon: '🪦', label: 'المتوفى', dataKey: 'deceased', useEmoji: true },
-  { icon: '🕋', label: 'الحج / العمرة', dataKey: 'hajj', useEmoji: true },
-  { icon: '🌙', label: 'رمضان', dataKey: 'ramadan', useEmoji: true },
-  { icon: '🌳', label: 'طبيعة', dataKey: 'nature', useEmoji: true },
-  { icon: '🤝', label: 'السلوكيات الحميدة', dataKey: 'goodManners', useEmoji: true },
-  { icon: '🪧', label: 'إتخاذ القرار / التوجيه', dataKey: 'guidance', useEmoji: true },
+const getOccasionalCategories = (t: (k: string) => string): CatItem[] => [
+  { icon: '🪦', label: t('catDeceased'), dataKey: 'deceased', useEmoji: true },
+  { icon: '🕋', label: t('catHajj'), dataKey: 'hajj', useEmoji: true },
+  { icon: '🌙', label: t('catRamadan'), dataKey: 'ramadan', useEmoji: true },
+  { icon: '🌳', label: t('catNature'), dataKey: 'nature', useEmoji: true },
+  { icon: '🤝', label: t('catGoodManners'), dataKey: 'goodManners', useEmoji: true },
+  { icon: '🪧', label: t('catGuidance'), dataKey: 'guidance', useEmoji: true },
 ];
 
-const allCategories = [...dailyCategories, ...adhkarCategories, ...moreCategories, ...occasionalCategories];
+const getAllCategories = (t: (k: string) => string) => [...getDailyCategories(t), ...getAdhkarCategories(t), ...getMoreCategories(t), ...getOccasionalCategories(t)];
 
 type ViewMode = 'categories' | 'subCategories' | 'duas';
 
@@ -118,7 +118,7 @@ export default function Duas() {
   const totalDuasInCategory = subCategories.reduce((sum, sub) => sum + sub.duas.length, 0);
 
   const findCatLabel = (dataKey: string) => {
-    return allCategories.find(c => c.dataKey === dataKey)?.label || '';
+    return getAllCategories(t).find(c => c.dataKey === dataKey)?.label || '';
   };
 
   // Search results
@@ -214,7 +214,7 @@ export default function Duas() {
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <span className="font-medium text-foreground block">{cat.label}</span>
-                  <span className="text-[10px] text-muted-foreground">{subCount} أقسام</span>
+                  <span className="text-[10px] text-muted-foreground">{subCount} {t('sectionsLabel')}</span>
                 </div>
                 {cat.useEmoji ? (
                   <span className="text-2xl">{cat.icon}</span>
@@ -232,8 +232,8 @@ export default function Duas() {
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       <PageHeader
-        title="الدُعاء والذكر"
-        subtitle="أدعية وأذكار من الكتاب والسنة"
+        title={t('duasAndDhikr')}
+        subtitle={t('duasSubtitle')}
         image="https://images.unsplash.com/photo-1447619297994-b829cc1ab44a?w=1200&q=85"
         compact
         actionsLeft={
@@ -268,7 +268,7 @@ export default function Duas() {
             <div className="relative">
               <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="ابحث عن دعاء..."
+                placeholder={t('searchDua')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="pe-9 rounded-2xl bg-card border-border/50"
@@ -289,35 +289,35 @@ export default function Duas() {
         >
           {showSearch && searchQuery ? (
             <div className="px-5 pt-2 space-y-3">
-              <p className="text-xs text-muted-foreground">{searchResults.length} نتيجة</p>
+              <p className="text-xs text-muted-foreground">{searchResults.length} {t('resultCount')}</p>
               {searchResults.length === 0 ? (
                 <div className="text-center py-12">
                   <Search className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">لا توجد نتائج</p>
+                  <p className="text-sm text-muted-foreground">{t('noResultsFound')}</p>
                 </div>
               ) : searchResults.map((dua, j) => renderDuaCard(dua, j))}
             </div>
           ) : showFavorites ? (
             <div className="px-5 pt-2 space-y-3">
-              <p className="text-sm font-bold text-foreground mb-3">⭐ المفضلة ({favoriteDuas.length})</p>
+              <p className="text-sm font-bold text-foreground mb-3">⭐ {t('favoritesLabel')} ({favoriteDuas.length})</p>
               {favoriteDuas.length === 0 ? (
                 <div className="text-center py-12">
                   <Heart className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">لا توجد أدعية مفضلة بعد</p>
+                  <p className="text-sm text-muted-foreground">{t('noFavoriteDuas')}</p>
                 </div>
               ) : favoriteDuas.map((dua, j) => renderDuaCard(dua, j))}
             </div>
           ) : viewMode === 'categories' ? (
             <>
-              {renderSection('يومي', dailyCategories, '📅')}
-              {renderSection('أذكار', adhkarCategories, '📿')}
-              {renderSection('أخرى', moreCategories, '📂')}
-              {renderSection('متقطع', occasionalCategories, '🗓️')}
+              {renderSection(t('daily'), getDailyCategories(t), '📅')}
+              {renderSection(t('adhkar'), getAdhkarCategories(t), '📿')}
+              {renderSection(t('otherDuas'), getMoreCategories(t), '📂')}
+              {renderSection(t('occasional'), getOccasionalCategories(t), '🗓️')}
             </>
           ) : viewMode === 'subCategories' ? (
             <div className="px-5 pt-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] text-muted-foreground">{totalDuasInCategory} دعاء</span>
+                <span className="text-[10px] text-muted-foreground">{totalDuasInCategory} {t('totalDuas')}</span>
                 <h2 className="text-lg font-bold text-foreground">{findCatLabel(selectedCategory!)}</h2>
               </div>
               <div className="space-y-3">
@@ -342,7 +342,7 @@ export default function Duas() {
           ) : (
             <div className="px-5 pt-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] text-muted-foreground">{selectedSub?.duas.length} دعاء</span>
+                <span className="text-[10px] text-muted-foreground">{selectedSub?.duas.length} {t('totalDuas')}</span>
                 <div className="text-right">
                   <h2 className="text-lg font-bold text-foreground">
                     {selectedSub?.emoji} {t(selectedSub?.labelKey || '')}

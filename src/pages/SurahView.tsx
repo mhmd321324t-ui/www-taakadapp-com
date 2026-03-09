@@ -13,11 +13,53 @@ interface Ayah {
   text: string;
   numberInSurah: number;
   audio: string;
+  translation?: string;
 }
+
+// Quran translation editions by language
+const quranTranslationEditions: Record<string, string> = {
+  en: 'en.asad',
+  fr: 'fr.hamidullah',
+  de: 'de.aburida',
+  tr: 'tr.diyanet',
+  ur: 'ur.jalandhry',
+  id: 'id.indonesian',
+  es: 'es.cortes',
+  ru: 'ru.kuliev',
+  pt: 'pt.elhayek',
+  nl: 'nl.keyzer',
+  it: 'it.piccardo',
+  bn: 'bn.bengali',
+  fa: 'fa.makarem',
+  ms: 'ms.basmeih',
+  hi: 'hi.hindi',
+  th: 'th.thai',
+  ja: 'ja.japanese',
+  ko: 'ko.korean',
+  zh: 'zh.majian',
+  sw: 'sw.barwani',
+  sq: 'sq.ahmeti',
+  bs: 'bs.korkut',
+  az: 'az.mammadaliyev',
+  ml: 'ml.abdulhameed',
+  ta: 'ta.tamil',
+  tl: 'tl.filipino',
+  ha: 'ha.gumi',
+  ku: 'ku.asan',
+  so: 'so.abduh',
+  am: 'am.sadiq',
+  uz: 'uz.sodik',
+  tt: 'tt.nugman',
+  no: 'no.berg',
+  sv: 'sv.bernstrom',
+  pl: 'pl.bielawskiego',
+  ro: 'ro.grigore',
+  cs: 'cs.hrbek',
+};
 
 export default function SurahView() {
   const { id } = useParams();
-  const { t, isRTL } = useLocale();
+  const { t, isRTL, locale } = useLocale();
   const { user } = useAuth();
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [surahName, setSurahName] = useState('');
@@ -27,14 +69,37 @@ export default function SurahView() {
   const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
-    fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`)
-      .then(r => r.json())
-      .then(d => {
-        setAyahs(d.data.ayahs);
-        setSurahName(d.data.name);
+    const fetchAyahs = async () => {
+      try {
+        const arabicRes = await fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`);
+        const arabicData = await arabicRes.json();
+        let ayahsList: Ayah[] = arabicData.data.ayahs;
+        setSurahName(arabicData.data.name);
+
+        // Fetch translation if non-Arabic locale
+        const edition = locale !== 'ar' ? quranTranslationEditions[locale] : null;
+        if (edition) {
+          try {
+            const transRes = await fetch(`https://api.alquran.cloud/v1/surah/${id}/${edition}`);
+            const transData = await transRes.json();
+            if (transData.data?.ayahs) {
+              ayahsList = ayahsList.map((ayah, i) => ({
+                ...ayah,
+                translation: transData.data.ayahs[i]?.text || '',
+              }));
+            }
+          } catch {
+            // Translation not available, continue without
+          }
+        }
+
+        setAyahs(ayahsList);
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch {
+        setLoading(false);
+      }
+    };
+    fetchAyahs();
 
     if (user && id) {
       supabase
@@ -48,7 +113,7 @@ export default function SurahView() {
     }
 
     return () => { audio.pause(); };
-  }, [id, user]);
+  }, [id, user, locale]);
 
   const toggleBookmark = async () => {
     if (!user) {
@@ -155,6 +220,14 @@ export default function SurahView() {
               <p className="text-right text-2xl leading-[2.5] font-arabic text-foreground" dir="rtl">
                 {ayah.text}
               </p>
+              {ayah.translation && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <p className="text-xs text-muted-foreground mb-1">{t('meaningTranslation')}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed" dir="auto">
+                    {ayah.translation}
+                  </p>
+                </div>
+              )}
             </motion.div>
           ))
         )}

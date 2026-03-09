@@ -16,18 +16,18 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const CATEGORIES = [
-  { key: 'istighfar', label: 'قصص الاستغفار', emoji: '🤲', icon: Sparkles, color: 'bg-primary' },
-  { key: 'sahaba', label: 'قصص الصحابة', emoji: '📖', icon: BookOpen, color: 'bg-primary' },
-  { key: 'ruqyah', label: 'قصص الرقية الشرعية', emoji: '🛡️', icon: Shield, color: 'bg-primary' },
-  { key: 'hawqala', label: 'قصص الحوقلة', emoji: '💚', icon: Heart, color: 'bg-primary' },
-  { key: 'rizq', label: 'قصص الرزق', emoji: '✨', icon: Coins, color: 'bg-primary' },
+const getCATEGORIES = (t: (k: string) => string) => [
+  { key: 'istighfar', label: t('catIstighfar'), emoji: '🤲', icon: Sparkles, color: 'bg-primary' },
+  { key: 'sahaba', label: t('catSahaba'), emoji: '📖', icon: BookOpen, color: 'bg-primary' },
+  { key: 'ruqyah', label: t('catRuqyahStory'), emoji: '🛡️', icon: Shield, color: 'bg-primary' },
+  { key: 'hawqala', label: t('catHawqala'), emoji: '💚', icon: Heart, color: 'bg-primary' },
+  { key: 'rizq', label: t('catRizqStory'), emoji: '✨', icon: Coins, color: 'bg-primary' },
 ];
 
-const MEDIA_TYPES = [
-  { key: 'text', label: 'نص', icon: FileText },
-  { key: 'video', label: 'فيديو', icon: Video },
-  { key: 'audio', label: 'صوت', icon: Mic },
+const getMEDIA_TYPES = (t: (k: string) => string) => [
+  { key: 'text', label: t('mediaText'), icon: FileText },
+  { key: 'video', label: t('mediaVideo'), icon: Video },
+  { key: 'audio', label: t('mediaAudio'), icon: Mic },
 ];
 
 interface Story {
@@ -330,7 +330,7 @@ export default function Stories() {
     return `منذ ${Math.floor(days / 30)} شهر`;
   };
 
-  const getCategoryInfo = (key: string) => CATEGORIES.find(c => c.key === key);
+  const getCategoryInfo = (key: string) => getCATEGORIES(t).find(c => c.key === key);
 
   const getMediaIcon = (type: string) => {
     if (type === 'video') return <Video className="h-3 w-3" />;
@@ -341,8 +341,8 @@ export default function Stories() {
   return (
     <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       <PageHeader
-        title="📖 قصص حقيقية"
-        subtitle="شارك قصتك وألهم الآخرين"
+        title={t('storiesTitle')}
+        subtitle={t('storiesSubtitle')}
         image="https://images.unsplash.com/photo-1688668782203-b69f916c48db?w=1200&q=85"
         actionsLeft={
           viewMode !== 'categories' ? (
@@ -368,29 +368,28 @@ export default function Stories() {
                   <div className="text-center">
                     <span className="text-3xl mb-2 block">✨</span>
                     <h2 className="text-lg font-bold text-foreground mb-2">
-                      قصتك قد تكون سبباً في هداية شخص
+                      {t('yourStoryMayGuide')}
                     </h2>
                     <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                      شارك تجربتك الحقيقية — نص، فيديو، أو صوت.
-                      يتم مراجعة القصص قبل نشرها لضمان جودة المحتوى.
+                      {t('shareYourExperience')}
                     </p>
                     {user ? (
                       <Button onClick={() => { setNewCategory(''); setViewMode('new'); }} className="rounded-full gap-2">
                         <Plus className="h-4 w-4" />
-                        انشر قصتك الآن
+                        {t('publishYourStory')}
                       </Button>
                     ) : (
                       <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium">
                         <LogIn className="h-4 w-4" />
-                        سجّل دخولك لنشر قصتك
+                        {t('loginToPublish')}
                       </Link>
                     )}
                   </div>
                 </div>
 
-                <SectionHeader icon={FolderOpen} title="اختر الفئة" />
+                <SectionHeader icon={FolderOpen} title={t('chooseCategory')} />
                 <div className="space-y-3">
-                  {CATEGORIES.map((cat, i) => (
+                  {getCATEGORIES(t).map((cat, i) => (
                     <motion.button
                       key={cat.key}
                       initial={{ opacity: 0, y: 10 }}
@@ -419,7 +418,7 @@ export default function Stories() {
                 <div className="flex items-center justify-between mb-4">
                   <Button onClick={openNewStory} size="sm" className="rounded-full gap-1">
                     <Plus className="h-3 w-3" />
-                    انشر قصة
+                    {t('publishStory')}
                   </Button>
                   <h2 className="text-lg font-bold text-foreground">
                     {getCategoryInfo(selectedCategory)?.emoji} {getCategoryInfo(selectedCategory)?.label}
@@ -433,11 +432,11 @@ export default function Stories() {
                 ) : stories.length === 0 ? (
                   <div className="text-center py-16">
                     <span className="text-5xl mb-4 block">📝</span>
-                    <p className="text-sm font-bold text-foreground mb-1">لا توجد قصص بعد</p>
-                    <p className="text-xs text-muted-foreground mb-4">كن أول من يشارك قصته!</p>
+                    <p className="text-sm font-bold text-foreground mb-1">{t('noStoriesYet')}</p>
+                    <p className="text-xs text-muted-foreground mb-4">{t('beFirstToShare')}</p>
                     <Button onClick={openNewStory} className="rounded-full gap-2">
                       <Plus className="h-4 w-4" />
-                      انشر أول قصة
+                      {t('publishFirstStory')}
                     </Button>
                   </div>
                 ) : (
@@ -607,7 +606,7 @@ export default function Stories() {
 
                 {/* Media type selector */}
                 <div className="flex gap-2 justify-center mb-4">
-                  {MEDIA_TYPES.map(mt => (
+                  {getMEDIA_TYPES(t).map(mt => (
                     <button
                       key={mt.key}
                       onClick={() => { setNewMediaType(mt.key); setMediaFile(null); }}
@@ -632,7 +631,7 @@ export default function Stories() {
                     className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm"
                   >
                     <option value="">اختر الفئة</option>
-                    {CATEGORIES.map(c => (
+                    {getCATEGORIES(t).map(c => (
                       <option key={c.key} value={c.key}>{c.label}</option>
                     ))}
                   </select>
