@@ -73,46 +73,13 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `أنت مساعد إسلامي متخصص. أجب دائماً بصيغة JSON فقط بدون أي نص إضافي.
-الصيغة المطلوبة:
-{
-  "duas": [
-    { "arabic": "النص بالتشكيل", "reference": "المصدر", "count": 1 }
-  ]
-}`,
+            content: `أنت مساعد إسلامي متخصص. أجب دائماً بصيغة JSON فقط بدون أي نص إضافي أو markdown أو backticks.
+الصيغة المطلوبة بالضبط:
+{"duas":[{"arabic":"النص بالتشكيل","reference":"المصدر","count":1}]}
+يجب أن يكون الرد JSON صالح فقط، بدون أي شيء آخر قبله أو بعده.`,
           },
           { role: "user", content: prompt },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_duas",
-              description: "Return a list of Islamic duas/azkar",
-              parameters: {
-                type: "object",
-                properties: {
-                  duas: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        arabic: { type: "string", description: "Arabic text with tashkeel" },
-                        reference: { type: "string", description: "Hadith/Quran source" },
-                        count: { type: "number", description: "Repetition count" },
-                      },
-                      required: ["arabic", "reference", "count"],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: ["duas"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "return_duas" } },
       }),
     });
 
@@ -138,20 +105,22 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
-    // Extract tool call result
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let duas;
-    if (toolCall) {
-      duas = JSON.parse(toolCall.function.arguments);
-    } else {
-      // Fallback: try parsing content directly
-      const content = data.choices?.[0]?.message?.content || "{}";
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      duas = JSON.parse(cleaned);
+    const content = data.choices?.[0]?.message?.content || "";
+    console.log("AI raw response:", content.substring(0, 500));
+
+    // Clean and parse JSON from response
+    const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (!parsed?.duas || parsed.duas.length === 0) {
+      console.error("AI returned empty duas");
+      return new Response(JSON.stringify({ error: "Empty response" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify(duas), {
+    return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

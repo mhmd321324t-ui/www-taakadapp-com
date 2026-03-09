@@ -85,12 +85,11 @@ export default function DailyDuas() {
 
       if (error) throw error;
 
-      if (data?.duas && data.duas.length > 0) {
+      if (!error && data?.duas && Array.isArray(data.duas) && data.duas.length > 0) {
         setDuas(data.duas);
         setIsAi(true);
       } else {
-        setDuas(getFallbackDuas(config.fallbackCategories));
-        setIsAi(false);
+        throw new Error("fallback");
       }
     } catch {
       setDuas(getFallbackDuas(config.fallbackCategories));
