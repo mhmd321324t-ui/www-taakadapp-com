@@ -122,16 +122,12 @@ export function useGeoLocation() {
         }
       },
       () => {
-        // If user denies location, fallback to Makkah with Umm Al-Qura method
+        // If user denies location, use cached coordinates if available, otherwise show error
+        const hasCached = location.latitude !== 0 || location.longitude !== 0;
         setLocation(prev => ({
           ...prev,
-          latitude: prev.latitude || 21.4225,
-          longitude: prev.longitude || 39.8262,
-          city: prev.city || 'مكة',
-          country: prev.country || 'السعودية',
-          countryCode: prev.countryCode || 'SA',
-          calculationMethod: prev.calculationMethod || 4,
           loading: false,
+          error: hasCached ? null : 'يرجى تفعيل الموقع الجغرافي لعرض أوقات الصلاة',
         }));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }

@@ -157,8 +157,8 @@ export function useSavedMosqueTimes(): SavedMosqueData {
           },
         });
 
-        if (!error && liveData?.success && liveData?.times) {
-          // Cache for the day
+        if (!error && liveData?.success && liveData?.times && liveData?.source !== 'calculated') {
+          // Cache for the day — skip 'calculated' source as it's just generic coordinate-based times
           localStorage.setItem(liveCacheKey, JSON.stringify({
             times: liveData.times,
             source: liveData.source,
