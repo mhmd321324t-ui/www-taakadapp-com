@@ -243,7 +243,7 @@ export default function Index() {
                   to="/notifications"
                   className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-xl transition-all active:scale-95"
                 >
-                  <Volume2 className="h-3 w-3 inline ms-1" />
+                  <Volume2 className="h-3 w-3 inline me-1" />
                   الأذان
                 </Link>
               </div>

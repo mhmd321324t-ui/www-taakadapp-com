@@ -12,7 +12,7 @@ interface SectionHeaderProps {
 export default function SectionHeader({ icon: Icon, emoji, title, subtitle, className }: SectionHeaderProps) {
   return (
     <div className={cn(
-      'flex items-center gap-3 rounded-2xl bg-gradient-to-l from-primary/5 via-card to-card border border-border/50 border-r-[3px] border-r-primary p-3 mb-4',
+      'flex items-center gap-3 rounded-2xl bg-gradient-to-l from-primary/5 via-card to-card border border-border/50 border-e-[3px] border-e-primary p-3 mb-4',
       className
     )}>
       <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
