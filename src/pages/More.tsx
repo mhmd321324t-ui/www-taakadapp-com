@@ -23,6 +23,7 @@ const features = [
   { icon: MessageSquare, label: 'قصص حقيقية', path: '/stories', gradient: 'from-primary/15 to-accent/10' },
   { icon: Calculator, label: 'حاسبة الزكاة', path: '/zakat', gradient: 'from-islamic-teal/15 to-primary/10' },
   { icon: CheckCircle2, label: 'متابعة الصلاة', path: '/tracker', gradient: 'from-primary/15 to-islamic-emerald/10' },
+  { icon: Heart, label: 'تتبع الدورة', path: '/period-tracker', gradient: 'from-islamic-rose/15 to-islamic-copper/10' },
   { icon: User, label: 'حسابي', path: '/account', gradient: 'from-accent/15 to-islamic-copper/10' },
 ];
 

@@ -344,6 +344,30 @@ export default function RamadanCalendar() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Links to other Ramadan features */}
+      <div className="px-4 mb-4 space-y-2">
+        <Link to="/ramadan-book" className="flex items-center justify-between rounded-2xl bg-card border border-border/50 p-3.5 active:scale-[0.98] transition-transform">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-lg">📖</div>
+            <div>
+              <p className="text-sm font-bold text-foreground">كتاب رمضان الشامل</p>
+              <p className="text-[10px] text-muted-foreground">أحكام • آداب • برنامج عبادة</p>
+            </div>
+          </div>
+          <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+        </Link>
+        <Link to="/ramadan-cards" className="flex items-center justify-between rounded-2xl bg-card border border-border/50 p-3.5 active:scale-[0.98] transition-transform">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center text-lg">🎨</div>
+            <div>
+              <p className="text-sm font-bold text-foreground">بطاقات رمضان</p>
+              <p className="text-[10px] text-muted-foreground">شارك التهاني والأدعية</p>
+            </div>
+          </div>
+          <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+        </Link>
+      </div>
     </div>
   );
 }
