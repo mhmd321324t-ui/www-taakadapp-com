@@ -10,7 +10,7 @@ import OccasionAthanAlert from '@/components/OccasionAthanAlert';
 import OccasionBanner from '@/components/OccasionBanner';
 import HijriCalendar from '@/components/HijriCalendar';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink } from 'lucide-react';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink, MapPin } from 'lucide-react';
 import SectionHeader from '@/components/SectionHeader';
 import QuranPlayer from '@/components/QuranPlayer';
 import { AdBanner } from '@/components/AdBanner';
