@@ -387,9 +387,9 @@ export default function Stories() {
                   </div>
                 </div>
 
-                <SectionHeader icon={FolderOpen} title="اختر الفئة" />
+                <SectionHeader icon={FolderOpen} title={t('chooseCategory')} />
                 <div className="space-y-3">
-                  {CATEGORIES.map((cat, i) => (
+                  {getCATEGORIES(t).map((cat, i) => (
                     <motion.button
                       key={cat.key}
                       initial={{ opacity: 0, y: 10 }}
