@@ -296,12 +296,12 @@ export default function Index() {
             <button
               onClick={() => {
                 unlinkMosque();
-                toast.success('تم إلغاء ربط المسجد');
+                toast.success(t('mosqueUnlinked'));
               }}
               className="flex items-center gap-0.5 text-[10px] text-destructive"
             >
               <Unlink className="h-2.5 w-2.5" />
-              إلغاء
+              {t('unlinkMosque')}
             </button>
           </div>
         )}
