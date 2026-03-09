@@ -31,7 +31,7 @@ async function searchOverpass(lat: number, lon: number, radius: number) {
   for (const endpoint of endpoints) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 25000);
+      const timeout = setTimeout(() => controller.abort(), 12000);
       
       const response = await fetch(endpoint, {
         method: "POST",

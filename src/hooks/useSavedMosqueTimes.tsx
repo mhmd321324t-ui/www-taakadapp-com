@@ -4,6 +4,7 @@ import type { PrayerTime } from './usePrayerTimes';
 
 const SAVED_MOSQUE_KEY = 'selected_mosque';
 const SAVED_TIMES_PREFIX = 'mosque_times_';
+const SAVED_DIFFS_PREFIX = 'mosque_diffs_';
 const LIVE_CACHE_PREFIX = 'mosque_live_';
 
 type TimesSource = 'manual' | 'mawaqit' | 'website' | 'api' | 'none';

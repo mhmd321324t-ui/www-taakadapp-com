@@ -661,15 +661,18 @@ export default function MosquePrayerTimesPage() {
               {mosques.map((mosque, idx) => {
                 const isSelected = selectedMosque?.osm_id === mosque.osm_id;
                 return (
-                  <motion.button
+                  <motion.div
                     key={mosque.osm_id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.03 }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => selectMosque(mosque)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') selectMosque(mosque); }}
                     className={cn(
-                      "w-full text-right p-4 rounded-2xl border transition-all",
+                      "w-full text-right p-4 rounded-2xl border transition-all cursor-pointer",
                       isSelected
                         ? "bg-primary/10 border-primary/30"
                         : "bg-card border-border/50 hover:border-primary/20"
@@ -691,7 +694,6 @@ export default function MosquePrayerTimesPage() {
                               📍 {mosque._dist.toFixed(1)} كم
                             </span>
                           )}
-                          {/* Availability indicator */}
                           {checkingAvailability === mosque.osm_id ? (
                             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                               <Loader2 className="h-3 w-3 animate-spin" /> جاري الفحص...
@@ -721,7 +723,7 @@ export default function MosquePrayerTimesPage() {
                         </Button>
                       )}
                     </div>
-                  </motion.button>
+                  </motion.div>
                 );
               })}
             </div>

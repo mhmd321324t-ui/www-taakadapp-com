@@ -15,6 +15,36 @@ interface MosqueTimes {
 }
 
 /**
+ * Simple name similarity check — returns true if names share significant overlap
+ */
+function namesMatch(requested: string, found: string): boolean {
+  const normalize = (s: string) =>
+    s.toLowerCase()
+      .replace(/[^\w\s\u0600-\u06FF]/g, '')
+      .replace(/\b(moschee|mosque|masjid|camii|cami|مسجد|جامع)\b/gi, '')
+      .trim();
+
+  const a = normalize(requested);
+  const b = normalize(found);
+
+  if (!a || !b) return false;
+
+  // Exact match after normalization
+  if (a === b) return true;
+
+  // One contains the other
+  if (a.includes(b) || b.includes(a)) return true;
+
+  // Check word overlap
+  const wordsA = a.split(/\s+/).filter(w => w.length > 2);
+  const wordsB = b.split(/\s+/).filter(w => w.length > 2);
+  if (wordsA.length === 0 || wordsB.length === 0) return false;
+
+  const matches = wordsA.filter(w => wordsB.some(wb => wb.includes(w) || w.includes(wb)));
+  return matches.length >= 1;
+}
+
+/**
  * Search Mawaqit API for a mosque by name + coordinates
  */
 async function fetchFromMawaqitAPI(mosqueName: string, lat?: number, lon?: number): Promise<{ times: MosqueTimes; source: string } | null> {
@@ -34,8 +64,21 @@ async function fetchFromMawaqitAPI(mosqueName: string, lat?: number, lon?: numbe
     const mosques = await res.json();
     if (!Array.isArray(mosques) || mosques.length === 0) return null;
 
-    // Pick closest/first match
-    const mosque = mosques[0];
+    // Find a mosque whose name actually matches the requested one
+    let mosque = null;
+    for (const m of mosques) {
+      if (namesMatch(mosqueName, m.name || '')) {
+        mosque = m;
+        break;
+      }
+    }
+
+    // If no name match found, reject — don't return wrong mosque's times
+    if (!mosque) {
+      console.log(`Mawaqit: no name match for "${mosqueName}". Found: ${mosques.map((m: any) => m.name).join(', ')}`);
+      return null;
+    }
+
     if (!mosque.times || mosque.times.length < 5) return null;
 
     const times: MosqueTimes = {
@@ -47,7 +90,7 @@ async function fetchFromMawaqitAPI(mosqueName: string, lat?: number, lon?: numbe
       isha: mosque.times[5] || '',
     };
 
-    console.log(`Mawaqit found: ${mosque.name} — times:`, times);
+    console.log(`Mawaqit matched: ${mosque.name} for "${mosqueName}" — times:`, times);
     return { times, source: 'mawaqit' };
   } catch (e) {
     console.error("Mawaqit API error:", e);
@@ -67,12 +110,9 @@ async function fetchByMawaqitSlug(slug: string): Promise<{ times: MosqueTimes; s
     if (!res.ok) return null;
     const html = await res.text();
 
-    // Parse prayer times from HTML DOM structure
-    const prayerNames = ['Fadjr', 'Dohr', 'Assr', 'Maghrib', 'Ishaa'];
     const keys: (keyof MosqueTimes)[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
     const times: MosqueTimes = { fajr: '', sunrise: '', dhuhr: '', asr: '', maghrib: '', isha: '' };
 
-    // Extract from .prayers div structure
     const prayerBlocks = html.match(/<div class="[^"]*">\s*<div class="name">[^<]*<\/div>\s*<div class="time"><div>(\d{1,2}:\d{2})<\/div><\/div>/g);
     if (prayerBlocks && prayerBlocks.length >= 5) {
       const timeRegex = /<div class="time"><div>(\d{1,2}:\d{2})<\/div><\/div>/;
@@ -82,7 +122,6 @@ async function fetchByMawaqitSlug(slug: string): Promise<{ times: MosqueTimes; s
       }
     }
 
-    // Extract sunrise (chourouk)
     const sunriseMatch = html.match(/chourouk-id[^>]*><div>(\d{1,2}:\d{2})<\/div>/);
     if (sunriseMatch) times.sunrise = sunriseMatch[1];
 
