@@ -165,7 +165,7 @@ export function useSavedMosqueTimes(): SavedMosqueData {
 
           setData({
             mosqueName: mosque.name,
-            prayers: timesMapToPrayers(liveData.times, is12h),
+            prayers: timesMapToPrayers(applyDiffsToTimes(liveData.times, diffs), is12h),
             loading: false,
             source: liveData.source as TimesSource,
           });
