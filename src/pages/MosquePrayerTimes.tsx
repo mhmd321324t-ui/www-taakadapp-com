@@ -129,6 +129,7 @@ export default function MosquePrayerTimesPage() {
   const [textSearching, setTextSearching] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState<string | null>(null);
   const [mosqueFilter, setMosqueFilter] = useState<'all' | 'auto' | 'manual'>('all');
+  const [countdown, setCountdown] = useState<{ key: string; label: string; remaining: string } | null>(null);
   const autoSearched = useRef(false);
 
   useEffect(() => {
