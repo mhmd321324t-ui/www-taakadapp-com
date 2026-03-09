@@ -5,8 +5,14 @@ import { cn } from '@/lib/utils';
 import {
   ArrowRight, MapPin, Search, Clock, Building2,
   Check, Loader2, RefreshCw, Edit3, Save, X, Unlink,
-  AlertCircle, Plus, Minus, Settings2, Share2
+  AlertCircle, Plus, Minus, Settings2, Share2, MessageCircle, Send, Copy, ExternalLink
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -487,9 +493,9 @@ export default function MosquePrayerTimesPage() {
 
   const fmt = (t: string) => (!t ? '—' : is12h ? to12Hour(t) : t);
 
-  const shareMosqueTimes = async () => {
-    if (!selectedMosque) return;
-    const lines = [
+  const getShareText = () => {
+    if (!selectedMosque) return '';
+    return [
       `🕌 أوقات الصلاة — ${selectedMosque.name}`,
       selectedMosque.address ? `📍 ${selectedMosque.address}` : '',
       '',
@@ -503,16 +509,36 @@ export default function MosquePrayerTimesPage() {
       '',
       `📅 ${new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
     ].filter(Boolean).join('\n');
+  };
 
+  const shareViaWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(getShareText())}`, '_blank');
+  };
+
+  const shareViaTelegram = () => {
+    window.open(`https://t.me/share/url?text=${encodeURIComponent(getShareText())}`, '_blank');
+  };
+
+  const shareViaMessenger = () => {
+    // Messenger share requires a URL, fallback to facebook dialog
+    window.open(`fb-messenger://share?link=${encodeURIComponent(window.location.href)}`, '_blank');
+  };
+
+  const shareViaNative = async () => {
+    const text = getShareText();
     if (navigator.share) {
       try {
-        await navigator.share({ title: `أوقات ${selectedMosque.name}`, text: lines });
+        await navigator.share({ title: `أوقات ${selectedMosque?.name}`, text });
         return;
-      } catch { /* user cancelled or not supported */ }
+      } catch { /* cancelled */ }
     }
-    // Fallback: copy to clipboard
+    // Fallback: copy
+    await copyToClipboard();
+  };
+
+  const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(lines);
+      await navigator.clipboard.writeText(getShareText());
       toast.success('تم نسخ الأوقات إلى الحافظة 📋');
     } catch {
       toast.error('تعذر النسخ');
@@ -587,9 +613,35 @@ export default function MosquePrayerTimesPage() {
                       <Button size="sm" variant="ghost" onClick={() => startEditing('diffs')} className="gap-1 text-xs h-8 px-2" title="ضبط فرق الدقائق">
                         <Settings2 className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={shareMosqueTimes} className="text-xs h-8 px-2" title="مشاركة الأوقات">
-                        <Share2 className="h-3 w-3" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost" className="text-xs h-8 px-2" title="مشاركة الأوقات">
+                            <Share2 className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[180px]">
+                          <DropdownMenuItem onClick={shareViaWhatsApp} className="gap-2 cursor-pointer">
+                            <MessageCircle className="h-4 w-4 text-green-500" />
+                            واتساب
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaTelegram} className="gap-2 cursor-pointer">
+                            <Send className="h-4 w-4 text-blue-500" />
+                            تيليجرام
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaMessenger} className="gap-2 cursor-pointer">
+                            <MessageCircle className="h-4 w-4 text-purple-500" />
+                            ماسنجر
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaNative} className="gap-2 cursor-pointer">
+                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                            مشاركة أخرى...
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={copyToClipboard} className="gap-2 cursor-pointer">
+                            <Copy className="h-4 w-4 text-muted-foreground" />
+                            نسخ النص
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button size="sm" variant="ghost" onClick={unlinkMosque} className="text-xs h-8 px-2 text-destructive">
                         <Unlink className="h-3 w-3" />
                       </Button>
