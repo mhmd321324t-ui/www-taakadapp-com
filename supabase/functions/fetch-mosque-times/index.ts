@@ -14,6 +14,25 @@ interface MosqueTimes {
   isha: string;
 }
 
+// ─── Well-known mosque aliases ───
+const MOSQUE_ALIASES: Record<string, string[]> = {
+  'المسجد الحرام': ['الكعبة', 'الحرم المكي', 'الحرم', 'masjid al-haram', 'kaaba', 'makkah', 'haram'],
+  'المسجد النبوي': ['الحرم النبوي', 'الحرم المدني', 'masjid nabawi', 'prophets mosque', 'madinah'],
+  'المسجد الأقصى': ['الاقصى', 'الأقصى', 'al-aqsa', 'aqsa'],
+};
+
+function getAliasSearchNames(mosqueName: string): string[] {
+  const lower = mosqueName.toLowerCase().trim();
+  const names: string[] = [];
+  for (const [canonical, aliases] of Object.entries(MOSQUE_ALIASES)) {
+    if (aliases.some(a => lower.includes(a) || a.includes(lower)) || lower.includes(canonical) || canonical.includes(lower)) {
+      names.push(canonical);
+      names.push(...aliases);
+    }
+  }
+  return names;
+}
+
 // ─── Name matching ───
 function namesMatch(requested: string, found: string): boolean {
   const normalize = (s: string) =>
@@ -26,6 +45,12 @@ function namesMatch(requested: string, found: string): boolean {
   if (!a || !b) return false;
   if (a === b) return true;
   if (a.includes(b) || b.includes(a)) return true;
+  // Check aliases
+  const aliases = getAliasSearchNames(requested);
+  if (aliases.length > 0) {
+    const nf = normalize(found);
+    if (aliases.some(al => { const na = normalize(al); return na && (nf.includes(na) || na.includes(nf)); })) return true;
+  }
   const wordsA = a.split(/\s+/).filter(w => w.length > 2);
   const wordsB = b.split(/\s+/).filter(w => w.length > 2);
   if (!wordsA.length || !wordsB.length) return false;
@@ -35,16 +60,19 @@ function namesMatch(requested: string, found: string): boolean {
 // Extract search keywords from mosque name for broader Mawaqit search
 function getSearchVariants(mosqueName: string): string[] {
   const variants: string[] = [mosqueName];
+  const aliases = getAliasSearchNames(mosqueName);
+  for (const alias of aliases) {
+    if (!variants.includes(alias)) variants.push(alias);
+  }
   const cleaned = mosqueName
     .replace(/\b(moschee|mosque|masjid|camii|cami|cmii|cmi|e\.v\.|e\.V\.|مسجد|جامع)\b/gi, '')
     .replace(/\s+/g, ' ').trim();
   if (cleaned && cleaned !== mosqueName) variants.push(cleaned);
-  // Individual significant words (>3 chars)
   const words = cleaned.split(/\s+/).filter(w => w.length > 3);
   for (const w of words) {
     if (!variants.includes(w)) variants.push(w);
   }
-  return variants.slice(0, 4); // max 4 attempts
+  return variants.slice(0, 6);
 }
 
 // ─── 1. Mawaqit API search (with multiple keyword attempts) ───
