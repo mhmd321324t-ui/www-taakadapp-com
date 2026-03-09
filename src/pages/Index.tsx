@@ -10,7 +10,7 @@ import OccasionAthanAlert from '@/components/OccasionAthanAlert';
 import OccasionBanner from '@/components/OccasionBanner';
 import HijriCalendar from '@/components/HijriCalendar';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink, MapPin } from 'lucide-react';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink, MapPin, MapPinOff } from 'lucide-react';
 import SectionHeader from '@/components/SectionHeader';
 import QuranPlayer from '@/components/QuranPlayer';
 import { AdBanner } from '@/components/AdBanner';
@@ -49,6 +49,10 @@ export default function Index() {
     return localStorage.getItem('athan-notifications') === 'true';
   });
 
+  const [showNotifPrompt, setShowNotifPrompt] = useState(() => {
+    return !localStorage.getItem('notification-prompt-shown') && !localStorage.getItem('athan-notifications');
+  });
+
   // Current Islamic occasion
   // hijriDay is a string like "14", we need to parse it to a number
   const currentOccasion = getCurrentOccasion(hijriMonthNumber, parseInt(hijriDay) || 1);
@@ -77,8 +81,12 @@ export default function Index() {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     if (!remaining || !nextPrayer) return;
-    const parts = remaining.split(':');
-    const totalSecs = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + (parseInt(parts[2]) || 0);
+    // Parse "Xh Ym" or "Xm" format
+    const hMatch = remaining.match(/(\d+)h/);
+    const mMatch = remaining.match(/(\d+)m/);
+    const hours = hMatch ? parseInt(hMatch[1]) : 0;
+    const mins = mMatch ? parseInt(mMatch[1]) : 0;
+    const totalSecs = hours * 3600 + mins * 60;
     const maxSecs = 6 * 3600;
     setProgress(Math.max(0, Math.min(1, 1 - totalSecs / maxSecs)));
   }, [remaining, nextPrayer]);
@@ -166,6 +174,51 @@ export default function Index() {
       {/* Islamic Occasion Banner */}
       {currentOccasion && <OccasionBanner occasion={currentOccasion} />}
 
+      {/* Location error banner */}
+      {location.error && prayers.length === 0 && (
+        <div className="px-4 mb-4">
+          <div className="rounded-3xl bg-destructive/10 border border-destructive/30 p-5 flex flex-col items-center gap-3">
+            <MapPinOff className="h-8 w-8 text-destructive" />
+            <p className="text-sm font-bold text-foreground text-center">{location.error}</p>
+            <button
+              onClick={() => location.detectLocation()}
+              className="rounded-2xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold transition-all active:scale-95"
+            >
+              تفعيل الموقع
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Notification permission prompt */}
+      {showNotifPrompt && (
+        <div className="px-4 mb-4">
+          <div className="rounded-3xl bg-card border border-primary/30 p-5 flex items-center gap-4 shadow-elevated">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Bell className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-foreground">تفعيل إشعارات الصلاة</p>
+              <p className="text-xs text-muted-foreground mt-0.5">احصل على تنبيه عند كل أذان</p>
+            </div>
+            <button
+              onClick={async () => {
+                const granted = await requestNotificationPermission();
+                if (granted) {
+                  setNotificationsEnabled(true);
+                  localStorage.setItem('athan-notifications', 'true');
+                  toast.success('تم تفعيل إشعارات الصلاة');
+                }
+                localStorage.setItem('notification-prompt-shown', 'true');
+                setShowNotifPrompt(false);
+              }}
+              className="rounded-2xl bg-primary text-primary-foreground px-4 py-2 text-xs font-bold shrink-0 transition-all active:scale-95"
+            >
+              تفعيل
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Goals card */}
       <div className="px-4 -mt-12 relative z-10 mb-5">

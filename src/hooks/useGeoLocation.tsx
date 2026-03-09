@@ -123,11 +123,10 @@ export function useGeoLocation() {
       },
       () => {
         // If user denies location, use cached coordinates if available, otherwise show error
-        const hasCached = location.latitude !== 0 || location.longitude !== 0;
         setLocation(prev => ({
           ...prev,
           loading: false,
-          error: hasCached ? null : 'يرجى تفعيل الموقع الجغرافي لعرض أوقات الصلاة',
+          error: (prev.latitude !== 0 || prev.longitude !== 0) ? null : 'يرجى تفعيل الموقع الجغرافي لعرض أوقات الصلاة',
         }));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
