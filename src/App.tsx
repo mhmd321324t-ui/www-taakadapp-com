@@ -24,6 +24,7 @@ const Install = lazy(() => import("./pages/Install"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Account = lazy(() => import("./pages/Account"));
 const DailyDuas = lazy(() => import("./pages/DailyDuas"));
+const MosquePrayerTimes = lazy(() => import("./pages/MosquePrayerTimes"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
