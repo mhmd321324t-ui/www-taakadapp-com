@@ -60,7 +60,7 @@ function SettingRow({ setting }: { setting: NotifSetting }) {
   };
 
   return (
-    <div className="flex items-start gap-3 py-4 border-b border-border/20 last:border-b-0 flex-row-reverse">
+    <div className="flex items-start gap-3 py-4 border-b border-border/20 last:border-b-0">
       <div className="mt-0.5 h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-primary">
         {setting.icon}
       </div>
