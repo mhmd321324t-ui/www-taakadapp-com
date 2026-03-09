@@ -140,7 +140,7 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
     };
 
     fetchPrayers();
-  }, [latitude, longitude, method, is12h, todayStr]);
+  }, [latitude, longitude, method, school, is12h, todayStr]);
 
   return data;
 }
