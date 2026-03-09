@@ -376,7 +376,7 @@ export default function Stories() {
                     {user ? (
                       <Button onClick={() => { setNewCategory(''); setViewMode('new'); }} className="rounded-full gap-2">
                         <Plus className="h-4 w-4" />
-                        انشر قصتك الآن
+                        {t('publishYourStory')}
                       </Button>
                     ) : (
                       <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium">
