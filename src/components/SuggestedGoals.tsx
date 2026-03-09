@@ -37,27 +37,30 @@ export default function SuggestedGoals() {
   };
 
   return (
-    <div className="px-4 mb-5">
-      <h3 className="text-sm font-bold text-foreground mb-3">الأهداف المقترحة</h3>
+    <div className="px-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">🎯</span>
+        <h3 className="text-sm font-bold text-foreground">الأهداف المقترحة</h3>
+      </div>
       <div className="space-y-2">
         {suggestions.map((goal, i) => {
           const isAdded = added.has(goal.key);
           return (
             <motion.button
               key={goal.key}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.03 }}
               onClick={() => toggleGoal(goal.key)}
               className={cn(
-                'w-full rounded-2xl border p-3.5 flex items-center gap-3 transition-all active:scale-[0.98]',
+                'w-full rounded-2xl border p-3 flex items-center gap-3 transition-all active:scale-[0.98]',
                 isAdded
                   ? 'border-primary/30 bg-primary/5'
-                  : 'border-border/50 bg-card'
+                  : 'border-border/40 bg-card'
               )}
             >
               <div className={cn(
-                'h-8 w-8 rounded-xl flex items-center justify-center shrink-0',
+                'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
                 isAdded ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
               )}>
                 {goal.icon}
@@ -69,7 +72,7 @@ export default function SuggestedGoals() {
                 {goal.label}
               </span>
               <div className={cn(
-                'h-7 w-7 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors',
                 isAdded ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
               )}>
                 {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}

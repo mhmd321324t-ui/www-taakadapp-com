@@ -16,24 +16,22 @@ import SuggestedGoals from '@/components/SuggestedGoals';
 import NotificationCard from '@/components/NotificationCard';
 import VideoContentCarousel from '@/components/VideoContentCarousel';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink, MapPin, MapPinOff, User } from 'lucide-react';
-import SectionHeader from '@/components/SectionHeader';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, MessageSquare, Zap, Building2, Unlink, MapPin, MapPinOff, User, Volume2 } from 'lucide-react';
 import QuranPlayer from '@/components/QuranPlayer';
 import { AdBanner } from '@/components/AdBanner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Progress } from '@/components/ui/progress';
 const meccaImage = '/mecca-hero.webp';
 import { getCurrentOccasion, isRamadan } from '@/data/islamicOccasions';
 
 const quickAccessItems = [
-  { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', gradient: 'from-primary/20 to-islamic-teal/10' },
-  { icon: Compass, labelKey: 'qibla', path: '/qibla', gradient: 'from-accent/20 to-islamic-gold/10' },
-  { icon: BookOpen, labelKey: 'quran', path: '/quran', gradient: 'from-primary/20 to-islamic-emerald/10' },
-  { icon: Moon, labelKey: 'duas', path: '/duas', gradient: 'from-islamic-purple/20 to-primary/10' },
-  { icon: MessageSquare, label: 'قصص', path: '/stories', gradient: 'from-islamic-copper/20 to-accent/10' },
-  { icon: Calculator, labelKey: 'zakatCalculator', path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/10' },
+  { icon: Heart, label: 'تسبيح', path: '/tasbeeh', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Compass, label: 'القبلة', path: '/qibla', gradient: 'from-accent/20 to-accent/5' },
+  { icon: BookOpen, label: 'القرآن', path: '/quran', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Moon, label: 'الأدعية', path: '/duas', gradient: 'from-islamic-purple/20 to-islamic-purple/5' },
+  { icon: MessageSquare, label: 'قصص', path: '/stories', gradient: 'from-islamic-copper/20 to-accent/5' },
+  { icon: Calculator, label: 'الزكاة', path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/5' },
 ];
 
 export default function Index() {
@@ -108,26 +106,32 @@ export default function Index() {
     }
   };
 
-  const circleR = 52;
+  const circleR = 48;
   const circleC = 2 * Math.PI * circleR;
   const strokeDashoffset = isNaN(circleC * (1 - progress)) ? 0 : circleC * (1 - progress);
 
   const fajrTime = prayers.find(p => p.key === 'fajr')?.time || '--:--';
   const maghribTime = prayers.find(p => p.key === 'maghrib')?.time || '--:--';
 
-  // Calculate overall daily progress
   const ramadanActive = isRamadan(hijriMonthNumber);
-  const totalGoals = 5 + (ramadanActive ? 2 : 0); // prayers + quran + dhikr + (ramadan extras)
+  const totalGoals = 5 + (ramadanActive ? 2 : 0);
   const completedGoals = prayersDone + tasbeehDone;
   const overallPercent = Math.round((completedGoals / totalGoals) * 100);
 
   const [duaDrawerOpen, setDuaDrawerOpen] = useState(false);
   const todayDua = dailyDuas[Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000) % dailyDuas.length];
 
+  const prayerNames: Record<string, string> = {
+    fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء'
+  };
+
+  const prayerIcons: Record<string, string> = {
+    fajr: '🌅', sunrise: '☀️', dhuhr: '🕐', asr: '🌤️', maghrib: '🌇', isha: '🌙'
+  };
+
   return (
     <div className="min-h-screen pb-24" dir="rtl">
       <DuaOfDayDrawer open={duaDrawerOpen} onOpenChange={setDuaDrawerOpen} />
-      {/* Full-screen Athan Alert */}
       {alertPrayer && (
         <OccasionAthanAlert
           prayerKey={alertPrayer.key}
@@ -138,96 +142,114 @@ export default function Index() {
       )}
 
       {/* ===== HERO ===== */}
-      <div className="relative overflow-hidden h-56">
+      <div className="relative overflow-hidden h-[280px]">
         <img
           src={meccaImage}
           alt="المسجد الحرام"
-          className="w-full h-56 object-cover"
+          className="w-full h-full object-cover scale-105"
           loading="eager"
           fetchPriority="high"
           width="1335"
-          height="224"
+          height="280"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-background" />
-        <div className="absolute inset-0 islamic-pattern opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-background" />
         
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
           <button
             onClick={toggleNotifications}
             aria-label={notificationsEnabled ? 'إيقاف الإشعارات' : 'تفعيل الإشعارات'}
-            className="p-2.5 rounded-2xl bg-black/25 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
+            className="p-2.5 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
           >
             {notificationsEnabled ? (
-              <Bell className="h-4 w-4 text-white fill-current" />
+              <Bell className="h-5 w-5 text-white fill-current" />
             ) : (
-              <BellOff className="h-4 w-4 text-white/70" />
+              <BellOff className="h-5 w-5 text-white/70" />
             )}
           </button>
-          <div className="text-center">
-            <p className="text-white font-semibold text-sm tracking-wide">
-              {location.loading ? '...' : location.city}
-            </p>
-            <p className="text-white/60 text-xs font-arabic mt-0.5">
-              {loading ? '...' : hijriDate}
+          <div className="flex-1" />
+          <Link
+            to="/account"
+            className="p-2.5 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
+          >
+            <User className="h-5 w-5 text-white/90" />
+          </Link>
+        </div>
+
+        {/* City + Hijri on hero */}
+        <div className="absolute bottom-16 left-0 right-0 text-center">
+          <p className="text-white/60 text-xs tracking-widest uppercase mb-1">
+            {loading ? '...' : hijriDate}
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-white/70" />
+            <p className="text-white font-bold text-base">
+              {location.loading ? '...' : location.city || 'تحديد الموقع...'}
             </p>
           </div>
-          <div className="w-10" />
         </div>
       </div>
 
-      {/* ===== GOALS PROGRESS CARD (overlapping hero) ===== */}
-      <div className="px-4 -mt-12 relative z-10 mb-5">
-        <div className="rounded-3xl bg-card border border-border/50 p-5 shadow-elevated">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 border border-primary/20 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-primary" />
+      {/* ===== NEXT PRAYER CARD (overlapping hero) ===== */}
+      <div className="px-4 -mt-14 relative z-10 mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl bg-card/95 backdrop-blur-xl border border-border/50 p-5 shadow-elevated"
+        >
+          <div className="flex items-center gap-4">
+            {/* Countdown circle */}
+            <div className="relative shrink-0">
+              <svg width="110" height="110" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r={circleR} fill="none" stroke="hsl(var(--border))" strokeWidth="4" opacity="0.5" />
+                <circle
+                  cx="55" cy="55" r={circleR}
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={circleC}
+                  strokeDashoffset={strokeDashoffset}
+                  transform="rotate(-90 55 55)"
+                  className="transition-all duration-1000"
+                  style={{ filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.4))' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[10px] text-muted-foreground mb-0.5">متبقي</span>
+                <span className="text-lg font-bold tabular-nums text-foreground leading-none">
+                  {remaining || '00:00'}
+                </span>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground">أكمل أهداف اليوم</p>
-              <div className="flex flex-wrap gap-3 mt-1">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                  <span className="text-muted-foreground">{prayersDone}/5 الصلاة</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="h-2 w-2 rounded-full bg-islamic-teal shrink-0" />
-                  <span className="text-muted-foreground">0/1 القرآن</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="h-2 w-2 rounded-full bg-accent shrink-0" />
-                  <span className="text-muted-foreground">{tasbeehDone}/4 ذكر</span>
-                </span>
-                {ramadanActive && (
-                  <span className="flex items-center gap-1.5 text-xs">
-                    <span className="h-2 w-2 rounded-full bg-islamic-purple shrink-0" />
-                    <span className="text-muted-foreground">0/2 رمضان</span>
-                  </span>
-                )}
+
+            {/* Next prayer info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground mb-1">الصلاة القادمة</p>
+              <p className="text-2xl font-bold text-foreground leading-tight">
+                {nextPrayer ? prayerNames[nextPrayer.key] || t(nextPrayer.key) : '—'}
+              </p>
+              <p className="text-xl font-light tabular-nums text-primary mt-1">
+                {nextPrayer?.time || '—'}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Link
+                  to="/tracker"
+                  className="text-xs text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                >
+                  متابعة الصلاة
+                </Link>
+                <Link
+                  to="/notifications"
+                  className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                >
+                  <Volume2 className="h-3 w-3 inline ml-1" />
+                  الأذان
+                </Link>
               </div>
             </div>
           </div>
-
-          {/* Progress bar */}
-          <div className="mb-3">
-            <Progress value={overallPercent} className="h-2" />
-            <p className="text-[10px] text-muted-foreground mt-1 text-left">{overallPercent}%</p>
-          </div>
-
-          <div className="flex gap-2">
-            <Link
-              to="/tracker"
-              className="flex-1 text-center rounded-2xl bg-primary text-primary-foreground py-3 text-sm font-bold transition-all active:scale-[0.98]"
-            >
-              متابعة الصلاة اليوم
-            </Link>
-            <Link
-              to="/account"
-              className="rounded-2xl border border-border/50 px-4 py-3 flex items-center justify-center transition-all active:scale-95"
-            >
-              <User className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ===== OCCASION BANNER ===== */}
@@ -251,159 +273,77 @@ export default function Index() {
 
       <AdBanner position="home-top" />
 
-      {/* ===== NEXT PRAYER + COUNTDOWN ===== */}
-      <div className="px-4 mb-5">
-        <div className="grid grid-cols-2 gap-3">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="rounded-3xl bg-card border border-border/50 p-5 flex flex-col items-center justify-center shadow-elevated"
-          >
-            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-lg font-bold text-foreground">
-              {nextPrayer ? t(nextPrayer.key) : '—'}
-            </p>
-            <p className="text-2xl font-light tabular-nums text-muted-foreground mt-1">
-              {nextPrayer?.time || '—'}
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="rounded-3xl bg-card border border-border/50 p-5 flex items-center justify-center shadow-elevated"
-          >
-            <div className="relative">
-              <svg width="120" height="120" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r={circleR} fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
-                <circle
-                  cx="60" cy="60" r={circleR}
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  strokeDasharray={circleC}
-                  strokeDashoffset={strokeDashoffset}
-                  transform="rotate(-90 60 60)"
-                  className="transition-all duration-1000"
-                  style={{ filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.3))' }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-semibold tabular-nums text-foreground">
-                  -{remaining || '00:00'}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* ===== RAMADAN BAR ===== */}
-      {ramadanActive && (
-        <div className="px-4 mb-5">
-          <Link to="/ramadan-challenge">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden active:scale-[0.98] transition-transform"
-            >
-              <div className="absolute inset-0 islamic-pattern opacity-20" />
-              <div className="text-white text-sm relative z-10">
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">إفطار</span>
-                <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
-              </div>
-              <div className="text-center relative z-10">
-                <span className="text-3xl">🌙</span>
-                <p className="text-white/70 text-[10px] mt-1">تحدي رمضان</p>
-              </div>
-              <div className="text-white text-sm text-left relative z-10">
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">الفجر</span>
-                <p className="font-bold tabular-nums text-lg">{fajrTime}</p>
-              </div>
-            </motion.div>
-          </Link>
-        </div>
-      )}
-
-      {/* ===== PRAYER TIMES ===== */}
-      <div className="px-4 mb-5">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex-1">
-            <SectionHeader icon={Clock} title={t('prayerTimes')} className="flex-1" />
-            {usingMosque && mosqueName ? (
-              <div className="flex items-center gap-2 mr-7 -mt-1">
-                <p className="text-[10px] text-primary flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  {mosqueName}
-                  {mosqueSource === 'mawaqit' && (
-                    <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">مباشر ✓</span>
-                  )}
-                  {mosqueSource === 'website' && (
-                    <span className="bg-accent/15 text-accent text-[8px] px-1.5 py-0.5 rounded-full font-bold">ويب ✓</span>
-                  )}
-                </p>
-                <button
-                  onClick={() => {
-                    unlinkMosque();
-                    toast.success('تم إلغاء ربط المسجد — الأوقات تلقائية حسب موقعك الآن');
-                  }}
-                  className="flex items-center gap-0.5 text-[10px] text-destructive hover:underline"
-                >
-                  <Unlink className="h-2.5 w-2.5" />
-                  إلغاء
-                </button>
-              </div>
-            ) : (
-              <p className="text-[10px] text-muted-foreground mr-7 -mt-1 flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                حسب موقعك — {location.city || '...'}
-              </p>
-            )}
+      {/* ===== PRAYER TIMES GRID ===== */}
+      <div className="px-4 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🕌</span>
+            <h3 className="text-sm font-bold text-foreground">مواقيت الصلاة</h3>
           </div>
-          <Link to="/prayer-times" className="text-xs text-primary font-medium flex items-center gap-0.5 mr-2">
-            {t('more')}
-            <ChevronLeft className="h-3 w-3" />
+          <Link to="/prayer-times" className="text-xs text-primary font-semibold flex items-center gap-0.5">
+            المزيد
+            <ChevronLeft className="h-3.5 w-3.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        
+        {usingMosque && mosqueName && (
+          <div className="flex items-center justify-between mb-2 px-1">
+            <p className="text-[11px] text-primary flex items-center gap-1.5">
+              <Building2 className="h-3.5 w-3.5" />
+              {mosqueName}
+              {mosqueSource === 'mawaqit' && (
+                <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">مباشر</span>
+              )}
+            </p>
+            <button
+              onClick={() => {
+                unlinkMosque();
+                toast.success('تم إلغاء ربط المسجد');
+              }}
+              className="flex items-center gap-0.5 text-[10px] text-destructive"
+            >
+              <Unlink className="h-2.5 w-2.5" />
+              إلغاء
+            </button>
+          </div>
+        )}
+        
+        <div className="grid grid-cols-3 gap-2">
           {prayers.map((prayer, i) => {
             const isNext = nextPrayer?.key === prayer.key;
             return (
               <motion.div
                 key={prayer.key}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.02 }}
+                transition={{ delay: i * 0.03 }}
                 className={cn(
-                  'rounded-2xl border p-4 text-center transition-all min-w-0',
+                  'rounded-2xl border p-3 text-center transition-all',
                   isNext
-                    ? 'border-primary/40 bg-primary/8 shadow-sm glow-emerald'
-                    : 'border-border/50 bg-card'
+                    ? 'border-primary/40 bg-primary/8 glow-emerald'
+                    : 'border-border/40 bg-card/80'
                 )}
               >
-                <p className={cn('text-xs mb-1 truncate leading-relaxed', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
-                  {t(prayer.key)}
+                <span className="text-base mb-1 block">{prayerIcons[prayer.key] || '🕐'}</span>
+                <p className={cn('text-[11px] mb-0.5 font-semibold', isNext ? 'text-primary' : 'text-muted-foreground')}>
+                  {prayerNames[prayer.key] || t(prayer.key)}
                 </p>
-                <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
+                <p className={cn('text-sm font-bold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
                   {prayer.time}
                 </p>
               </motion.div>
             );
           })}
         </div>
+
+        {/* Mosque link */}
         <Link
           to="/mosque-times"
-          className="mt-2 flex items-center justify-between rounded-2xl border border-border/50 bg-card p-3.5 transition-all active:scale-[0.98]"
+          className="mt-3 flex items-center justify-between rounded-2xl border border-border/40 bg-card/80 p-3.5 transition-all active:scale-[0.98]"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-4.5 w-4.5 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm font-bold text-foreground">أوقات المساجد</p>
@@ -414,12 +354,39 @@ export default function Index() {
         </Link>
       </div>
 
+      {/* ===== RAMADAN BAR ===== */}
+      {ramadanActive && (
+        <div className="px-4 mb-4">
+          <Link to="/ramadan-challenge">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden active:scale-[0.98] transition-transform"
+            >
+              <div className="absolute inset-0 islamic-pattern opacity-20" />
+              <div className="text-white text-sm relative z-10">
+                <span className="text-white/50 text-xs font-medium">إفطار</span>
+                <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
+              </div>
+              <div className="text-center relative z-10">
+                <span className="text-3xl">🌙</span>
+                <p className="text-white/70 text-[10px] mt-1">تحدي رمضان</p>
+              </div>
+              <div className="text-white text-sm text-left relative z-10">
+                <span className="text-white/50 text-xs font-medium">الفجر</span>
+                <p className="font-bold tabular-nums text-lg">{fajrTime}</p>
+              </div>
+            </motion.div>
+          </Link>
+        </div>
+      )}
+
       <AdBanner position="home-middle" />
 
-      {/* ===== VIDEO CONTENT CAROUSEL ===== */}
+      {/* ===== VIDEO CONTENT ===== */}
       <VideoContentCarousel />
 
-      {/* ===== DAILY GOALS (interactive) ===== */}
+      {/* ===== DAILY GOALS ===== */}
       <DailyGoals hijriMonthNumber={hijriMonthNumber} />
 
       {/* ===== NOTIFICATION CARD ===== */}
@@ -428,24 +395,24 @@ export default function Index() {
       {/* ===== QURAN PLAYER ===== */}
       <QuranPlayer />
 
-      <div className="px-4 mb-5">
+      {/* ===== DUA OF DAY ===== */}
+      <div className="px-4 mb-4">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
           onClick={() => setDuaDrawerOpen(true)}
-          className="rounded-3xl bg-card border border-border/50 p-6 shadow-elevated relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+          className="rounded-3xl bg-card border border-border/40 p-5 shadow-elevated relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
-          <span className="inline-block rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary mb-3">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
+          <span className="inline-block rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-bold text-primary mb-3">
             دعاء اليوم
           </span>
-          <p className="text-sm font-bold text-foreground mb-3">{todayDua.subtitle}</p>
-          <p className="text-lg font-arabic text-foreground leading-[2.2] text-center mb-4 line-clamp-2">
+          <p className="text-sm font-bold text-foreground mb-2">{todayDua.subtitle}</p>
+          <p className="text-lg font-arabic text-foreground leading-[2.2] text-center mb-3 line-clamp-2">
             {todayDua.arabic}
           </p>
-          <span className="inline-block rounded-2xl border border-border/50 px-5 py-2.5 text-xs font-semibold text-foreground transition-all hover:bg-muted/50">
-            اقرأ مع الترجمة
+          <span className="inline-block rounded-2xl border border-primary/30 bg-primary/5 px-5 py-2 text-xs font-bold text-primary transition-all">
+            اقرأ مع الترجمة ←
           </span>
         </motion.div>
       </div>
@@ -454,25 +421,28 @@ export default function Index() {
       <SuggestedGoals />
 
       {/* ===== QUICK ACCESS ===== */}
-      <div className="px-4 mb-5">
-        <SectionHeader icon={Zap} title={t('quickAccess')} />
-        <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
+      <div className="px-4 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Zap className="h-4 w-4 text-accent" />
+          <h3 className="text-sm font-bold text-foreground">وصول سريع</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
           {quickAccessItems.map((item, i) => (
             <motion.div
               key={item.path}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 + i * 0.04 }}
+              transition={{ delay: 0.1 + i * 0.03 }}
             >
-              <Link to={item.path} className="flex flex-col items-center gap-2 min-w-0">
+              <Link to={item.path} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/40 transition-all active:scale-95">
                 <div className={cn(
-                  'h-14 w-14 rounded-2xl bg-gradient-to-br border border-border/50 flex items-center justify-center shadow-elevated shrink-0 transition-transform active:scale-95',
+                  'h-12 w-12 rounded-2xl bg-gradient-to-br flex items-center justify-center',
                   item.gradient
                 )}>
-                  <item.icon className="h-6 w-6 text-primary" />
+                  <item.icon className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-xs font-medium text-foreground text-center w-full break-words leading-tight">
-                  {(item as any).label || t((item as any).labelKey)}
+                <span className="text-[11px] font-semibold text-foreground text-center">
+                  {item.label}
                 </span>
               </Link>
             </motion.div>
@@ -480,32 +450,34 @@ export default function Index() {
         </div>
       </div>
 
-      {/* ===== QURAN GOAL CARD ===== */}
-      <div className="px-4 mb-5">
+      {/* ===== QURAN GOAL ===== */}
+      <div className="px-4 mb-4">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="rounded-3xl bg-card border border-border/50 p-6 shadow-elevated relative overflow-hidden"
+          className="rounded-3xl bg-card border border-border/40 p-5 shadow-elevated relative overflow-hidden"
         >
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-accent/5 to-transparent rounded-tr-full" />
-          <span className="inline-block rounded-full bg-accent/10 border border-accent/20 px-3 py-1 text-xs font-semibold text-accent-foreground mb-3">
-            إتمام القرآن
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/5 to-transparent rounded-tr-full" />
+          <span className="inline-block rounded-full bg-accent/10 border border-accent/20 px-3 py-1 text-[11px] font-bold text-accent-foreground mb-2">
+            📖 إتمام القرآن
           </span>
           <p className="text-sm font-bold text-foreground mb-1">ابدأ تلاوة القرآن يوميًا</p>
-          <p className="text-xs text-muted-foreground mb-4">حدّد وتيرتك، احصل على تذكيرات يومية وتابع تقدمك</p>
+          <p className="text-xs text-muted-foreground mb-3">حدّد وتيرتك واحصل على تذكيرات يومية</p>
           <Link
             to="/quran-goal"
-            className="inline-block rounded-2xl border border-border/50 px-5 py-2.5 text-xs font-semibold text-foreground transition-all active:scale-95 hover:bg-muted/50"
+            className="inline-block rounded-2xl bg-primary/10 border border-primary/20 px-5 py-2 text-xs font-bold text-primary transition-all active:scale-95"
           >
-            حدّد هدف القرآن
+            حدّد هدف القرآن ←
           </Link>
         </motion.div>
       </div>
 
       {/* ===== HIJRI CALENDAR ===== */}
       <div className="px-4 mb-8">
-        <SectionHeader emoji="📅" title={t('hijriCalendar')} />
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📅</span>
+          <h3 className="text-sm font-bold text-foreground">التقويم الهجري</h3>
+        </div>
         <HijriCalendar
           hijriDay={hijriDay}
           hijriMonth={hijriMonthNumber || undefined}
