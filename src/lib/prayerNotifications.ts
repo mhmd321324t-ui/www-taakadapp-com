@@ -67,14 +67,14 @@ export async function schedulePrayerNotifications(
 
     timers.push(timer);
 
-    // 15-min reminder (no athan, just notification)
-    const reminderDiff = diff - 15 * 60 * 1000;
+    // 10-min reminder (no athan, just notification)
+    const reminderDiff = diff - 10 * 60 * 1000;
     if (reminderDiff > 0) {
       const reminderTimer = window.setTimeout(() => {
         if ('serviceWorker' in navigator && Notification.permission === 'granted') {
           navigator.serviceWorker.ready.then(reg => {
             reg.showNotification('تذكير بالصلاة 🔔', {
-              body: `${PRAYER_NAMES[prayer.key] || prayer.key} بعد 15 دقيقة`,
+              body: `${PRAYER_NAMES[prayer.key] || prayer.key} بعد 10 دقائق`,
               icon: '/pwa-icon-192.png',
               badge: '/pwa-icon-192.png',
               tag: `prayer-reminder-${prayer.key}`,
