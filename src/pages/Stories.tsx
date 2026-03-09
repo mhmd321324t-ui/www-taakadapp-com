@@ -274,6 +274,7 @@ export default function Stories() {
       <PageHeader
         title="📖 قصص حقيقية"
         subtitle="شارك قصتك وألهم الآخرين"
+        image="https://images.unsplash.com/photo-1585036156171-384164a8c141?w=800&q=80"
         actionsLeft={
           viewMode !== 'categories' ? (
             <button onClick={goBack} className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95">

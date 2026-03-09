@@ -163,6 +163,7 @@ export default function Qibla() {
       <PageHeader
         title={t('qibla')}
         subtitle={t('qiblaDirection')}
+        image="https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=800&q=80"
         actionsLeft={
           <div className="flex items-center gap-2">
             <button

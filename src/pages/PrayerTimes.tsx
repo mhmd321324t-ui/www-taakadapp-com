@@ -54,7 +54,7 @@ export default function PrayerTimes() {
       <PageHeader
         title={t('prayerTimes')}
         subtitle={`${dayName}، ${dateStr}`}
-        compact
+        image="https://images.unsplash.com/photo-1564769625905-50e93615e769?w=800&q=80"
         actionsLeft={
           <button className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95" onClick={handleShare}>
             <Share2 className="h-4 w-4 text-white" />

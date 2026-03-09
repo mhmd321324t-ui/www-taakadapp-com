@@ -134,6 +134,7 @@ export default function Quran() {
       <PageHeader
         title={t('quran')}
         subtitle="القرآن الكريم"
+        image="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&q=80"
         compact
         actionsLeft={
           <div className="flex gap-2">

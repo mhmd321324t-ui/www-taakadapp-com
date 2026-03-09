@@ -100,7 +100,7 @@ export default function PrayerTracker() {
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      <PageHeader title={t('tracker')} subtitle="تابع صلواتك اليومية" />
+      <PageHeader title={t('tracker')} subtitle="تابع صلواتك اليومية" image="https://images.unsplash.com/photo-1519817650390-64a93db51149?w=800&q=80" />
 
       <div className="px-5 -mt-8 relative z-10">
         {!user && (
