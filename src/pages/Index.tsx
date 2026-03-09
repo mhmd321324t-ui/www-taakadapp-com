@@ -38,10 +38,11 @@ export default function Index() {
     location.longitude,
     location.calculationMethod
   );
-  const { mosqueName, prayers: mosquePrayers } = useSavedMosqueTimes();
+  const { mosqueName, prayers: mosquePrayers, loading: mosqueLoading } = useSavedMosqueTimes();
   
   // Use mosque times if available, otherwise use location-based times
   const prayers = mosquePrayers || apiPrayers;
+  const usingMosque = !!mosquePrayers;
   const { prayer: nextPrayer, remaining } = getNextPrayer(prayers);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
