@@ -412,7 +412,7 @@ export default function Index() {
             {todayDua.arabic}
           </p>
           <span className="inline-block rounded-2xl border border-primary/30 bg-primary/5 px-5 py-2 text-xs font-bold text-primary transition-all">
-            اقرأ مع الترجمة ←
+            اقرأ مع الترجمة →
           </span>
         </motion.div>
       </div>
