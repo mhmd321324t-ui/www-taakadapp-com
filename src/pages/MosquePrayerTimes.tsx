@@ -742,7 +742,22 @@ export default function MosquePrayerTimesPage() {
                 )}
               </div>
 
-              {/* Edit mode indicator */}
+              {/* Countdown to next prayer */}
+              {countdown && !editing && !timesLoading && (
+                <div className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-medium text-foreground">
+                      {countdown.label} بعد
+                    </span>
+                  </div>
+                  <span className="text-lg font-bold font-mono text-primary tracking-wider" dir="ltr">
+                    {countdown.remaining}
+                  </span>
+                </div>
+              )}
+
+
               {editing && (
                 <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2 mb-3 text-xs text-amber-700 dark:text-amber-400">
                   {editMode === 'times' ? (
