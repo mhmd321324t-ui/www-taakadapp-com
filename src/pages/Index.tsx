@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,8 +17,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { getCurrentOccasion, isRamadan } from '@/data/islamicOccasions';
-
-const MinaretScene = lazy(() => import('@/components/MinaretScene'));
+const meccaImage = '/mecca-hero.webp';
 
 const quickAccessItems = [
   { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', gradient: 'from-primary/20 to-islamic-teal/10' },
@@ -103,12 +102,7 @@ export default function Index() {
   const maghribTime = prayers.find(p => p.key === 'maghrib')?.time || '--:--';
 
   return (
-    <div className="min-h-screen pb-24 relative" dir="rtl">
-      {/* 3D Background */}
-      <Suspense fallback={null}>
-        <MinaretScene />
-      </Suspense>
-
+    <div className="min-h-screen pb-24" dir="rtl">
       {alertPrayer && (
         <OccasionAthanAlert
           prayerKey={alertPrayer.key}
@@ -117,10 +111,18 @@ export default function Index() {
           onDismiss={() => setAlertPrayer(null)}
         />
       )}
-
-      {/* Hero area with overlay info */}
-      <div className="relative z-10 h-56">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
+      <div className="relative overflow-hidden h-56">
+        <img
+          src={meccaImage}
+          alt="المسجد الحرام"
+          className="w-full h-56 object-cover"
+          loading="eager"
+          fetchPriority="high"
+          width="1335"
+          height="224"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background" />
+        <div className="absolute inset-0 islamic-pattern opacity-30" />
         
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
@@ -147,8 +149,6 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Content layer */}
-      <div className="relative z-10">
       <AdBanner position="home-top" />
 
       {currentOccasion && <OccasionBanner occasion={currentOccasion} />}
@@ -395,7 +395,6 @@ export default function Index() {
           hijriYear={hijriYear}
         />
       </div>
-      </div>{/* end content layer */}
     </div>
   );
 }

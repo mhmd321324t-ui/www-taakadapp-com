@@ -11,7 +11,7 @@ interface FuturisticHeaderProps {
 export default function FuturisticHeader({ title, subtitle, actions, actionsLeft, compact }: FuturisticHeaderProps) {
   return (
     <div className={`relative px-5 ${compact ? 'pb-14 pt-safe-header-compact' : 'pb-16 pt-safe-header'}`}
-      style={{ background: 'linear-gradient(to bottom, hsl(220 40% 8%) 0%, transparent 100%)' }}
+      style={{ background: 'linear-gradient(to bottom, hsl(210 25% 95%) 0%, transparent 100%)' }}
     >
       <div className="absolute inset-0 islamic-pattern opacity-15" />
       <div className="flex items-center justify-between relative z-10 gap-3">
