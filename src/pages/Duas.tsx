@@ -234,7 +234,7 @@ export default function Duas() {
       <PageHeader
         title="الدُعاء والذكر"
         subtitle="أدعية وأذكار من الكتاب والسنة"
-        image="https://images.unsplash.com/photo-1473177104440-ffee2f376098?w=1200&q=85"
+        image="https://images.unsplash.com/photo-1447619297994-b829cc1ab44a?w=1200&q=85"
         compact
         actionsLeft={
           <div className="flex gap-2">

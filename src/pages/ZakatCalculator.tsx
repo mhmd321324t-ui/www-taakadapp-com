@@ -214,7 +214,7 @@ export default function ZakatCalculator() {
       <PageHeader
         title={t('zakatCalculator')}
         subtitle={city && country ? `${city}، ${country}` : 'حاسبة ذكية متعددة العملات'}
-        image="https://images.unsplash.com/photo-1610375461246-83df859d849d?w=1200&q=85"
+        image="https://images.unsplash.com/photo-1755369355222-8146801ccf90?w=1200&q=85"
         compact
       />
 
