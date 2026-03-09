@@ -127,7 +127,34 @@ export default function MosquePrayerTimesPage() {
       } catch { /* fall through */ }
     }
 
-    // Auto-fetch from Aladhan API using mosque coordinates
+    // Try live sync from mosque website/Mawaqit
+    try {
+      const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
+        body: {
+          mosqueName: mosque.name,
+          mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
+        },
+      });
+
+      if (!error && liveData?.success && liveData?.times) {
+        const liveTimes: PrayerTimesMap = {
+          fajr: liveData.times.fajr || '',
+          sunrise: liveData.times.sunrise || '',
+          dhuhr: liveData.times.dhuhr || '',
+          asr: liveData.times.asr || '',
+          maghrib: liveData.times.maghrib || '',
+          isha: liveData.times.isha || '',
+          jumuah: '',
+        };
+        setTimes(liveTimes);
+        setTimesSource(liveData.source === 'mawaqit' ? 'mawaqit' : 'website');
+        setTimesLoading(false);
+        toast.success(`تم سحب أوقات ${mosque.name} تلقائياً ✅`);
+        return;
+      }
+    } catch { /* fall through */ }
+
+    // Fallback: Aladhan API using mosque coordinates
     const result = await fetchAladhanTimes(mosque.latitude, mosque.longitude);
     if (result) {
       setTimes(result);
