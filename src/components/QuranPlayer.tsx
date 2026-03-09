@@ -449,7 +449,7 @@ export default function QuranPlayer() {
                   <div className="w-full h-1.5 rounded-full bg-muted mb-2 cursor-pointer" onClick={seekTo}>
                     <div
                       className="h-full rounded-full bg-primary transition-all duration-300"
-                      style={{ width: `${progress}%`, marginRight: 'auto', marginLeft: 0 }}
+                      style={{ width: `${progress}%`, marginInlineEnd: 'auto', marginInlineStart: 0 }}
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mb-4 tabular-nums" dir="ltr">
