@@ -10,6 +10,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSEO } from "@/hooks/useSEO";
 import { usePrefetch } from "@/hooks/usePrefetch";
 import SplashScreen from "@/components/SplashScreen";
+import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 
 const PrayerTimes = lazy(() => import("./pages/PrayerTimes"));
@@ -65,6 +66,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ScrollToTop />
               <SEOWrapper>
                 <AppLayout>
                   <Suspense fallback={<div className="min-h-screen" />}>
