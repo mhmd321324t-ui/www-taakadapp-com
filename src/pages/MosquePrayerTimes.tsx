@@ -623,15 +623,15 @@ export default function MosquePrayerTimesPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="min-w-[180px]">
                           <DropdownMenuItem onClick={shareViaWhatsApp} className="gap-2 cursor-pointer">
-                            <MessageCircle className="h-4 w-4 text-green-500" />
+                            <MessageCircle className="h-4 w-4 text-primary" />
                             واتساب
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={shareViaTelegram} className="gap-2 cursor-pointer">
-                            <Send className="h-4 w-4 text-blue-500" />
+                            <Send className="h-4 w-4 text-primary" />
                             تيليجرام
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={shareViaMessenger} className="gap-2 cursor-pointer">
-                            <MessageCircle className="h-4 w-4 text-purple-500" />
+                            <MessageCircle className="h-4 w-4 text-primary" />
                             ماسنجر
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={shareViaNative} className="gap-2 cursor-pointer">
