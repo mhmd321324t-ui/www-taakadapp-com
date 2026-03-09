@@ -92,6 +92,80 @@ export type Database = {
         }
         Relationships: []
       }
+      mosque_time_adjustments: {
+        Row: {
+          asr_diff: number | null
+          base_asr: string | null
+          base_dhuhr: string | null
+          base_fajr: string | null
+          base_isha: string | null
+          base_maghrib: string | null
+          base_sunrise: string | null
+          created_at: string
+          dhuhr_diff: number | null
+          fajr_diff: number | null
+          has_auto_sync: boolean | null
+          id: string
+          isha_diff: number | null
+          jumuah: string | null
+          maghrib_diff: number | null
+          mosque_id: string
+          sunrise_diff: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asr_diff?: number | null
+          base_asr?: string | null
+          base_dhuhr?: string | null
+          base_fajr?: string | null
+          base_isha?: string | null
+          base_maghrib?: string | null
+          base_sunrise?: string | null
+          created_at?: string
+          dhuhr_diff?: number | null
+          fajr_diff?: number | null
+          has_auto_sync?: boolean | null
+          id?: string
+          isha_diff?: number | null
+          jumuah?: string | null
+          maghrib_diff?: number | null
+          mosque_id: string
+          sunrise_diff?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asr_diff?: number | null
+          base_asr?: string | null
+          base_dhuhr?: string | null
+          base_fajr?: string | null
+          base_isha?: string | null
+          base_maghrib?: string | null
+          base_sunrise?: string | null
+          created_at?: string
+          dhuhr_diff?: number | null
+          fajr_diff?: number | null
+          has_auto_sync?: boolean | null
+          id?: string
+          isha_diff?: number | null
+          jumuah?: string | null
+          maghrib_diff?: number | null
+          mosque_id?: string
+          sunrise_diff?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mosque_time_adjustments_mosque_id_fkey"
+            columns: ["mosque_id"]
+            isOneToOne: false
+            referencedRelation: "mosques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mosques: {
         Row: {
           address: string | null

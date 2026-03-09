@@ -7,7 +7,7 @@ const corsHeaders = {
 
 async function searchOverpass(lat: number, lon: number, radius: number) {
   const query = `
-    [out:json][timeout:25];
+    [out:json][timeout:30];
     (
       node["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${lat},${lon});
       way["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${lat},${lon});
@@ -31,7 +31,7 @@ async function searchOverpass(lat: number, lon: number, radius: number) {
   for (const endpoint of endpoints) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+      const timeout = setTimeout(() => controller.abort(), 25000);
       
       const response = await fetch(endpoint, {
         method: "POST",
@@ -58,7 +58,7 @@ async function searchOverpass(lat: number, lon: number, radius: number) {
 
 async function searchNominatim(query: string, lat: number, lon: number) {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + " mosque")}&format=json&limit=20&viewbox=${lon - 0.5},${lat + 0.5},${lon + 0.5},${lat - 0.5}&bounded=0&addressdetails=1`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + " mosque")}&format=json&limit=30&viewbox=${lon - 0.5},${lat + 0.5},${lon + 0.5},${lat - 0.5}&bounded=0&addressdetails=1`;
     const response = await fetch(url, {
       headers: { "User-Agent": "QiblaApp/1.0" },
     });
@@ -88,13 +88,56 @@ async function searchNominatim(query: string, lat: number, lon: number) {
   }
 }
 
+// Check if mosque has Mawaqit times available
+async function checkMawaqitAvailability(mosqueName: string, lat: number, lon: number): Promise<boolean> {
+  try {
+    const searchUrl = `https://mawaqit.net/api/2.0/mosque/search?lat=${lat}&lon=${lon}&word=${encodeURIComponent(mosqueName)}`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { 'Accept': 'application/json' },
+    });
+    
+    if (searchRes.ok) {
+      const mosques = await searchRes.json();
+      if (Array.isArray(mosques) && mosques.length > 0) {
+        return true;
+      }
+    }
+    
+    // Try proximity search
+    const proximityUrl = `https://mawaqit.net/api/2.0/mosque/search?lat=${lat}&lon=${lon}`;
+    const proximityRes = await fetch(proximityUrl, {
+      headers: { 'Accept': 'application/json' },
+    });
+    
+    if (proximityRes.ok) {
+      const nearbyMosques = await proximityRes.json();
+      if (Array.isArray(nearbyMosques)) {
+        // Check if any mosque is within 500m
+        for (const m of nearbyMosques) {
+          if (m.latitude && m.longitude) {
+            const dlat = Math.abs(m.latitude - lat);
+            const dlon = Math.abs(m.longitude - lon);
+            if (dlat < 0.005 && dlon < 0.005) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { lat, lon, radius, textQuery } = await req.json();
+    const { lat, lon, radius, textQuery, checkAvailability } = await req.json();
 
     if (!lat || !lon) {
       return new Response(JSON.stringify({ error: "lat and lon are required" }), {
@@ -103,6 +146,7 @@ serve(async (req) => {
       });
     }
 
+    // Default to 10km radius
     const r = radius || 10000;
 
     // If text query provided, search both Overpass AND Nominatim
@@ -140,6 +184,19 @@ serve(async (req) => {
       if (!isDuplicate) {
         allMosques.push(nom);
       }
+    }
+
+    // Optionally check Mawaqit availability for each mosque
+    if (checkAvailability) {
+      const mosquesWithAvailability = await Promise.all(
+        allMosques.slice(0, 20).map(async (mosque: any) => {
+          const hasAutoSync = await checkMawaqitAvailability(mosque.name, mosque.latitude, mosque.longitude);
+          return { ...mosque, hasAutoSync };
+        })
+      );
+      return new Response(JSON.stringify({ mosques: mosquesWithAvailability }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ mosques: allMosques }), {
