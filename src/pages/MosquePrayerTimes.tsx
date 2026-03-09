@@ -370,24 +370,14 @@ export default function MosquePrayerTimesPage() {
     setCheckingAvailability(mosque.osm_id);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-mosque-times', {
-        body: {
-          mosqueName: mosque.name,
-          mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
-          latitude: mosque.latitude,
-          longitude: mosque.longitude,
-          ...getCalcSettings(),
-        },
+        body: { mosqueName: mosque.name, latitude: mosque.latitude, longitude: mosque.longitude, ...getCalcSettings() },
       });
-      const isRealSource = data?.source === 'mawaqit' || data?.source === 'website';
-      const hasSync = !error && data?.success && !!data?.times && isRealSource;
+      const hasSync = !error && data?.success && data?.source === 'mawaqit';
       mosque.hasAutoSync = hasSync;
       setMosques(prev => prev.map(m => m.osm_id === mosque.osm_id ? { ...m, hasAutoSync: hasSync } : m));
       return hasSync;
-    } catch {
-      return false;
-    } finally {
-      setCheckingAvailability(null);
-    }
+    } catch { return false; }
+    finally { setCheckingAvailability(null); }
   };
 
   // Auto-check availability for all mosques after load
