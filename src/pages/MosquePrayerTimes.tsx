@@ -613,9 +613,35 @@ export default function MosquePrayerTimesPage() {
                       <Button size="sm" variant="ghost" onClick={() => startEditing('diffs')} className="gap-1 text-xs h-8 px-2" title="ضبط فرق الدقائق">
                         <Settings2 className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={shareMosqueTimes} className="text-xs h-8 px-2" title="مشاركة الأوقات">
-                        <Share2 className="h-3 w-3" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost" className="text-xs h-8 px-2" title="مشاركة الأوقات">
+                            <Share2 className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[180px]">
+                          <DropdownMenuItem onClick={shareViaWhatsApp} className="gap-2 cursor-pointer">
+                            <MessageCircle className="h-4 w-4 text-green-500" />
+                            واتساب
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaTelegram} className="gap-2 cursor-pointer">
+                            <Send className="h-4 w-4 text-blue-500" />
+                            تيليجرام
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaMessenger} className="gap-2 cursor-pointer">
+                            <MessageCircle className="h-4 w-4 text-purple-500" />
+                            ماسنجر
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareViaNative} className="gap-2 cursor-pointer">
+                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                            مشاركة أخرى...
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={copyToClipboard} className="gap-2 cursor-pointer">
+                            <Copy className="h-4 w-4 text-muted-foreground" />
+                            نسخ النص
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button size="sm" variant="ghost" onClick={unlinkMosque} className="text-xs h-8 px-2 text-destructive">
                         <Unlink className="h-3 w-3" />
                       </Button>
