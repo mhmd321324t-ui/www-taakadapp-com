@@ -5,13 +5,96 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function searchOverpass(lat: number, lon: number, radius: number) {
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${lat},${lon});
+      way["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${lat},${lon});
+      relation["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${lat},${lon});
+      node["building"="mosque"](around:${radius},${lat},${lon});
+      way["building"="mosque"](around:${radius},${lat},${lon});
+      relation["building"="mosque"](around:${radius},${lat},${lon});
+      node["amenity"="place_of_worship"]["denomination"="sunni"](around:${radius},${lat},${lon});
+      way["amenity"="place_of_worship"]["denomination"="sunni"](around:${radius},${lat},${lon});
+      node["amenity"="place_of_worship"]["denomination"="shia"](around:${radius},${lat},${lon});
+      way["amenity"="place_of_worship"]["denomination"="shia"](around:${radius},${lat},${lon});
+    );
+    out center tags;
+  `;
+
+  const endpoints = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: `data=${encodeURIComponent(query)}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        console.error(`Overpass error from ${endpoint}:`, response.status);
+        continue;
+      }
+
+      const data = await response.json();
+      return data.elements || [];
+    } catch (e) {
+      console.error(`Overpass endpoint ${endpoint} failed:`, e);
+      continue;
+    }
+  }
+  return [];
+}
+
+async function searchNominatim(query: string, lat: number, lon: number) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + " mosque")}&format=json&limit=20&viewbox=${lon - 0.5},${lat + 0.5},${lon + 0.5},${lat - 0.5}&bounded=0&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: { "User-Agent": "QiblaApp/1.0" },
+    });
+    if (!response.ok) return [];
+    const results = await response.json();
+    return results
+      .filter((r: any) => {
+        const type = r.type || '';
+        const category = r.class || '';
+        return type === 'place_of_worship' || type === 'mosque' || 
+               category === 'amenity' || category === 'building' ||
+               (r.display_name || '').toLowerCase().includes('mosch') ||
+               (r.display_name || '').toLowerCase().includes('mosque') ||
+               (r.display_name || '').toLowerCase().includes('مسجد') ||
+               (r.display_name || '').toLowerCase().includes('cami');
+      })
+      .map((r: any) => ({
+        osm_id: `nom_${r.osm_id}`,
+        name: r.display_name?.split(',')[0] || r.name || 'مسجد',
+        address: r.display_name?.split(',').slice(1, 4).join(',').trim() || '',
+        latitude: parseFloat(r.lat),
+        longitude: parseFloat(r.lon),
+      }));
+  } catch (e) {
+    console.error("Nominatim error:", e);
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { lat, lon, radius } = await req.json();
+    const { lat, lon, radius, textQuery } = await req.json();
 
     if (!lat || !lon) {
       return new Response(JSON.stringify({ error: "lat and lon are required" }), {
@@ -20,45 +103,17 @@ serve(async (req) => {
       });
     }
 
-    const r = radius || 10000; // default 10km
+    const r = radius || 10000;
 
-    // Comprehensive Overpass query: covers all ways mosques are tagged in OSM
-    const query = `
-      [out:json][timeout:25];
-      (
-        node["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
-        way["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
-        relation["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
-        node["building"="mosque"](around:${r},${lat},${lon});
-        way["building"="mosque"](around:${r},${lat},${lon});
-        relation["building"="mosque"](around:${r},${lat},${lon});
-        node["amenity"="place_of_worship"]["denomination"="sunni"](around:${r},${lat},${lon});
-        way["amenity"="place_of_worship"]["denomination"="sunni"](around:${r},${lat},${lon});
-        node["amenity"="place_of_worship"]["denomination"="shia"](around:${r},${lat},${lon});
-        way["amenity"="place_of_worship"]["denomination"="shia"](around:${r},${lat},${lon});
-      );
-      out center tags;
-    `;
+    // If text query provided, search both Overpass AND Nominatim
+    const [overpassElements, nominatimResults] = await Promise.all([
+      searchOverpass(lat, lon, r),
+      textQuery ? searchNominatim(textQuery, lat, lon) : Promise.resolve([]),
+    ]);
 
-    const response = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-
-    if (!response.ok) {
-      console.error("Overpass error:", response.status);
-      return new Response(JSON.stringify({ error: "Failed to fetch mosques" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const data = await response.json();
-
-    // Deduplicate by OSM id
+    // Process Overpass results
     const seen = new Set<string>();
-    const mosques = (data.elements || [])
+    const overpassMosques = overpassElements
       .map((el: any) => {
         const id = String(el.id);
         if (seen.has(id)) return null;
@@ -73,7 +128,21 @@ serve(async (req) => {
       })
       .filter((m: any) => m && m.latitude && m.longitude);
 
-    return new Response(JSON.stringify({ mosques }), {
+    // Merge: Overpass first, then Nominatim results not already found
+    const allMosques = [...overpassMosques];
+    for (const nom of nominatimResults) {
+      // Check if already in list by proximity (within 50m)
+      const isDuplicate = allMosques.some((m: any) => {
+        const dlat = Math.abs(m.latitude - nom.latitude);
+        const dlon = Math.abs(m.longitude - nom.longitude);
+        return dlat < 0.0005 && dlon < 0.0005;
+      });
+      if (!isDuplicate) {
+        allMosques.push(nom);
+      }
+    }
+
+    return new Response(JSON.stringify({ mosques: allMosques }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
