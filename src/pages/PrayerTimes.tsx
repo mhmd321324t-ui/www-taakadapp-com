@@ -5,8 +5,6 @@ import { Clock, Sun, Sunrise, Sunset, Moon, CloudSun, Share2, MapPin, Building2 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import PageHeader from '@/components/PageHeader';
 import SectionHeader from '@/components/SectionHeader';
 import { toast } from 'sonner';
