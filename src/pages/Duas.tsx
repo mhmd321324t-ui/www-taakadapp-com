@@ -317,7 +317,7 @@ export default function Duas() {
           ) : viewMode === 'subCategories' ? (
             <div className="px-5 pt-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] text-muted-foreground">{totalDuasInCategory} دعاء</span>
+                <span className="text-[10px] text-muted-foreground">{totalDuasInCategory} {t('totalDuas')}</span>
                 <h2 className="text-lg font-bold text-foreground">{findCatLabel(selectedCategory!)}</h2>
               </div>
               <div className="space-y-3">
