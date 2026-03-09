@@ -330,7 +330,7 @@ export default function Stories() {
     return `منذ ${Math.floor(days / 30)} شهر`;
   };
 
-  const getCategoryInfo = (key: string) => CATEGORIES.find(c => c.key === key);
+  const getCategoryInfo = (key: string) => getCATEGORIES(t).find(c => c.key === key);
 
   const getMediaIcon = (type: string) => {
     if (type === 'video') return <Video className="h-3 w-3" />;
