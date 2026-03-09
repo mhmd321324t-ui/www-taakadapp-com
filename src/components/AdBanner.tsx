@@ -81,7 +81,7 @@ export function AdBanner({ position }: { position: string }) {
           .eq('position', position)
           .eq('is_active', true)
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (!mounted) return;
         setAd(data ? (data as AdSlot) : null);
