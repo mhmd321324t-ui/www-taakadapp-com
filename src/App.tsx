@@ -23,6 +23,7 @@ const Stories = lazy(() => import("./pages/Stories"));
 const Install = lazy(() => import("./pages/Install"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Account = lazy(() => import("./pages/Account"));
+const DailyDuas = lazy(() => import("./pages/DailyDuas"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
