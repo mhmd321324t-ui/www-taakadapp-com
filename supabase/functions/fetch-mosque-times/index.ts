@@ -217,8 +217,12 @@ serve(async (req) => {
   }
 
   try {
-    const { mosqueName, mosqueCity, websiteUrl, mawaqitSlug, latitude, longitude, countryCode } = await req.json();
-    console.log("fetch-mosque-times:", { mosqueName, mosqueCity, mawaqitSlug, latitude, longitude, countryCode });
+    const { mosqueName, mosqueCity, websiteUrl, mawaqitSlug, latitude, longitude, countryCode, method, school } = await req.json();
+    console.log("fetch-mosque-times:", { mosqueName, mosqueCity, mawaqitSlug, latitude, longitude, countryCode, method, school });
+
+    // Use client-provided method/school, or detect from country
+    const userMethod = method ?? 3;
+    const userSchool = school ?? 0;
 
     let result: { times: MosqueTimes; source: string; matchedName?: string } | null = null;
 
@@ -239,12 +243,9 @@ serve(async (req) => {
       if (!result) result = await extractTimesWithAI(websiteUrl);
     }
 
-    // Priority 4: Aladhan calculated times (NOT mosque-specific)
-    // Uses Diyanet method (13) for Turkey, standard method (3) elsewhere
+    // Priority 4: Aladhan calculated times using client's method and school
     if (!result && latitude && longitude) {
-      const region = countryCode?.toUpperCase() || getCountryFromCoords(latitude, longitude);
-      const method = region === 'TR' ? 13 : 3;
-      result = await fetchCalculatedTimes(latitude, longitude, method);
+      result = await fetchCalculatedTimes(latitude, longitude, userMethod, userSchool);
     }
 
     return new Response(JSON.stringify({
