@@ -146,6 +146,13 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         }
       }
 
+      // Load saved diffs
+      const diffsStr = localStorage.getItem(SAVED_DIFFS_PREFIX + mosque.osm_id);
+      let diffs: Record<string, number> = {};
+      if (diffsStr) {
+        try { diffs = JSON.parse(diffsStr); } catch { /* ignore */ }
+      }
+
       // 2. Try live sync (daily cache)
       const dateKey = todayStr.replace(/-/g, '');
       const liveCacheKey = LIVE_CACHE_PREFIX + mosque.osm_id + '_' + dateKey;
