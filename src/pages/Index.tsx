@@ -160,9 +160,9 @@ export default function Index() {
       {/* Goals card */}
       <div className="px-4 -mt-12 relative z-10 mb-5">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+          transition={{ duration: 0.3 }}
           className="rounded-3xl bg-card border border-border/50 p-5 shadow-elevated"
         >
           <div className="flex items-center gap-3 mb-4">
