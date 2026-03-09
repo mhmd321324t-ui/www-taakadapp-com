@@ -66,13 +66,33 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
 
   const is12h = detectIs12Hour();
   const lastFetchKey = useRef('');
+  const [todayStr, setTodayStr] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+
+  // Midnight refresh: check every 30s if date changed
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const d = new Date();
+      const now = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      setTodayStr(prev => {
+        if (prev !== now) {
+          lastFetchKey.current = ''; // force re-fetch
+          return now;
+        }
+        return prev;
+      });
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Don't fetch with placeholder coordinates
     if (latitude === 0 && longitude === 0) return;
 
-    // Create a stable fetch key to prevent duplicate requests
-    const fetchKey = `${latitude}-${longitude}-${method}`;
+    // Create a stable fetch key including today's date
+    const fetchKey = `${latitude}-${longitude}-${method}-${todayStr}`;
     if (fetchKey === lastFetchKey.current) return;
     lastFetchKey.current = fetchKey;
 
@@ -119,7 +139,7 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
     };
 
     fetchPrayers();
-  }, [latitude, longitude, method, is12h]);
+  }, [latitude, longitude, method, is12h, todayStr]);
 
   return data;
 }

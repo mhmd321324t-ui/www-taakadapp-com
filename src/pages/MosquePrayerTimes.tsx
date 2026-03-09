@@ -182,7 +182,7 @@ export default function MosquePrayerTimesPage() {
     return () => clearInterval(interval);
   }, [selectedMosque, times]);
 
-  // Load saved mosque
+  // Load saved mosque + auto-refresh at midnight
   useEffect(() => {
     const saved = localStorage.getItem(SAVED_MOSQUE_KEY);
     if (saved) {
@@ -194,8 +194,28 @@ export default function MosquePrayerTimesPage() {
     }
   }, []);
 
+  // Midnight refresh for mosque times
+  useEffect(() => {
+    if (!selectedMosque) return;
+    let lastDate = getTodayStr();
+    const interval = setInterval(() => {
+      const now = getTodayStr();
+      if (now !== lastDate) {
+        lastDate = now;
+        loadTimesForMosque(selectedMosque);
+      }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [selectedMosque]);
+
+  const getTodayStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   const loadTimesForMosque = async (mosque: Mosque) => {
     setTimesLoading(true);
+    const today = getTodayStr();
 
     // Load saved diffs
     const diffsKey = SAVED_DIFFS_PREFIX + mosque.osm_id;
@@ -208,21 +228,25 @@ export default function MosquePrayerTimesPage() {
       } catch { /* ignore */ }
     }
 
-    // Check for manual overrides first
+    // Check for manual overrides — only use if saved today
     const localKey = SAVED_TIMES_PREFIX + mosque.osm_id;
     const localSaved = localStorage.getItem(localKey);
     if (localSaved) {
       try {
         const parsed = JSON.parse(localSaved);
-        if (parsed.fajr || parsed.dhuhr || parsed.asr || parsed.maghrib || parsed.isha) {
-          setBaseTimes(parsed);
-          // Apply diffs to base times
-          const adjustedTimes = applyAllDiffs(parsed, diffs);
+        const cachedDate = parsed._date;
+        const cachedTimes = parsed._date ? parsed.times : parsed; // backwards compat
+        const isToday = cachedDate === today;
+        
+        if (isToday && (cachedTimes.fajr || cachedTimes.dhuhr || cachedTimes.asr || cachedTimes.maghrib || cachedTimes.isha)) {
+          setBaseTimes(cachedTimes);
+          const adjustedTimes = applyAllDiffs(cachedTimes, diffs);
           setTimes(adjustedTimes);
           setTimesSource(hasDiffs(diffs) ? 'adjusted' : 'manual');
           setTimesLoading(false);
           return;
         }
+        // Cache is stale — fall through to re-fetch
       } catch { /* fall through */ }
     }
 
@@ -485,7 +509,7 @@ export default function MosquePrayerTimesPage() {
     
     if (editMode === 'times') {
       const localKey = SAVED_TIMES_PREFIX + (selectedMosque?.osm_id || '');
-      localStorage.setItem(localKey, JSON.stringify(editTimes));
+      localStorage.setItem(localKey, JSON.stringify({ _date: getTodayStr(), times: editTimes }));
       setBaseTimes({ ...editTimes });
       const adjusted = applyAllDiffs(editTimes, timeDiffs);
       setTimes(adjusted);
