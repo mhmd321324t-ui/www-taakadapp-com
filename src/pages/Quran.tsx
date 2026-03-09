@@ -98,7 +98,7 @@ export default function Quran() {
         .eq('surah_number', surahNum)
         .is('ayah_number', null);
       setBookmarks(prev => prev.filter(n => n !== surahNum));
-      toast.success('تم الإزالة من المفضلة');
+      toast.success(t('removedFromBookmarks'));
     } else {
       await supabase
         .from('quran_bookmarks')
