@@ -311,12 +311,66 @@ export default function MosquePrayerTimesPage() {
     }
   };
 
+  // Auto-check availability for all mosques after load
+  const autoCheckAvailability = useCallback(async (mosqueList: Mosque[]) => {
+    // Check top 15 mosques in parallel (batches of 5)
+    const unchecked = mosqueList.filter(m => m.hasAutoSync === undefined).slice(0, 15);
+    if (unchecked.length === 0) return;
+
+    const batchSize = 5;
+    for (let i = 0; i < unchecked.length; i += batchSize) {
+      const batch = unchecked.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(async (mosque) => {
+          try {
+            const { data, error } = await supabase.functions.invoke('fetch-mosque-times', {
+              body: {
+                mosqueName: mosque.name,
+                mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
+                latitude: mosque.latitude,
+                longitude: mosque.longitude,
+              },
+            });
+            return { osm_id: mosque.osm_id, hasAutoSync: !error && data?.success && !!data?.times };
+          } catch {
+            return { osm_id: mosque.osm_id, hasAutoSync: false };
+          }
+        })
+      );
+
+      setMosques(prev => {
+        const updated = prev.map(m => {
+          const result = results.find(r => r.osm_id === m.osm_id);
+          return result ? { ...m, hasAutoSync: result.hasAutoSync } : m;
+        });
+        // Sort: auto-sync mosques first, then by distance
+        return updated.sort((a, b) => {
+          if (a.hasAutoSync === true && b.hasAutoSync !== true) return -1;
+          if (b.hasAutoSync === true && a.hasAutoSync !== true) return 1;
+          return (a._dist || 999) - (b._dist || 999);
+        });
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (location.latitude && location.longitude && !autoSearched.current) {
       autoSearched.current = true;
-      searchMosques();
+      searchMosques().then(() => {
+        // Auto-check will be triggered after mosques are set
+      });
     }
   }, [location.latitude, location.longitude, searchMosques]);
+
+  // Trigger auto-check when mosques list changes
+  const lastCheckedRef = useRef<string>('');
+  useEffect(() => {
+    const key = mosques.map(m => m.osm_id).join(',');
+    if (key && key !== lastCheckedRef.current && mosques.some(m => m.hasAutoSync === undefined)) {
+      lastCheckedRef.current = key;
+      autoCheckAvailability(mosques);
+    }
+  }, [mosques, autoCheckAvailability]);
 
   const selectMosque = async (mosque: Mosque) => {
     setSelectedMosque(mosque);

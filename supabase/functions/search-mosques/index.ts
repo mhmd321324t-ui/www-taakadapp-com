@@ -88,7 +88,26 @@ async function searchNominatim(query: string, lat: number, lon: number) {
   }
 }
 
-// Check if mosque has Mawaqit times available
+// Simple name similarity check
+function namesMatch(requested: string, found: string): boolean {
+  const normalize = (s: string) =>
+    s.toLowerCase()
+      .replace(/[^\w\s\u0600-\u06FF]/g, '')
+      .replace(/\b(moschee|mosque|masjid|camii|cami|مسجد|جامع)\b/gi, '')
+      .trim();
+  const a = normalize(requested);
+  const b = normalize(found);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+  const wordsA = a.split(/\s+/).filter(w => w.length > 2);
+  const wordsB = b.split(/\s+/).filter(w => w.length > 2);
+  if (wordsA.length === 0 || wordsB.length === 0) return false;
+  const matches = wordsA.filter(w => wordsB.some(wb => wb.includes(w) || w.includes(wb)));
+  return matches.length >= 1;
+}
+
+// Check if mosque has Mawaqit times available — with name matching
 async function checkMawaqitAvailability(mosqueName: string, lat: number, lon: number): Promise<boolean> {
   try {
     const searchUrl = `https://mawaqit.net/api/2.0/mosque/search?lat=${lat}&lon=${lon}&word=${encodeURIComponent(mosqueName)}`;
@@ -98,28 +117,11 @@ async function checkMawaqitAvailability(mosqueName: string, lat: number, lon: nu
     
     if (searchRes.ok) {
       const mosques = await searchRes.json();
-      if (Array.isArray(mosques) && mosques.length > 0) {
-        return true;
-      }
-    }
-    
-    // Try proximity search
-    const proximityUrl = `https://mawaqit.net/api/2.0/mosque/search?lat=${lat}&lon=${lon}`;
-    const proximityRes = await fetch(proximityUrl, {
-      headers: { 'Accept': 'application/json' },
-    });
-    
-    if (proximityRes.ok) {
-      const nearbyMosques = await proximityRes.json();
-      if (Array.isArray(nearbyMosques)) {
-        // Check if any mosque is within 500m
-        for (const m of nearbyMosques) {
-          if (m.latitude && m.longitude) {
-            const dlat = Math.abs(m.latitude - lat);
-            const dlon = Math.abs(m.longitude - lon);
-            if (dlat < 0.005 && dlon < 0.005) {
-              return true;
-            }
+      if (Array.isArray(mosques)) {
+        // Only return true if there's a name match
+        for (const m of mosques) {
+          if (namesMatch(mosqueName, m.name || '')) {
+            return true;
           }
         }
       }
