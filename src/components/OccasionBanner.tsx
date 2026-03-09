@@ -1,10 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star } from 'lucide-react';
 import { IslamicOccasion } from '@/data/islamicOccasions';
 
 interface OccasionBannerProps {
   occasion: IslamicOccasion;
+}
+
+function hashStringToInt(str: string): number {
+  // simple, deterministic hash (32-bit)
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed: number) {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 export default function OccasionBanner({ occasion }: OccasionBannerProps) {
@@ -28,33 +47,48 @@ export default function OccasionBanner({ occasion }: OccasionBannerProps) {
     localStorage.setItem(key, today);
   };
 
+  const particles = useMemo(() => {
+    // Stable "random" particles (prevents re-render jitter that Lighthouse can count as CLS)
+    const seedBase = hashStringToInt(String(occasion.id));
+    return Array.from({ length: 8 }).map((_, i) => {
+      const rand = mulberry32(seedBase + i * 9973);
+      const size = 2 + rand() * 6;
+      return {
+        size,
+        top: rand() * 100,
+        left: rand() * 100,
+        delay: i * 0.4,
+      };
+    });
+  }, [occasion.id]);
+
   if (dismissed) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className="mx-4 mb-4 relative overflow-hidden rounded-3xl"
       >
         <div className={`bg-gradient-to-r ${occasion.gradient} p-5 relative`}>
           {/* Islamic pattern overlay */}
           <div className="absolute inset-0 islamic-pattern opacity-15" />
-          
+
           {/* Decorative particles */}
-          {Array.from({ length: 8 }).map((_, i) => (
+          {particles.map((p, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0 }}
               animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 3, delay: i * 0.4, repeat: Infinity }}
+              transition={{ duration: 3, delay: p.delay, repeat: Infinity }}
               className="absolute rounded-full bg-white/10"
               style={{
-                width: Math.random() * 6 + 2,
-                height: Math.random() * 6 + 2,
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
+                width: p.size,
+                height: p.size,
+                top: `${p.top}%`,
+                left: `${p.left}%`,
               }}
             />
           ))}
@@ -75,14 +109,10 @@ export default function OccasionBanner({ occasion }: OccasionBannerProps) {
             </div>
 
             {/* Occasion name */}
-            <h3 className="text-white text-xl font-bold font-arabic mb-2">
-              {occasion.nameAr}
-            </h3>
+            <h3 className="text-white text-xl font-bold font-arabic mb-2">{occasion.nameAr}</h3>
 
             {/* Message */}
-            <p className="text-white/80 text-sm leading-relaxed mb-3">
-              {occasion.message}
-            </p>
+            <p className="text-white/80 text-sm leading-relaxed mb-3">{occasion.message}</p>
 
             {/* Expand button */}
             <button
@@ -102,9 +132,7 @@ export default function OccasionBanner({ occasion }: OccasionBannerProps) {
                   className="overflow-hidden"
                 >
                   <div className="mt-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15">
-                    <p className="text-white text-lg font-arabic text-center leading-[2.2]">
-                      {occasion.duaAr}
-                    </p>
+                    <p className="text-white text-lg font-arabic text-center leading-[2.2]">{occasion.duaAr}</p>
                   </div>
                 </motion.div>
               )}
@@ -115,3 +143,4 @@ export default function OccasionBanner({ occasion }: OccasionBannerProps) {
     </AnimatePresence>
   );
 }
+
