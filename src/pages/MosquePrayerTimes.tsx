@@ -88,7 +88,7 @@ export default function MosquePrayerTimesPage() {
   const [editTimes, setEditTimes] = useState<PrayerTimesMap>(emptyTimes);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [timesSource, setTimesSource] = useState<'api' | 'manual'>('api');
+  const [timesSource, setTimesSource] = useState<'api' | 'manual' | 'mawaqit' | 'website'>('api');
   const [textSearch, setTextSearch] = useState('');
   const [textSearching, setTextSearching] = useState(false);
   const autoSearched = useRef(false);
@@ -127,7 +127,34 @@ export default function MosquePrayerTimesPage() {
       } catch { /* fall through */ }
     }
 
-    // Auto-fetch from Aladhan API using mosque coordinates
+    // Try live sync from mosque website/Mawaqit
+    try {
+      const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
+        body: {
+          mosqueName: mosque.name,
+          mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
+        },
+      });
+
+      if (!error && liveData?.success && liveData?.times) {
+        const liveTimes: PrayerTimesMap = {
+          fajr: liveData.times.fajr || '',
+          sunrise: liveData.times.sunrise || '',
+          dhuhr: liveData.times.dhuhr || '',
+          asr: liveData.times.asr || '',
+          maghrib: liveData.times.maghrib || '',
+          isha: liveData.times.isha || '',
+          jumuah: '',
+        };
+        setTimes(liveTimes);
+        setTimesSource(liveData.source === 'mawaqit' ? 'mawaqit' : 'website');
+        setTimesLoading(false);
+        toast.success(`تم سحب أوقات ${mosque.name} تلقائياً ✅`);
+        return;
+      }
+    } catch { /* fall through */ }
+
+    // Fallback: Aladhan API using mosque coordinates
     const result = await fetchAladhanTimes(mosque.latitude, mosque.longitude);
     if (result) {
       setTimes(result);
@@ -330,12 +357,17 @@ export default function MosquePrayerTimesPage() {
                 "rounded-xl px-3 py-1.5 mb-3 text-[11px] font-medium flex items-center gap-1.5",
                 timesSource === 'manual'
                   ? "bg-primary/10 text-primary border border-primary/20"
+                  : timesSource === 'mawaqit'
+                  ? "bg-primary/15 text-primary border border-primary/30"
+                  : timesSource === 'website'
+                  ? "bg-accent/10 text-accent border border-accent/20"
                   : "bg-muted text-muted-foreground border border-border/30"
               )}>
                 <Clock className="h-3 w-3" />
-                {timesSource === 'manual'
-                  ? 'أوقات يدوية محفوظة'
-                  : 'أوقات تلقائية حسب إحداثيات المسجد'}
+                {timesSource === 'manual' && 'أوقات يدوية محفوظة'}
+                {timesSource === 'mawaqit' && '⚡ أوقات مباشرة من Mawaqit'}
+                {timesSource === 'website' && '🌐 أوقات من موقع المسجد'}
+                {timesSource === 'api' && 'أوقات فلكية حسب إحداثيات المسجد'}
                 {timesSource === 'manual' && (
                   <button onClick={resetToAuto} className="mr-auto text-[10px] underline text-muted-foreground">
                     إعادة للتلقائي

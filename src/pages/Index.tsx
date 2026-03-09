@@ -38,7 +38,7 @@ export default function Index() {
     location.longitude,
     location.calculationMethod
   );
-  const { mosqueName, prayers: mosquePrayers, loading: mosqueLoading, unlinkMosque } = useSavedMosqueTimes();
+  const { mosqueName, prayers: mosquePrayers, loading: mosqueLoading, unlinkMosque, source: mosqueSource } = useSavedMosqueTimes();
   
   // Use mosque times if available, otherwise use location-based times
   const prayers = mosquePrayers || apiPrayers;
@@ -283,15 +283,40 @@ export default function Index() {
         </div>
       )}
 
-      {/* Today's Prayers - Location based (always shown) */}
+      {/* Today's Prayers — single source */}
       <div className="px-4 mb-5">
         <div className="flex items-center justify-between mb-1">
           <div className="flex-1">
-            <SectionHeader icon={Clock} title="مواقيت الصلاة" className="flex-1" />
-            <p className="text-[10px] text-muted-foreground mr-7 -mt-1 flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              توقيت فلكي حسب موقعك — {location.city || '...'}
-            </p>
+            <SectionHeader icon={Clock} title={t('prayerTimes')} className="flex-1" />
+            {usingMosque && mosqueName ? (
+              <div className="flex items-center gap-2 mr-7 -mt-1">
+                <p className="text-[10px] text-primary flex items-center gap-1">
+                  <Building2 className="h-3 w-3" />
+                  {mosqueName}
+                  {mosqueSource === 'mawaqit' && (
+                    <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">مباشر ✓</span>
+                  )}
+                  {mosqueSource === 'website' && (
+                    <span className="bg-accent/15 text-accent text-[8px] px-1.5 py-0.5 rounded-full font-bold">ويب ✓</span>
+                  )}
+                </p>
+                <button
+                  onClick={() => {
+                    unlinkMosque();
+                    toast.success('تم إلغاء ربط المسجد — الأوقات تلقائية حسب موقعك الآن');
+                  }}
+                  className="flex items-center gap-0.5 text-[10px] text-destructive hover:underline"
+                >
+                  <Unlink className="h-2.5 w-2.5" />
+                  إلغاء
+                </button>
+              </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground mr-7 -mt-1 flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                حسب موقعك — {location.city || '...'}
+              </p>
+            )}
           </div>
           <Link to="/prayer-times" className="text-xs text-primary font-medium flex items-center gap-0.5 mr-2">
             {t('more')}
@@ -299,8 +324,8 @@ export default function Index() {
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          {apiPrayers.filter(p => p.key !== 'sunrise').map((prayer, i) => {
-            const isNext = !usingMosque && nextPrayer?.key === prayer.key;
+          {prayers.filter(p => p.key !== 'sunrise').map((prayer, i) => {
+            const isNext = nextPrayer?.key === prayer.key;
             return (
               <motion.div
                 key={prayer.key}
@@ -311,8 +336,7 @@ export default function Index() {
                   'rounded-2xl border p-4 text-center transition-all min-w-0',
                   isNext
                     ? 'border-primary/40 bg-primary/8 shadow-sm glow-emerald'
-                    : 'border-border/50 bg-card',
-                  usingMosque && 'opacity-60'
+                    : 'border-border/50 bg-card'
                 )}
               >
               <p className={cn('text-xs mb-1 truncate leading-relaxed', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
@@ -325,61 +349,6 @@ export default function Index() {
             );
           })}
         </div>
-
-        {/* Mosque Iqamah Times - only if mosque is selected */}
-        {usingMosque && mosqueName && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-bold text-primary">{mosqueName}</span>
-                <span className="text-[10px] text-muted-foreground">(أوقات الإقامة)</span>
-              </div>
-              <button
-                onClick={() => {
-                  unlinkMosque();
-                  toast.success('تم إلغاء ربط المسجد — الأوقات تلقائية حسب موقعك الآن');
-                }}
-                className="flex items-center gap-0.5 text-[10px] text-destructive hover:underline"
-              >
-                <Unlink className="h-2.5 w-2.5" />
-                إلغاء
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {mosquePrayers!.filter(p => p.key !== 'sunrise').map((prayer, i) => {
-                const isNext = nextPrayer?.key === prayer.key;
-                return (
-                  <motion.div
-                    key={prayer.key}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.02 }}
-                    className={cn(
-                      'rounded-2xl border p-4 text-center transition-all min-w-0',
-                      isNext
-                        ? 'border-primary/40 bg-primary/8 shadow-sm glow-emerald'
-                        : 'border-primary/10 bg-primary/5'
-                    )}
-                  >
-                    <p className={cn('text-xs mb-1 truncate leading-relaxed', isNext ? 'text-primary font-bold' : 'text-muted-foreground')}>
-                      {t(prayer.key)}
-                    </p>
-                    <p className={cn('text-base font-semibold tabular-nums', isNext ? 'text-primary' : 'text-foreground')}>
-                      {prayer.time || '—'}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
-            {/* Hint if mosque times are same as location (no manual iqamah set) */}
-            {mosquePrayers && apiPrayers.length > 0 && mosquePrayers.find(p => p.key === 'fajr')?.time24 === apiPrayers.find(p => p.key === 'fajr')?.time24 && (
-              <Link to="/mosque-times" className="mt-2 block text-center text-[10px] text-muted-foreground hover:text-primary transition-colors">
-                ⓘ الأوقات حالياً فلكية — أدخل أوقات الإقامة الخاصة بالمسجد من هنا
-              </Link>
-            )}
-          </div>
-        )}
         <Link
           to="/mosque-times"
           className="mt-2 flex items-center justify-between rounded-2xl border border-border/50 bg-card p-3.5 transition-all active:scale-[0.98]"
