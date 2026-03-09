@@ -7,41 +7,18 @@ import { PrayerTime } from '@/hooks/usePrayerTimes';
  */
 export function useAutoTheme(prayers: PrayerTime[]) {
   useEffect(() => {
-    // If user has explicitly set a preference, respect it
+    // Always respect manual preference — auto theme is disabled by default
+    // Users must explicitly set theme via settings
     const manualPref = localStorage.getItem('theme-mode');
-    if (manualPref === 'light' || manualPref === 'dark') return;
-
-    if (prayers.length === 0) return;
-
-    const fajr = prayers.find(p => p.key === 'fajr');
-    const maghrib = prayers.find(p => p.key === 'maghrib');
-    if (!fajr || !maghrib) return;
-
-    const toMinutes = (time24: string) => {
-      const [h, m] = time24.split(':').map(Number);
-      return h * 60 + m;
-    };
-
-    const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-    const fajrMin = toMinutes(fajr.time24);
-    const maghribMin = toMinutes(maghrib.time24);
-
-    // Dark if before fajr or after maghrib
-    const isDark = nowMinutes < fajrMin || nowMinutes >= maghribMin;
-
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
+    if (manualPref === 'light') {
       document.documentElement.classList.remove('dark');
+      return;
     }
-
-    // Re-check every minute
-    const interval = setInterval(() => {
-      const now = new Date().getHours() * 60 + new Date().getMinutes();
-      const shouldBeDark = now < fajrMin || now >= maghribMin;
-      document.documentElement.classList.toggle('dark', shouldBeDark);
-    }, 60_000);
-
-    return () => clearInterval(interval);
+    if (manualPref === 'dark') {
+      document.documentElement.classList.add('dark');
+      return;
+    }
+    // If no manual preference set, default to dark mode
+    document.documentElement.classList.add('dark');
   }, [prayers]);
 }
