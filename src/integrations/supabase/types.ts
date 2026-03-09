@@ -316,6 +316,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ramadan_challenge: {
+        Row: {
+          created_at: string
+          day_number: number
+          deed_completed: boolean | null
+          fasting_completed: boolean | null
+          id: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          deed_completed?: boolean | null
+          fasting_completed?: boolean | null
+          id?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          deed_completed?: boolean | null
+          fasting_completed?: boolean | null
+          id?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
