@@ -88,6 +88,12 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
 
   const [viewYear, setViewYear] = useState(today.year);
   const [viewMonth, setViewMonth] = useState(today.month);
+  const [calendarType, setCalendarType] = useState<'hijri' | 'gregorian'>('hijri');
+
+  // Gregorian calendar state
+  const now = new Date();
+  const [gYear, setGYear] = useState(now.getFullYear());
+  const [gMonth, setGMonth] = useState(now.getMonth()); // 0-indexed
 
   const daysInMonth = getDaysInHijriMonth(viewMonth, viewYear);
   const firstDay = getFirstDayOfHijriMonth(viewYear, viewMonth);
