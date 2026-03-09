@@ -4,6 +4,8 @@ import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
 import { Clock, Sun, Sunrise, Sunset, Moon, CloudSun, Share2, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import PageHeader from '@/components/PageHeader';
+import SectionHeader from '@/components/SectionHeader';
 import { toast } from 'sonner';
 
 const prayerIcons: Record<string, React.ReactNode> = {
