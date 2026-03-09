@@ -179,14 +179,15 @@ export default function MosquePrayerTimesPage() {
 
     // Try live sync from mosque website/Mawaqit
     try {
-      const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
-        body: {
-          mosqueName: mosque.name,
-          mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
-          latitude: mosque.latitude,
-          longitude: mosque.longitude,
-        },
-      });
+          const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
+            body: {
+              mosqueName: mosque.name,
+              mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
+              websiteUrl: mosque.websiteUrl,
+              latitude: mosque.latitude,
+              longitude: mosque.longitude,
+            },
+          });
 
       if (!error && liveData?.success && liveData?.times) {
         const liveTimes: PrayerTimesMap = {
