@@ -265,7 +265,7 @@ export default function Duas() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-5 mb-4 overflow-hidden"
+            className="px-5 -mt-4 relative z-10 mb-4 overflow-hidden"
           >
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
