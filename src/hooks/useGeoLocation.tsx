@@ -11,30 +11,71 @@ interface LocationData {
   error: string | null;
 }
 
+/** Keep 6 decimal places for ~0.11 m precision */
 function roundCoord(val: number): number {
-  return Math.round(val * 1000) / 1000;
+  return Math.round(val * 1_000_000) / 1_000_000;
 }
 
+/**
+ * Aladhan calculation-method mapping identical to IslamicFinder / Athan app.
+ * 1 = Karachi, 2 = ISNA, 3 = MWL, 4 = Umm Al-Qura, 5 = Egyptian
+ */
 function getCalculationMethodByCountry(countryCode: string): number {
   const code = countryCode?.toUpperCase();
 
-  // Gulf / Arabian Peninsula (Umm Al-Qura)
+  // Gulf / Arabian Peninsula → Umm Al-Qura (4)
   if (['SA', 'AE', 'QA', 'KW', 'BH', 'OM', 'YE'].includes(code)) return 4;
 
-  // North Africa (Egyptian General Authority)
-  if (['EG', 'LY', 'DZ', 'MA', 'TN'].includes(code)) return 5;
+  // North Africa → Egyptian General Authority (5)
+  if (['EG', 'LY', 'SD', 'SO', 'DJ', 'ER'].includes(code)) return 5;
 
-  // South Asia (Karachi)
-  if (['PK', 'IN', 'BD', 'AF'].includes(code)) return 1;
+  // Maghreb → MWL (3) – widely accepted
+  if (['DZ', 'MA', 'TN', 'MR'].includes(code)) return 3;
 
-  // Europe and most of world (Muslim World League)
-  if (['DE', 'FR', 'GB', 'NL', 'BE', 'SE', 'NO', 'DK', 'ES', 'IT', 'CH', 'AT'].includes(code)) return 3;
+  // South & Central Asia → Karachi (1)
+  if (['PK', 'IN', 'BD', 'AF', 'LK', 'NP', 'MM', 'UZ', 'TJ', 'KG', 'TM', 'KZ'].includes(code)) return 1;
 
-  // North America (ISNA)
-  if (['US', 'CA'].includes(code)) return 2;
+  // Southeast Asia → MWL (3) – most common
+  if (['MY', 'ID', 'BN', 'SG', 'PH', 'TH'].includes(code)) return 3;
 
-  // Default fallback
+  // Turkey → Diyanet (13)
+  if (code === 'TR') return 13;
+
+  // Iran → Institute of Geophysics, Tehran (7)
+  if (code === 'IR') return 7;
+
+  // Iraq, Syria, Jordan, Palestine, Lebanon → MWL (3)
+  if (['IQ', 'SY', 'JO', 'PS', 'LB'].includes(code)) return 3;
+
+  // Europe → MWL (3)
+  if (['DE', 'FR', 'GB', 'NL', 'BE', 'SE', 'NO', 'DK', 'ES', 'IT', 'CH', 'AT',
+       'FI', 'IE', 'PT', 'GR', 'PL', 'CZ', 'HU', 'RO', 'BG', 'HR', 'RS', 'BA',
+       'AL', 'MK', 'XK', 'ME', 'SI', 'SK', 'LT', 'LV', 'EE', 'IS', 'LU', 'MT',
+       'CY', 'UA', 'BY', 'MD', 'RU'].includes(code)) return 3;
+
+  // North America → ISNA (2)
+  if (['US', 'CA', 'MX'].includes(code)) return 2;
+
+  // Australia & NZ → MWL (3)
+  if (['AU', 'NZ'].includes(code)) return 3;
+
+  // Sub-Saharan Africa → Egyptian (5)
+  if (['NG', 'ET', 'KE', 'TZ', 'UG', 'GH', 'SN', 'ML', 'NE', 'TD', 'CM', 'CI'].includes(code)) return 5;
+
+  // Default → MWL
   return 3;
+}
+
+/**
+ * Auto-detect Asr juristic school:
+ * 0 = Standard (Shafi'i/Maliki/Hanbali), 1 = Hanafi
+ */
+export function getSchoolByCountry(countryCode: string): number {
+  const code = countryCode?.toUpperCase();
+  // Hanafi-majority regions
+  if (['TR', 'PK', 'AF', 'BD', 'IN', 'UZ', 'TJ', 'KG', 'TM', 'KZ', 'IQ', 'SY',
+       'JO', 'PS', 'LB', 'BA', 'AL', 'XK', 'MK'].includes(code)) return 1;
+  return 0;
 }
 
 export function useGeoLocation() {
