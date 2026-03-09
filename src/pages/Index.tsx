@@ -276,10 +276,10 @@ export default function Index() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-base">🕌</span>
-            <h3 className="text-sm font-bold text-foreground">مواقيت الصلاة</h3>
+            <h3 className="text-sm font-bold text-foreground">{t('prayerTimes')}</h3>
           </div>
           <Link to="/prayer-times" className="text-xs text-primary font-semibold flex items-center gap-0.5">
-            المزيد
+            {t('moreLabel')}
             <ChevronLeft className="h-3.5 w-3.5" />
           </Link>
         </div>
