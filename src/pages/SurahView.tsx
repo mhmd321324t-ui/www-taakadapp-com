@@ -13,7 +13,49 @@ interface Ayah {
   text: string;
   numberInSurah: number;
   audio: string;
+  translation?: string;
 }
+
+// Quran translation editions by language
+const quranTranslationEditions: Record<string, string> = {
+  en: 'en.asad',
+  fr: 'fr.hamidullah',
+  de: 'de.aburida',
+  tr: 'tr.diyanet',
+  ur: 'ur.jalandhry',
+  id: 'id.indonesian',
+  es: 'es.cortes',
+  ru: 'ru.kuliev',
+  pt: 'pt.elhayek',
+  nl: 'nl.keyzer',
+  it: 'it.piccardo',
+  bn: 'bn.bengali',
+  fa: 'fa.makarem',
+  ms: 'ms.basmeih',
+  hi: 'hi.hindi',
+  th: 'th.thai',
+  ja: 'ja.japanese',
+  ko: 'ko.korean',
+  zh: 'zh.majian',
+  sw: 'sw.barwani',
+  sq: 'sq.ahmeti',
+  bs: 'bs.korkut',
+  az: 'az.mammadaliyev',
+  ml: 'ml.abdulhameed',
+  ta: 'ta.tamil',
+  tl: 'tl.filipino',
+  ha: 'ha.gumi',
+  ku: 'ku.asan',
+  so: 'so.abduh',
+  am: 'am.sadiq',
+  uz: 'uz.sodik',
+  tt: 'tt.nugman',
+  no: 'no.berg',
+  sv: 'sv.bernstrom',
+  pl: 'pl.bielawskiego',
+  ro: 'ro.grigore',
+  cs: 'cs.hrbek',
+};
 
 export default function SurahView() {
   const { id } = useParams();
