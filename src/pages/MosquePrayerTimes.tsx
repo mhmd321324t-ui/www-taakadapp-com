@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
+import { getPrefetchedMosques } from '@/hooks/usePrefetch';
 import { toast } from 'sonner';
 
 interface Mosque {
