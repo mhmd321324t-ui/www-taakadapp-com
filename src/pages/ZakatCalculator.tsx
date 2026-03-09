@@ -211,7 +211,7 @@ export default function ZakatCalculator() {
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      <PageHeader
+      <FuturisticHeader
         title={t('zakatCalculator')}
         subtitle={city && country ? `${city}، ${country}` : 'حاسبة ذكية متعددة العملات'}
         compact
