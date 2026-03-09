@@ -132,6 +132,7 @@ export function useGeoLocation() {
           const data = await res.json();
           const countryCode = data.countryCode || '';
           const calculationMethod = getCalculationMethodByCountry(countryCode);
+          const school = getSchoolByCountry(countryCode);
 
           const loc: LocationData = {
             latitude,
@@ -140,6 +141,7 @@ export function useGeoLocation() {
             country: data.countryName || '',
             countryCode,
             calculationMethod,
+            school,
             loading: false,
             error: null,
           };
@@ -154,6 +156,7 @@ export function useGeoLocation() {
               country: loc.country,
               countryCode: loc.countryCode,
               calculationMethod: loc.calculationMethod,
+              school: loc.school,
             }));
           } catch {}
         } catch {
