@@ -291,6 +291,10 @@ export default function MosquePrayerTimesPage() {
         const adjustedTimes = applyAllDiffs(liveTimes, diffs);
         setTimes(adjustedTimes);
         setTimesSource(hasDiffs(diffs) ? 'adjusted' : (liveData.source === 'mawaqit' ? 'mawaqit' : liveData.source === 'calculated' ? 'calculated' : 'website'));
+        // Save to shared cache so Index page reads the same times
+        const dateKey = today.replace(/-/g, '');
+        const liveCacheKey = LIVE_CACHE_PREFIX + mosque.osm_id + '_' + dateKey;
+        try { localStorage.setItem(liveCacheKey, JSON.stringify({ times: liveTimes, source: liveData.source })); } catch {}
         setTimesLoading(false);
         mosque.hasAutoSync = true;
         toast.success(`تم سحب أوقات ${mosque.name} تلقائياً ✅`);
