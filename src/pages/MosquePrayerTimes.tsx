@@ -495,7 +495,7 @@ export default function MosquePrayerTimesPage() {
     
     if (editMode === 'times') {
       const localKey = SAVED_TIMES_PREFIX + (selectedMosque?.osm_id || '');
-      localStorage.setItem(localKey, JSON.stringify(editTimes));
+      localStorage.setItem(localKey, JSON.stringify({ _date: getTodayStr(), times: editTimes }));
       setBaseTimes({ ...editTimes });
       const adjusted = applyAllDiffs(editTimes, timeDiffs);
       setTimes(adjusted);
