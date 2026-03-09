@@ -141,8 +141,8 @@ export default function Ruqyah() {
   return (
     <div className="min-h-screen pb-24 overflow-x-hidden" dir="rtl">
       <PageHeader
-        title="🛡️ العلاج بالرقية الشرعية"
-        subtitle="رقية شرعية من القرآن والسنة"
+        title={t('ruqyahTitle')}
+        subtitle={t('ruqyahSubtitle')}
         image="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=1200&q=85"
         actionsLeft={
           viewMode === 'tracks' ? (
