@@ -179,23 +179,23 @@
 
 @layer utilities {
   .islamic-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L37.5 7.5L30 15L22.5 7.5Z' fill='%2300ffff' fill-opacity='0.04'/%3E%3Cpath d='M0 30L7.5 22.5L15 30L7.5 37.5Z' fill='%2300ffff' fill-opacity='0.04'/%3E%3Cpath d='M60 30L52.5 22.5L45 30L52.5 37.5Z' fill='%2300ffff' fill-opacity='0.04'/%3E%3Cpath d='M30 60L37.5 52.5L30 45L22.5 52.5Z' fill='%2300ffff' fill-opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L37.5 7.5L30 15L22.5 7.5Z' fill='%234a90b8' fill-opacity='0.06'/%3E%3Cpath d='M0 30L7.5 22.5L15 30L7.5 37.5Z' fill='%234a90b8' fill-opacity='0.06'/%3E%3Cpath d='M60 30L52.5 22.5L45 30L52.5 37.5Z' fill='%234a90b8' fill-opacity='0.06'/%3E%3Cpath d='M30 60L37.5 52.5L30 45L22.5 52.5Z' fill='%234a90b8' fill-opacity='0.06'/%3E%3C/svg%3E");
   }
 
   .gradient-islamic {
-    background: linear-gradient(145deg, hsl(220 40% 8%) 0%, hsl(230 50% 5%) 50%, hsl(230 60% 3%) 100%);
+    background: linear-gradient(145deg, hsl(210 25% 97%) 0%, hsl(210 20% 94%) 50%, hsl(210 30% 97%) 100%);
   }
 
   .gradient-prayer-bar {
-    background: linear-gradient(135deg, hsl(220 40% 8%) 0%, hsl(230 50% 5%) 60%, hsl(180 100% 50% / 0.1) 100%);
+    background: linear-gradient(135deg, hsl(210 25% 97%) 0%, hsl(210 20% 95%) 60%, hsl(210 50% 55% / 0.08) 100%);
   }
 
   .gradient-gold {
-    background: linear-gradient(135deg, hsl(45 90% 65%) 0%, hsl(35 70% 45%) 100%);
+    background: linear-gradient(135deg, hsl(35 55% 55%) 0%, hsl(35 45% 42%) 100%);
   }
 
   .text-gradient-gold {
-    background: linear-gradient(45deg, hsl(var(--accent)), hsl(35 70% 45%));
+    background: linear-gradient(45deg, hsl(var(--accent)), hsl(210 40% 45%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -209,48 +209,61 @@
   }
 
   .glass-futuristic {
-    background: hsl(220 40% 6% / 0.7);
+    background: hsl(210 25% 99% / 0.8);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    border: 1px solid hsl(180 100% 50% / 0.2);
+    border: 1px solid hsl(210 30% 85% / 0.6);
+  }
+
+  .dark .glass-futuristic {
+    background: hsl(220 20% 15% / 0.7);
+    border: 1px solid hsl(210 20% 30% / 0.4);
   }
 
   .glass-card {
-    background: hsl(220 40% 6% / 0.6);
+    background: hsl(210 25% 99% / 0.7);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(180 100% 50% / 0.1);
+    border: 1px solid hsl(210 30% 88% / 0.5);
+  }
+
+  .dark .glass-card {
+    background: hsl(220 20% 14% / 0.6);
+    border: 1px solid hsl(210 15% 25% / 0.4);
   }
 
   .glow-cyan {
-    box-shadow: 0 0 30px -5px hsl(180 100% 50% / 0.25),
-                0 0 60px -10px hsl(180 100% 50% / 0.1);
+    box-shadow: 0 4px 20px -5px hsl(210 50% 55% / 0.15),
+                0 2px 8px -2px hsl(210 50% 55% / 0.08);
   }
 
   .glow-gold-neon {
-    box-shadow: 0 0 20px -5px hsl(45 90% 65% / 0.3);
+    box-shadow: 0 4px 15px -5px hsl(35 55% 55% / 0.2);
   }
 
   .glow-emerald {
-    box-shadow: 0 0 30px -5px hsl(180 100% 50% / 0.25),
-                0 0 60px -10px hsl(180 100% 50% / 0.1);
+    box-shadow: 0 4px 20px -5px hsl(210 50% 55% / 0.15);
   }
 
   .glow-gold {
-    box-shadow: 0 0 20px -5px hsl(45 90% 65% / 0.3);
+    box-shadow: 0 4px 15px -5px hsl(35 55% 55% / 0.2);
   }
 
   .border-neon {
-    border-color: hsl(180 100% 50% / 0.3);
+    border-color: hsl(210 30% 85% / 0.6);
+  }
+
+  .dark .border-neon {
+    border-color: hsl(210 20% 30% / 0.4);
   }
 
   .border-neon-gold {
-    border-color: hsl(45 90% 65% / 0.3);
+    border-color: hsl(35 55% 55% / 0.3);
   }
 
   .shadow-elevated {
-    box-shadow: 0 8px 32px -8px hsl(180 100% 50% / 0.08),
-                0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    box-shadow: 0 8px 32px -8px hsl(210 30% 50% / 0.08),
+                0 2px 8px -2px hsl(0 0% 0% / 0.05);
   }
 
   .pt-safe-header {
@@ -294,7 +307,7 @@ html {
 }
 
 @keyframes pulseGlowCyan {
-  0% { box-shadow: 0 0 40px hsl(45 90% 65% / 0.3); }
-  50% { box-shadow: 0 0 90px hsl(180 100% 50% / 0.3); }
-  100% { box-shadow: 0 0 40px hsl(45 90% 65% / 0.3); }
+  0% { box-shadow: 0 4px 20px hsl(35 55% 55% / 0.15); }
+  50% { box-shadow: 0 4px 30px hsl(210 50% 55% / 0.2); }
+  100% { box-shadow: 0 4px 20px hsl(35 55% 55% / 0.15); }
 }
