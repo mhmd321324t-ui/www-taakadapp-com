@@ -231,23 +231,23 @@ export default function Duas() {
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      <PageHeader
+      <FuturisticHeader
         title="الدُعاء والذكر"
         subtitle="أدعية وأذكار من الكتاب والسنة"
         compact
         actionsLeft={
           <div className="flex gap-2">
             {(viewMode !== 'categories' || showFavorites) ? (
-              <button onClick={goBack} className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95">
-                <ArrowRight className="h-4 w-4 text-white" />
+              <button onClick={goBack} className="p-2.5 rounded-2xl glass-futuristic border-neon transition-all active:scale-95">
+                <ArrowRight className="h-4 w-4 text-primary" />
               </button>
             ) : (
               <>
-                <button className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95" onClick={() => { setShowSearch(!showSearch); setShowFavorites(false); }}>
-                  {showSearch ? <X className="h-4 w-4 text-white" /> : <Search className="h-4 w-4 text-white" />}
+                <button className="p-2.5 rounded-2xl glass-futuristic border-neon transition-all active:scale-95" onClick={() => { setShowSearch(!showSearch); setShowFavorites(false); }}>
+                  {showSearch ? <X className="h-4 w-4 text-primary" /> : <Search className="h-4 w-4 text-primary" />}
                 </button>
-                <button className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 transition-all active:scale-95" onClick={() => { setShowFavorites(!showFavorites); setShowSearch(false); }}>
-                  <Bookmark className={cn("h-4 w-4", showFavorites ? "text-white fill-white" : "text-white/70")} />
+                <button className="p-2.5 rounded-2xl glass-futuristic border-neon transition-all active:scale-95" onClick={() => { setShowFavorites(!showFavorites); setShowSearch(false); }}>
+                  <Bookmark className={cn("h-4 w-4", showFavorites ? "text-accent fill-accent" : "text-muted-foreground")} />
                 </button>
               </>
             )}
