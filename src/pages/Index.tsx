@@ -356,12 +356,12 @@ export default function Index() {
             <div className="rounded-3xl gradient-prayer-bar p-5 flex items-center justify-between relative overflow-hidden active:scale-[0.98] transition-transform">
               <div className="absolute inset-0 islamic-pattern opacity-20" />
               <div className="text-white text-sm relative z-10">
-                <span className="text-white/50 text-xs font-medium">إفطار</span>
+                <span className="text-white/50 text-xs font-medium">{t('iftar')}</span>
                 <p className="font-bold tabular-nums text-lg">{maghribTime}</p>
               </div>
               <div className="text-center relative z-10">
                 <span className="text-3xl">🌙</span>
-                <p className="text-white/70 text-[10px] mt-1">تحدي رمضان</p>
+                <p className="text-white/70 text-[10px] mt-1">{t('ramadanChallenge')}</p>
               </div>
               <div className="text-white text-sm text-start relative z-10">
                 <span className="text-white/50 text-xs font-medium">الفجر</span>
