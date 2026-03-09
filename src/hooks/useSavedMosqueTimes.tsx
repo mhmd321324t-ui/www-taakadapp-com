@@ -131,7 +131,7 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         return;
       }
 
-      // 1. Check for manually saved times
+      // 1. Check for manually saved times (persist until user changes them)
       const timesStr = localStorage.getItem(SAVED_TIMES_PREFIX + mosque.osm_id);
       if (timesStr) {
         const { times } = parseStoredTimes(timesStr);

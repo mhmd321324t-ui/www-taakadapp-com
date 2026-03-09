@@ -93,12 +93,24 @@ function applyTimeDiff(time: string, diffMinutes: number): string {
   return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
 }
 
+function getCalcMethod(): number {
+  try {
+    const v = localStorage.getItem('calculation_method');
+    if (v) return parseInt(v, 10) || 2;
+  } catch { /* ignore */ }
+  return 2;
+}
+
 async function fetchAladhanTimes(lat: number, lon: number): Promise<PrayerTimesMap | null> {
   try {
     const d = new Date();
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const res = await fetch(`https://api.aladhan.com/v1/timings/${dd}-${mm}-${d.getFullYear()}?latitude=${lat}&longitude=${lon}&method=3`);
+    const method = getCalcMethod();
+    const res = await fetch(
+      `https://api.aladhan.com/v1/timings/${dd}-${mm}-${d.getFullYear()}?latitude=${lat}&longitude=${lon}&method=${method}`,
+      { cache: 'no-store' }
+    );
     const json = await res.json();
     const t = json.data.timings;
     const c = (s: string) => s.replace(/\s*\(.*\)$/, '').trim();
@@ -228,17 +240,15 @@ export default function MosquePrayerTimesPage() {
       } catch { /* ignore */ }
     }
 
-    // Check for manual overrides — only use if saved today
+    // Check for manual overrides — manual times persist until user changes them
     const localKey = SAVED_TIMES_PREFIX + mosque.osm_id;
     const localSaved = localStorage.getItem(localKey);
     if (localSaved) {
       try {
         const parsed = JSON.parse(localSaved);
-        const cachedDate = parsed._date;
         const cachedTimes = parsed._date ? parsed.times : parsed; // backwards compat
-        const isToday = cachedDate === today;
         
-        if (isToday && (cachedTimes.fajr || cachedTimes.dhuhr || cachedTimes.asr || cachedTimes.maghrib || cachedTimes.isha)) {
+        if (cachedTimes && (cachedTimes.fajr || cachedTimes.dhuhr || cachedTimes.asr || cachedTimes.maghrib || cachedTimes.isha)) {
           setBaseTimes(cachedTimes);
           const adjustedTimes = applyAllDiffs(cachedTimes, diffs);
           setTimes(adjustedTimes);
@@ -246,7 +256,6 @@ export default function MosquePrayerTimesPage() {
           setTimesLoading(false);
           return;
         }
-        // Cache is stale — fall through to re-fetch
       } catch { /* fall through */ }
     }
 
