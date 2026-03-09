@@ -389,7 +389,8 @@ export default function MosquePrayerTimesPage() {
                 longitude: mosque.longitude,
               },
             });
-            return { osm_id: mosque.osm_id, hasAutoSync: !error && data?.success && !!data?.times };
+            const isRealSource = data?.source === 'mawaqit' || data?.source === 'website';
+            return { osm_id: mosque.osm_id, hasAutoSync: !error && data?.success && !!data?.times && isRealSource };
           } catch {
             return { osm_id: mosque.osm_id, hasAutoSync: false };
           }
