@@ -68,20 +68,55 @@ function timesMapToPrayers(times: Record<string, string>, is12h: boolean): Praye
   ];
 }
 
-/**
- * Loads saved mosque. Priority:
- * 1. Manual overrides (user entered iqamah times)
- * 2. Live sync from mosque website (Mawaqit/AI scrape) — cached daily
- * 3. Aladhan API using mosque coordinates
- * 4. null (falls back to location-based)
- */
+function getTodayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Extract times from localStorage value, handling both old and new format */
+function parseStoredTimes(raw: string): { times: Record<string, string> | null; date: string | null } {
+  try {
+    const parsed = JSON.parse(raw);
+    // New format: { _date: "...", times: { fajr: "..." } }
+    if (parsed._date && parsed.times) {
+      return { times: parsed.times, date: parsed._date };
+    }
+    // Old format: { fajr: "...", dhuhr: "..." }
+    if (parsed.fajr || parsed.dhuhr || parsed.asr || parsed.maghrib || parsed.isha) {
+      return { times: parsed, date: null };
+    }
+    return { times: null, date: null };
+  } catch {
+    return { times: null, date: null };
+  }
+}
+
+function getCalcMethod(): number {
+  try {
+    const profile = localStorage.getItem('calculation_method');
+    if (profile) return parseInt(profile, 10) || 2;
+  } catch { /* ignore */ }
+  return 2;
+}
+
 export function useSavedMosqueTimes(): SavedMosqueData {
   const [data, setData] = useState<Omit<SavedMosqueData, 'unlinkMosque'>>({
     mosqueName: null, prayers: null, loading: true, source: 'none'
   });
+  const [todayStr, setTodayStr] = useState(getTodayStr);
+
+  // Midnight refresh
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = getTodayStr();
+      setTodayStr(prev => prev !== now ? now : prev);
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const is12h = detectIs12Hour();
+    const calcMethod = getCalcMethod();
 
     const load = async () => {
       const saved = localStorage.getItem(SAVED_MOSQUE_KEY);
@@ -96,23 +131,19 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         return;
       }
 
-      // 1. Check for manually saved times first
-      const timesKey = SAVED_TIMES_PREFIX + mosque.osm_id;
-      const timesStr = localStorage.getItem(timesKey);
+      // 1. Check for manually saved times
+      const timesStr = localStorage.getItem(SAVED_TIMES_PREFIX + mosque.osm_id);
       if (timesStr) {
-        try {
-          const times = JSON.parse(timesStr);
-          const hasAny = times.fajr || times.dhuhr || times.asr || times.maghrib || times.isha;
-          if (hasAny) {
-            setData({
-              mosqueName: mosque.name,
-              prayers: timesMapToPrayers(times, is12h),
-              loading: false,
-              source: 'manual',
-            });
-            return;
-          }
-        } catch { /* fall through */ }
+        const { times } = parseStoredTimes(timesStr);
+        if (times && (times.fajr || times.dhuhr || times.asr || times.maghrib || times.isha)) {
+          setData({
+            mosqueName: mosque.name,
+            prayers: timesMapToPrayers(times, is12h),
+            loading: false,
+            source: 'manual',
+          });
+          return;
+        }
       }
 
       // Load saved diffs
@@ -122,9 +153,8 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         try { diffs = JSON.parse(diffsStr); } catch { /* ignore */ }
       }
 
-      // 2. Try live sync from mosque website
-      const today = new Date();
-      const dateKey = `${today.getDate()}${today.getMonth() + 1}${today.getFullYear()}`;
+      // 2. Try live sync (daily cache)
+      const dateKey = todayStr.replace(/-/g, '');
       const liveCacheKey = LIVE_CACHE_PREFIX + mosque.osm_id + '_' + dateKey;
       const liveCache = localStorage.getItem(liveCacheKey);
 
@@ -158,7 +188,6 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         });
 
         if (!error && liveData?.success && liveData?.times && liveData?.source !== 'calculated') {
-          // Cache for the day — skip 'calculated' source as it's just generic coordinate-based times
           localStorage.setItem(liveCacheKey, JSON.stringify({
             times: liveData.times,
             source: liveData.source,
@@ -174,9 +203,10 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         }
       } catch { /* fall through to Aladhan */ }
 
-      // 3. Auto-fetch from Aladhan API using mosque coordinates
+      // 3. Aladhan API with user's calc method
       if (mosque.latitude && mosque.longitude) {
         try {
+          const today = new Date();
           const dd = String(today.getDate()).padStart(2, '0');
           const mm = String(today.getMonth() + 1).padStart(2, '0');
           const yyyy = today.getFullYear();
@@ -189,7 +219,8 @@ export function useSavedMosqueTimes(): SavedMosqueData {
             timings = JSON.parse(cached);
           } else {
             const res = await fetch(
-              `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${mosque.latitude}&longitude=${mosque.longitude}&method=3`
+              `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${mosque.latitude}&longitude=${mosque.longitude}&method=${calcMethod}`,
+              { cache: 'no-store' }
             );
             const json = await res.json();
             timings = json.data.timings;
@@ -220,7 +251,7 @@ export function useSavedMosqueTimes(): SavedMosqueData {
     };
 
     load();
-  }, []);
+  }, [todayStr]);
 
   const unlinkMosque = () => {
     const saved = localStorage.getItem('selected_mosque');
@@ -229,7 +260,6 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         const mosque = JSON.parse(saved);
         if (mosque.osm_id) {
           localStorage.removeItem(SAVED_TIMES_PREFIX + mosque.osm_id);
-          // Clear live caches
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
             if (key?.startsWith(LIVE_CACHE_PREFIX + mosque.osm_id)) {

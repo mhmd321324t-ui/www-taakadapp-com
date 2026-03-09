@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "prayer-times-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 12, // 12 hours
+                maxAgeSeconds: 60 * 60 * 3, // 3 hours
               },
               cacheableResponse: {
                 statuses: [0, 200],
