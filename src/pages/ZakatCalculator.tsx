@@ -220,7 +220,7 @@ export default function ZakatCalculator() {
       <div className="px-5 -mt-2 relative z-10 space-y-4 max-w-md mx-auto">
         {/* Currency selector */}
         <div className="rounded-3xl border border-border/50 bg-card p-5 shadow-elevated">
-          <SectionHeader icon={Coins} title="العملة" subtitle="اختر عملة بلدك لحساب النصاب" className="mb-3" />
+          <SectionTitle icon={Coins} title="العملة" subtitle="اختر عملة بلدك لحساب النصاب" className="mb-3" />
           
           <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
             <SelectTrigger className="rounded-2xl">
