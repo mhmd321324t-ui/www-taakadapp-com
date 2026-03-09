@@ -171,13 +171,13 @@ export default function Quran() {
       </AnimatePresence>
 
       {/* Tabs */}
-      <div className="px-5 mb-4">
-        <div className="flex rounded-2xl border border-border/50 overflow-hidden">
+      <div className="px-5 mb-5 mt-2">
+        <div className="flex rounded-2xl border border-border/50 overflow-hidden bg-card">
           <button
             onClick={() => setTab('juz')}
             className={cn(
-              'flex-1 py-2.5 text-sm font-medium transition-all',
-              tab === 'juz' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
+              'flex-1 py-3 text-sm font-bold transition-all',
+              tab === 'juz' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
             )}
           >
             {t('juz')}
@@ -185,8 +185,8 @@ export default function Quran() {
           <button
             onClick={() => setTab('surah')}
             className={cn(
-              'flex-1 py-2.5 text-sm font-medium transition-all',
-              tab === 'surah' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
+              'flex-1 py-3 text-sm font-bold transition-all',
+              tab === 'surah' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
             )}
           >
             {t('surah')}
