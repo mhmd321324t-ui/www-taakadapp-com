@@ -27,7 +27,7 @@ export const DAILY_REMINDERS: DailyReminder[] = [
     minute: 30,
     title: '☀️ صباح الخير — لا تنسَ أذكارك',
     body: 'هل قرأت أذكار الصباح والخروج من المنزل؟ ابدأ يومك بذكر الله 🤲',
-    url: '/duas',
+    url: '/daily-duas?context=morning',
   },
   {
     id: 'midday-dua',
@@ -35,7 +35,7 @@ export const DAILY_REMINDERS: DailyReminder[] = [
     minute: 0,
     title: '🤲 وقفة مع الله',
     body: 'هل دعوت لوالديك اليوم؟ هل سبّحت وصلّيت على النبي ﷺ واستغفرت؟ لا تُفوّت أجر الدعاء',
-    url: '/tasbeeh',
+    url: '/daily-duas?context=midday',
   },
   {
     id: 'evening-quran',
@@ -43,7 +43,7 @@ export const DAILY_REMINDERS: DailyReminder[] = [
     minute: 0,
     title: '📖 هل عندك وقت فراغ؟',
     body: 'تعال نقرأ القرآن معاً.. ولو آيات قليلة تُنير قلبك ✨',
-    url: '/quran',
+    url: '/daily-duas?context=evening',
   },
   {
     id: 'bedtime-azkar',
@@ -51,7 +51,7 @@ export const DAILY_REMINDERS: DailyReminder[] = [
     minute: 0,
     title: '🌙 قبل ما تنام',
     body: 'لا تنسَ أذكار النوم — حصّن نفسك وأهلك بذكر الله قبل النوم 🛡️',
-    url: '/duas',
+    url: '/daily-duas?context=bedtime',
   },
 ];
 
