@@ -220,6 +220,15 @@ export default function SurahView() {
               <p className="text-right text-2xl leading-[2.5] font-arabic text-foreground" dir="rtl">
                 {ayah.text}
               </p>
+              {ayah.translation && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <p className="text-xs text-muted-foreground mb-1">{t('meaningTranslation')}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed" dir="auto">
+                    {ayah.translation}
+                  </p>
+                </div>
+              )}
+              </p>
             </motion.div>
           ))
         )}
