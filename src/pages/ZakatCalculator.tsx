@@ -279,10 +279,10 @@ export default function ZakatCalculator() {
                   placeholder="0.00"
                   value={value}
                   onChange={(e) => set(e.target.value)}
-                  className="rounded-2xl pr-12 text-left"
+                  className="rounded-2xl pe-12 text-left"
                   dir="ltr"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                   {currencyInfo.symbol}
                 </span>
               </div>

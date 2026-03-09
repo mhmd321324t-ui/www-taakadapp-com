@@ -107,17 +107,17 @@ export default function Auth() {
         <motion.form onSubmit={handleEmailAuth} className="space-y-4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           {!isLogin && (
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder={t('name')} value={name} onChange={e => setName(e.target.value)} className="pl-9 rounded-2xl h-12 border-border/50" />
+              <User className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder={t('name')} value={name} onChange={e => setName(e.target.value)} className="pe-9 rounded-2xl h-12 border-border/50" />
             </div>
           )}
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} className="pl-9 rounded-2xl h-12 border-border/50" required />
+            <Mail className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} className="pe-9 rounded-2xl h-12 border-border/50" required />
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} className="pl-9 rounded-2xl h-12 border-border/50" required minLength={6} />
+            <Lock className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} className="pe-9 rounded-2xl h-12 border-border/50" required minLength={6} />
           </div>
           <Button type="submit" className="w-full rounded-2xl h-12 font-bold" disabled={loading}>
             {loading ? '...' : isLogin ? t('login') : t('signup')}
