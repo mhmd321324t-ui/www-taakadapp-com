@@ -1,18 +1,14 @@
 import { useState } from 'react';
 import { Bell, X, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { requestNotificationPermission } from '@/hooks/useAthanNotifications';
-import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 export default function NotificationCard() {
   const [dismissed, setDismissed] = useState(() => {
     return localStorage.getItem('notif-card-dismissed') === 'true';
   });
-  const [enabled, setEnabled] = useState(() => {
-    return localStorage.getItem('athan-notifications') === 'true';
-  });
 
-  if (dismissed || enabled) return null;
+  if (dismissed) return null;
 
   return (
     <AnimatePresence>
@@ -29,44 +25,50 @@ export default function NotificationCard() {
               setDismissed(true);
               localStorage.setItem('notif-card-dismissed', 'true');
             }}
-            className="absolute top-3 left-3 h-7 w-7 rounded-full bg-muted flex items-center justify-center"
+            className="absolute top-3 left-3 h-7 w-7 rounded-full bg-muted flex items-center justify-center z-10"
           >
             <X className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
 
-          {/* Fake notification preview */}
-          <div className="mb-4 rounded-2xl bg-muted/60 border border-border/30 p-3 flex items-start gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-              <Bell className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-4">
+            {/* Phone mockup */}
+            <div className="shrink-0 w-28 h-36 rounded-2xl bg-muted/60 border border-border/30 p-2 flex flex-col gap-1.5 overflow-hidden">
+              <div className="text-center">
+                <p className="text-[8px] text-muted-foreground">9:41</p>
+              </div>
+              <div className="rounded-lg bg-primary/10 border border-primary/20 p-1.5 flex items-start gap-1.5">
+                <div className="h-4 w-4 rounded bg-primary/20 flex items-center justify-center shrink-0">
+                  <Bell className="h-2.5 w-2.5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[6px] font-bold text-foreground leading-tight">حان وقت العشاء</p>
+                  <p className="text-[5px] text-muted-foreground leading-tight mt-0.5">لا تنسَ تحديد صلاتك</p>
+                </div>
+              </div>
+              <div className="rounded-lg bg-accent/10 border border-accent/20 p-1.5 flex items-start gap-1.5">
+                <div className="h-4 w-4 rounded bg-accent/20 flex items-center justify-center shrink-0">
+                  <Settings className="h-2.5 w-2.5 text-accent-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[6px] font-bold text-foreground leading-tight">أكمل أذكارك</p>
+                  <p className="text-[5px] text-muted-foreground leading-tight mt-0.5">لديك 4 أذكار اليوم</p>
+                </div>
+              </div>
             </div>
+
+            {/* Text + CTA */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground">حان وقت صلاة الظهر</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">لا تفوت الصلاة في وقتها</p>
+              <h4 className="text-sm font-bold text-foreground mb-1 leading-snug">
+                إدارة إشعاراتك في مكان واحد.
+              </h4>
+              <Link
+                to="/notifications"
+                className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-primary text-primary-foreground px-5 py-3 text-sm font-bold transition-all active:scale-[0.98]"
+              >
+                الذهاب إلى الإعدادات
+              </Link>
             </div>
-            <span className="text-[9px] text-muted-foreground shrink-0">الآن</span>
           </div>
-
-          <h4 className="text-sm font-bold text-foreground mb-1">إدارة الإشعارات</h4>
-          <p className="text-xs text-muted-foreground mb-4">
-            فعّل التنبيهات لتصلك إشعارات عند كل أذان ولا تفوت أي صلاة
-          </p>
-
-          <button
-            onClick={async () => {
-              const granted = await requestNotificationPermission();
-              if (granted) {
-                setEnabled(true);
-                localStorage.setItem('athan-notifications', 'true');
-                toast.success('تم تفعيل إشعارات الصلاة');
-              } else {
-                toast.error('لم يتم منح إذن الإشعارات');
-              }
-            }}
-            className="w-full rounded-2xl bg-primary text-primary-foreground py-3 text-sm font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            تفعيل الإشعارات
-          </button>
         </div>
       </motion.div>
     </AnimatePresence>

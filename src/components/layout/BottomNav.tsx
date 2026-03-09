@@ -1,24 +1,23 @@
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Clock, BookOpen, MessageSquare, MoreHorizontal } from 'lucide-react';
+import { Home, Clock, BookOpen, Moon, MoreHorizontal } from 'lucide-react';
 import { useLocale } from '@/hooks/useLocale';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const navItems = [
-  { path: '/', icon: Home, labelKey: 'home', label: '' },
-  { path: '/prayer-times', icon: Clock, labelKey: 'prayerTimes', label: '' },
-  { path: '/quran', icon: BookOpen, labelKey: 'quran', label: '' },
-  { path: '/stories', icon: MessageSquare, labelKey: '', label: 'قصص' },
-  { path: '/more', icon: MoreHorizontal, labelKey: 'more', label: '' },
+  { path: '/more', icon: MoreHorizontal, label: 'المزيد' },
+  { path: '/duas', icon: Moon, label: 'ادعية' },
+  { path: '/quran', icon: BookOpen, label: 'القرآن' },
+  { path: '/prayer-times', icon: Clock, label: 'أوقات الصلاة' },
+  { path: '/', icon: Home, label: 'الرئيسية' },
 ];
 
 export function BottomNav() {
   const location = useLocation();
-  const { t } = useLocale();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/85 backdrop-blur-2xl">
-      <div className="flex items-center justify-around pb-[env(safe-area-inset-bottom,0px)]">
+      <div className="flex items-center justify-around pb-[env(safe-area-inset-bottom,0px)]" dir="rtl">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path ||
             (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -42,7 +41,7 @@ export function BottomNav() {
               )}
               <item.icon className={cn('h-[22px] w-[22px] shrink-0 transition-transform', isActive && 'scale-110 stroke-[2.5px]')} />
               <span className="font-semibold text-xs leading-tight text-center truncate w-full px-1">
-                {item.labelKey ? t(item.labelKey) : item.label}
+                {item.label}
               </span>
             </Link>
           );

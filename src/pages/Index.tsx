@@ -14,6 +14,7 @@ import HijriCalendar from '@/components/HijriCalendar';
 import DailyGoals from '@/components/DailyGoals';
 import SuggestedGoals from '@/components/SuggestedGoals';
 import NotificationCard from '@/components/NotificationCard';
+import VideoContentCarousel from '@/components/VideoContentCarousel';
 import { Link } from 'react-router-dom';
 import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2, Unlink, MapPin, MapPinOff, User } from 'lucide-react';
 import SectionHeader from '@/components/SectionHeader';
@@ -414,6 +415,9 @@ export default function Index() {
       </div>
 
       <AdBanner position="home-middle" />
+
+      {/* ===== VIDEO CONTENT CAROUSEL ===== */}
+      <VideoContentCarousel />
 
       {/* ===== DAILY GOALS (interactive) ===== */}
       <DailyGoals hijriMonthNumber={hijriMonthNumber} />

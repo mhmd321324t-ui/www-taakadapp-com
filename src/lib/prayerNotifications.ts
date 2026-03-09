@@ -34,7 +34,6 @@ function playReminderTone() {
 
     const vol = parseFloat(localStorage.getItem('athan-volume') || '0.8');
 
-    // Two-tone chime
     osc.frequency.setValueAtTime(880, ctx.currentTime);
     osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
     osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
@@ -45,7 +44,6 @@ function playReminderTone() {
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.5);
 
-    // Second chime after a short pause
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.connect(gain2);
@@ -66,6 +64,34 @@ function playReminderTone() {
   }
 }
 
+/** Send a browser notification (works even in background) */
+function sendNotification(title: string, body: string, tag: string, silent: boolean = true) {
+  // Try service worker notification first (works in background)
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller && Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, {
+        body,
+        icon: '/pwa-icon-192.png',
+        badge: '/pwa-icon-192.png',
+        tag,
+        requireInteraction: true,
+        silent,
+        data: { url: '/' },
+      } as NotificationOptions);
+    }).catch(() => {
+      // Fallback to regular notification
+      try {
+        new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent });
+      } catch {}
+    });
+  } else if (Notification.permission === 'granted') {
+    // Direct notification (foreground only)
+    try {
+      new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent });
+    } catch {}
+  }
+}
+
 export async function schedulePrayerNotifications(
   prayers: { key: string; time24: string; time: string }[]
 ) {
@@ -78,6 +104,7 @@ export async function schedulePrayerNotifications(
   const now = new Date();
   const currentMs = now.getTime();
   const reminderMin = getReminderMinutes();
+  const reminderEnabled = localStorage.getItem('notif-prayer-reminder') !== 'false';
 
   for (const prayer of prayers) {
     if (prayer.key === 'sunrise') continue;
@@ -91,52 +118,47 @@ export async function schedulePrayerNotifications(
 
     // Main athan timer
     const timer = window.setTimeout(() => {
+      // Play the athan sound
       playAthan(prayer.key);
 
+      // Trigger the full-screen alert
       if (onAthanAlert) {
         onAthanAlert(prayer.key, prayer.time);
       }
 
-      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification('حان وقت الصلاة 🕌', {
-            body: `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}`,
-            icon: '/pwa-icon-192.png',
-            badge: '/pwa-icon-192.png',
-            tag: `prayer-${prayer.key}`,
-            requireInteraction: true,
-            silent: true,
-            data: { url: '/' },
-          } as NotificationOptions);
-        });
-      }
+      // Send notification
+      sendNotification(
+        'حان وقت الصلاة 🕌',
+        `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}`,
+        `prayer-${prayer.key}`,
+        true // silent because athan is playing
+      );
     }, diff) as unknown as number;
 
     timers.push(timer);
 
-    // Pre-prayer reminder with alert tone
-    const reminderDiff = diff - reminderMin * 60 * 1000;
-    if (reminderDiff > 0) {
-      const reminderTimer = window.setTimeout(() => {
-        playReminderTone();
+    // Pre-prayer reminder
+    if (reminderEnabled) {
+      const reminderDiff = diff - reminderMin * 60 * 1000;
+      if (reminderDiff > 0) {
+        const reminderTimer = window.setTimeout(() => {
+          playReminderTone();
 
-        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification('تذكير بالصلاة 🔔', {
-              body: `${PRAYER_NAMES[prayer.key] || prayer.key} بعد ${reminderMin} دقائق`,
-              icon: '/pwa-icon-192.png',
-              badge: '/pwa-icon-192.png',
-              tag: `prayer-reminder-${prayer.key}`,
-              silent: false,
-              data: { url: '/' },
-            } as NotificationOptions);
-          });
-        }
-      }, reminderDiff) as unknown as number;
+          sendNotification(
+            'تذكير بالصلاة 🔔',
+            `${PRAYER_NAMES[prayer.key] || prayer.key} بعد ${reminderMin} دقائق`,
+            `prayer-reminder-${prayer.key}`,
+            false
+          );
+        }, reminderDiff) as unknown as number;
 
-      timers.push(reminderTimer);
+        timers.push(reminderTimer);
+      }
     }
   }
 
   (window as any).__prayerTimers = timers;
+  
+  // Log for debugging
+  console.log(`[PrayerNotifications] Scheduled ${timers.length} timers for ${prayers.filter(p => p.key !== 'sunrise').length} prayers`);
 }
