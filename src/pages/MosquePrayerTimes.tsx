@@ -240,17 +240,15 @@ export default function MosquePrayerTimesPage() {
       } catch { /* ignore */ }
     }
 
-    // Check for manual overrides — only use if saved today
+    // Check for manual overrides — manual times persist until user changes them
     const localKey = SAVED_TIMES_PREFIX + mosque.osm_id;
     const localSaved = localStorage.getItem(localKey);
     if (localSaved) {
       try {
         const parsed = JSON.parse(localSaved);
-        const cachedDate = parsed._date;
         const cachedTimes = parsed._date ? parsed.times : parsed; // backwards compat
-        const isToday = cachedDate === today;
         
-        if (isToday && (cachedTimes.fajr || cachedTimes.dhuhr || cachedTimes.asr || cachedTimes.maghrib || cachedTimes.isha)) {
+        if (cachedTimes && (cachedTimes.fajr || cachedTimes.dhuhr || cachedTimes.asr || cachedTimes.maghrib || cachedTimes.isha)) {
           setBaseTimes(cachedTimes);
           const adjustedTimes = applyAllDiffs(cachedTimes, diffs);
           setTimes(adjustedTimes);
@@ -258,7 +256,6 @@ export default function MosquePrayerTimesPage() {
           setTimesLoading(false);
           return;
         }
-        // Cache is stale — fall through to re-fetch
       } catch { /* fall through */ }
     }
 
