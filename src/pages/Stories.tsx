@@ -381,7 +381,7 @@ export default function Stories() {
                     ) : (
                       <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium">
                         <LogIn className="h-4 w-4" />
-                        سجّل دخولك لنشر قصتك
+                        {t('loginToPublish')}
                       </Link>
                     )}
                   </div>
