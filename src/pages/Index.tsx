@@ -293,7 +293,7 @@ export default function Index() {
                 key={prayer.key}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 + i * 0.04 }}
+                transition={{ delay: i * 0.02 }}
                 className={cn(
                   'rounded-2xl border p-4 text-center transition-all min-w-0',
                   isNext
