@@ -124,7 +124,7 @@ export default function MosquePrayerTimesPage() {
   const [editDiffs, setEditDiffs] = useState<TimeDiffs>(emptyDiffs);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [timesSource, setTimesSource] = useState<'api' | 'manual' | 'mawaqit' | 'website' | 'adjusted'>('api');
+  const [timesSource, setTimesSource] = useState<'api' | 'manual' | 'mawaqit' | 'website' | 'adjusted' | 'calculated'>('api');
   const [textSearch, setTextSearch] = useState('');
   const [textSearching, setTextSearching] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState<string | null>(null);
