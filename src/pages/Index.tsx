@@ -26,13 +26,13 @@ const QuranPlayer = lazy(() => import('@/components/QuranPlayer'));
 const SuggestedGoals = lazy(() => import('@/components/SuggestedGoals'));
 const HijriCalendar = lazy(() => import('@/components/HijriCalendar'));
 
-const quickAccessItems = [
-  { icon: Heart, label: 'تسبيح', path: '/tasbeeh', gradient: 'from-primary/20 to-primary/5' },
-  { icon: Compass, label: 'القبلة', path: '/qibla', gradient: 'from-accent/20 to-accent/5' },
-  { icon: BookOpen, label: 'القرآن', path: '/quran', gradient: 'from-primary/20 to-primary/5' },
-  { icon: Moon, label: 'الأدعية', path: '/duas', gradient: 'from-islamic-purple/20 to-islamic-purple/5' },
-  { icon: MessageSquare, label: 'قصص', path: '/stories', gradient: 'from-islamic-copper/20 to-accent/5' },
-  { icon: Calculator, label: 'الزكاة', path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/5' },
+const getQuickAccessItems = (t: (key: string) => string) => [
+  { icon: Heart, label: t('quickTasbeeh'), path: '/tasbeeh', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Compass, label: t('quickQibla'), path: '/qibla', gradient: 'from-accent/20 to-accent/5' },
+  { icon: BookOpen, label: t('quickQuran'), path: '/quran', gradient: 'from-primary/20 to-primary/5' },
+  { icon: Moon, label: t('quickDuas'), path: '/duas', gradient: 'from-islamic-purple/20 to-islamic-purple/5' },
+  { icon: MessageSquare, label: t('quickStories'), path: '/stories', gradient: 'from-islamic-copper/20 to-accent/5' },
+  { icon: Calculator, label: t('quickZakat'), path: '/zakat', gradient: 'from-islamic-teal/20 to-primary/5' },
 ];
 
 export default function Index() {
