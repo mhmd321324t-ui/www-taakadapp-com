@@ -25,7 +25,8 @@ export default function PrayerTimes() {
   const { prayers, hijriDate, loading } = usePrayerTimes(
     location.latitude,
     location.longitude,
-    location.calculationMethod
+    location.calculationMethod,
+    location.school
   );
   const { prayer: nextPrayer } = getNextPrayer(prayers);
 

@@ -43,7 +43,8 @@ export default function Index() {
   const { prayers: apiPrayers, hijriDate, hijriDay, hijriMonthNumber, hijriYear, loading } = usePrayerTimes(
     location.latitude,
     location.longitude,
-    location.calculationMethod
+    location.calculationMethod,
+    location.school
   );
   const { mosqueName, prayers: mosquePrayers, loading: mosqueLoading, unlinkMosque, source: mosqueSource } = useSavedMosqueTimes();
   

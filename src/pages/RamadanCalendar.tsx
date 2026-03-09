@@ -35,7 +35,7 @@ const arabicDayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'ا�
 export default function RamadanCalendar() {
   const location = useGeoLocation();
   const { prayers, hijriDay, hijriMonthNumber, loading } = usePrayerTimes(
-    location.latitude, location.longitude, location.calculationMethod
+    location.latitude, location.longitude, location.calculationMethod, location.school
   );
   const is12h = detectIs12Hour();
 
