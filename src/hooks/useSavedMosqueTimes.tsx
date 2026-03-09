@@ -131,7 +131,7 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         return;
       }
 
-      // 1. Check for manually saved times
+      // 1. Check for manually saved times (persist until user changes them)
       const timesStr = localStorage.getItem(SAVED_TIMES_PREFIX + mosque.osm_id);
       if (timesStr) {
         const { times } = parseStoredTimes(timesStr);
@@ -144,13 +144,6 @@ export function useSavedMosqueTimes(): SavedMosqueData {
           });
           return;
         }
-      }
-
-      // Load saved diffs
-      const diffsStr = localStorage.getItem(SAVED_DIFFS_PREFIX + mosque.osm_id);
-      let diffs: Record<string, number> = {};
-      if (diffsStr) {
-        try { diffs = JSON.parse(diffsStr); } catch { /* ignore */ }
       }
 
       // 2. Try live sync (daily cache)
