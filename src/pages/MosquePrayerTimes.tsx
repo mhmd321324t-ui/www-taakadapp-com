@@ -133,6 +133,8 @@ export default function MosquePrayerTimesPage() {
         body: {
           mosqueName: mosque.name,
           mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
+          latitude: mosque.latitude,
+          longitude: mosque.longitude,
         },
       });
 
