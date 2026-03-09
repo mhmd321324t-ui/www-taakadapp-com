@@ -15,7 +15,7 @@ import { AdBanner } from '@/components/AdBanner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import meccaImage from '@/assets/mecca.jpg';
+const meccaImage = '/mecca-hero.webp';
 import { getCurrentOccasion, isRamadan } from '@/data/islamicOccasions';
 
 const quickAccessItems = [
