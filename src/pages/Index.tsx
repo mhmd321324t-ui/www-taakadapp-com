@@ -460,7 +460,7 @@ export default function Index() {
       <div className="px-4 mb-8">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">📅</span>
-          <h3 className="text-sm font-bold text-foreground">التقويم الهجري</h3>
+          <h3 className="text-sm font-bold text-foreground">{t('hijriCalendarTitle')}</h3>
         </div>
         <Suspense fallback={<div className="h-48" />}>
           <HijriCalendar
