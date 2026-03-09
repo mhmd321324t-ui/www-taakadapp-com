@@ -372,7 +372,7 @@ export default function Index() {
                 <span className="text-3xl">🌙</span>
                 <p className="text-white/70 text-[10px] mt-1">تحدي رمضان</p>
               </div>
-              <div className="text-white text-sm text-left relative z-10">
+              <div className="text-white text-sm text-start relative z-10">
                 <span className="text-white/50 text-xs font-medium">الفجر</span>
                 <p className="font-bold tabular-nums text-lg">{fajrTime}</p>
               </div>

@@ -50,7 +50,7 @@ export default function AthanSelector() {
         <div className="mb-3 flex items-center gap-3">
           {volume > 0 ? <Volume2 className="h-5 w-5 shrink-0 text-primary" /> : <VolumeX className="h-5 w-5 shrink-0 text-muted-foreground" />}
           <span className="text-sm font-bold text-foreground">مستوى الصوت</span>
-          <span className="mr-auto text-xs text-muted-foreground" dir="ltr">{Math.round(volume * 100)}%</span>
+          <span className="ms-auto text-xs text-muted-foreground" dir="ltr">{Math.round(volume * 100)}%</span>
         </div>
         <Slider
           value={[volume]}

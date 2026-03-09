@@ -86,7 +86,7 @@ function SettingRow({ setting }: { setting: NotifSetting }) {
 function SettingsSection({ title, settings }: { title: string; settings: NotifSetting[] }) {
   return (
     <div className="px-4 mt-5">
-      <p className="text-xs font-bold text-muted-foreground mb-2 mr-1">{title}</p>
+      <p className="text-xs font-bold text-muted-foreground mb-2 me-1">{title}</p>
       <div className="rounded-2xl bg-card border border-border/40 px-4">
         {settings.map(s => <SettingRow key={s.key} setting={s} />)}
       </div>

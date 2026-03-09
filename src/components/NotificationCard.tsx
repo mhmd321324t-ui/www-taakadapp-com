@@ -27,7 +27,7 @@ export default function NotificationCard() {
               setDismissed(true);
               localStorage.setItem('notif-card-dismissed', 'true');
             }}
-            className="absolute top-3 left-3 h-7 w-7 rounded-full bg-white/15 flex items-center justify-center z-10 backdrop-blur-sm"
+            className="absolute top-3 start-3 h-7 w-7 rounded-full bg-white/15 flex items-center justify-center z-10 backdrop-blur-sm"
           >
             <X className="h-3.5 w-3.5 text-white/80" />
           </button>

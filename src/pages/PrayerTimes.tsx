@@ -146,7 +146,7 @@ export default function PrayerTimes() {
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Building2 className="h-5 w-5 text-primary" />
           </div>
-          <div className="flex-1 text-right">
+          <div className="flex-1 text-start">
             <p className="text-sm font-bold text-foreground">أوقات المساجد القريبة</p>
             <p className="text-xs text-muted-foreground">اختر مسجدك وأدخل أوقات الصلاة يدوياً</p>
           </div>

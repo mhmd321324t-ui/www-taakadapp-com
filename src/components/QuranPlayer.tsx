@@ -415,7 +415,7 @@ export default function QuranPlayer() {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="ابحث عن سورة..."
-                            className="pl-8 rounded-2xl text-right text-xs h-9 border-border/50"
+                            className="pe-8 rounded-2xl text-start text-xs h-9 border-border/50"
                           />
                         </div>
                         <div className="max-h-48 overflow-y-auto space-y-0.5">

@@ -92,7 +92,7 @@ const OccasionBanner = forwardRef<HTMLDivElement, OccasionBannerProps>(
           <button
             onClick={dismiss}
             aria-label="إغلاق"
-            className="absolute top-3 left-3 p-1.5 rounded-full bg-white/10 backdrop-blur-sm z-10"
+            className="absolute top-3 start-3 p-1.5 rounded-full bg-white/10 backdrop-blur-sm z-10"
           >
             <X className="h-3.5 w-3.5 text-white/70" />
           </button>

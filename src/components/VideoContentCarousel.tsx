@@ -49,7 +49,7 @@ export default function VideoContentCarousel() {
                   <Play className="h-4 w-4 text-primary fill-primary" />
                 </div>
               </div>
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 start-2">
                 <ExternalLink className="h-3.5 w-3.5 text-white/70" />
               </div>
             </div>

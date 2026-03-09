@@ -67,7 +67,7 @@ export default function InstallBanner() {
         >
           <button
             onClick={dismiss}
-            className="absolute top-3 left-3 p-1 rounded-full hover:bg-muted transition-colors"
+            className="absolute top-3 start-3 p-1 rounded-full hover:bg-muted transition-colors"
           >
             <X className="h-4 w-4 text-muted-foreground" />
           </button>
