@@ -228,7 +228,6 @@ export default function SurahView() {
                   </p>
                 </div>
               )}
-              </p>
             </motion.div>
           ))
         )}
