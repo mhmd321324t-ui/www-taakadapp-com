@@ -37,7 +37,7 @@ function makePrayerTime(key: string, time24: string, is12h: boolean): PrayerTime
  * Falls back to null (so the main page uses location-based times).
  */
 export function useSavedMosqueTimes(): SavedMosqueData {
-  const [data, setData] = useState<SavedMosqueData>({ mosqueName: null, prayers: null, loading: true });
+  const [data, setData] = useState<Omit<SavedMosqueData, 'unlinkMosque'>>({ mosqueName: null, prayers: null, loading: true });
 
   useEffect(() => {
     const is12h = detectIs12Hour();
