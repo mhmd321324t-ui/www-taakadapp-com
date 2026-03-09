@@ -128,10 +128,23 @@ export default function HijriCalendar({ hijriDay, hijriMonth, hijriYear }: Hijri
     setGYear(newYear);
   };
 
-  const goToToday = () => {
+  const goToTodayHijri = () => {
     setViewMonth(today.month);
     setViewYear(today.year);
   };
+
+  const goToTodayGregorian = () => {
+    setGMonth(now.getMonth());
+    setGYear(now.getFullYear());
+  };
+
+  // Gregorian calendar helpers
+  const gDaysInMonth = new Date(gYear, gMonth + 1, 0).getDate();
+  const gFirstDay = new Date(gYear, gMonth, 1).getDay();
+  const gregorianMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
 
   // Upcoming events
   const upcomingEvents = useMemo(() => {
