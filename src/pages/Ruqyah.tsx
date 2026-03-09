@@ -237,8 +237,8 @@ export default function Ruqyah() {
                     {selectedCategory.emoji}
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-foreground">{selectedCategory.name_ar}</h2>
-                    <p className="text-xs text-muted-foreground">{tracks.length} رقية</p>
+                    <h2 className="text-lg font-bold text-foreground">{isArabic ? selectedCategory.name_ar : (selectedCategory.name_en || selectedCategory.name_ar)}</h2>
+                    <p className="text-xs text-muted-foreground">{tracks.length} {t('ruqyahCount')}</p>
                   </div>
                 </div>
 
