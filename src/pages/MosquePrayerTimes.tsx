@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
+import { getPrefetchedMosques } from '@/hooks/usePrefetch';
 import { toast } from 'sonner';
 
 interface Mosque {
@@ -237,13 +238,29 @@ export default function MosquePrayerTimesPage() {
     if (!location.latitude || !location.longitude) { toast.error('يرجى تفعيل الموقع أولاً'); return; }
     setLoading(true);
     try {
+      // Try prefetched data first (if no text query)
+      if (!query) {
+        const prefetched = getPrefetchedMosques();
+        if (prefetched && prefetched.length > 0) {
+          const sorted = prefetched
+            .map((m: Mosque) => ({ ...m, _dist: distanceKm(location.latitude!, location.longitude!, m.latitude, m.longitude) }))
+            .filter((m: Mosque) => m._dist! <= 10)
+            .sort((a: any, b: any) => a._dist - b._dist);
+          if (sorted.length > 0) {
+            setMosques(sorted);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       const body: any = { lat: location.latitude, lon: location.longitude, radius: 10000 };
       if (query) body.textQuery = query;
       const { data, error } = await supabase.functions.invoke('search-mosques', { body });
       if (error) throw error;
       const sorted = (data?.mosques || [])
         .map((m: Mosque) => ({ ...m, _dist: distanceKm(location.latitude!, location.longitude!, m.latitude, m.longitude) }))
-        .filter((m: Mosque) => m._dist! <= 10) // Filter to 10km
+        .filter((m: Mosque) => m._dist! <= 10)
         .sort((a: any, b: any) => a._dist - b._dist);
       setMosques(sorted);
       if (sorted.length === 0) toast('لم يتم العثور على مساجد — جرّب البحث بالاسم');
