@@ -50,7 +50,7 @@ function formatTime(time24: string, is12h: boolean): string {
   return to12Hour(time24);
 }
 
-export function usePrayerTimes(latitude: number, longitude: number, method: number = 2) {
+export function usePrayerTimes(latitude: number, longitude: number, method: number = 2, school: number = 0) {
   const [data, setData] = useState<PrayerTimesData>({
     prayers: [],
     hijriDate: '',
