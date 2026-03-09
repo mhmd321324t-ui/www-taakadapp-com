@@ -9,7 +9,7 @@ import OccasionAthanAlert from '@/components/OccasionAthanAlert';
 import OccasionBanner from '@/components/OccasionBanner';
 import HijriCalendar from '@/components/HijriCalendar';
 import { Link } from 'react-router-dom';
-import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap } from 'lucide-react';
+import { Compass, BookOpen, Heart, Calculator, Moon, Bell, BellOff, ChevronLeft, CheckCircle2, MessageSquare, Sparkles, Clock, Zap, Building2 } from 'lucide-react';
 import SectionHeader from '@/components/SectionHeader';
 import QuranPlayer from '@/components/QuranPlayer';
 import { AdBanner } from '@/components/AdBanner';
@@ -312,6 +312,21 @@ export default function Index() {
             );
           })}
         </div>
+        <Link
+          to="/mosque-times"
+          className="mt-2 flex items-center justify-between rounded-2xl border border-border/50 bg-card p-3.5 transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-4.5 w-4.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">أوقات المساجد</p>
+              <p className="text-[10px] text-muted-foreground">اختر مسجدك القريب</p>
+            </div>
+          </div>
+          <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+        </Link>
       </div>
 
       <AdBanner position="home-middle" />
