@@ -3,3 +3,5 @@ project_id = "vnbysqlkaceulzmjhgxc"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.daily-duas]
+    verify_jwt = false
