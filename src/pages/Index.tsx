@@ -103,7 +103,12 @@ export default function Index() {
   const maghribTime = prayers.find(p => p.key === 'maghrib')?.time || '--:--';
 
   return (
-    <div className="min-h-screen pb-24" dir="rtl">
+    <div className="min-h-screen pb-24 relative" dir="rtl">
+      {/* 3D Background */}
+      <Suspense fallback={null}>
+        <MinaretScene />
+      </Suspense>
+
       {alertPrayer && (
         <OccasionAthanAlert
           prayerKey={alertPrayer.key}
@@ -112,18 +117,10 @@ export default function Index() {
           onDismiss={() => setAlertPrayer(null)}
         />
       )}
-      <div className="relative overflow-hidden h-56">
-        <img
-          src={meccaImage}
-          alt="المسجد الحرام"
-          className="w-full h-56 object-cover"
-          loading="eager"
-          fetchPriority="high"
-          width="1335"
-          height="224"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background" />
-        <div className="absolute inset-0 islamic-pattern opacity-30" />
+
+      {/* Hero area with overlay info */}
+      <div className="relative z-10 h-56">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
         
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
@@ -150,6 +147,8 @@ export default function Index() {
         </div>
       </div>
 
+      {/* Content layer */}
+      <div className="relative z-10">
       <AdBanner position="home-top" />
 
       {currentOccasion && <OccasionBanner occasion={currentOccasion} />}
