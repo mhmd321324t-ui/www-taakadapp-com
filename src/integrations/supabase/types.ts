@@ -346,6 +346,86 @@ export type Database = {
         }
         Relationships: []
       }
+      ruqyah_categories: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          name_ar: string
+          name_en: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name_ar: string
+          name_en?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name_ar?: string
+          name_en?: string | null
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      ruqyah_tracks: {
+        Row: {
+          category_id: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_active: boolean
+          media_type: string
+          media_url: string
+          reciter_ar: string
+          reciter_en: string | null
+          sort_order: number | null
+          title_ar: string
+          youtube_id: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          media_type?: string
+          media_url: string
+          reciter_ar: string
+          reciter_en?: string | null
+          sort_order?: number | null
+          title_ar: string
+          youtube_id?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          media_type?: string
+          media_url?: string
+          reciter_ar?: string
+          reciter_en?: string | null
+          sort_order?: number | null
+          title_ar?: string
+          youtube_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ruqyah_tracks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ruqyah_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           id: string
@@ -376,6 +456,9 @@ export type Database = {
           created_at: string
           id: string
           likes_count: number
+          media_type: string
+          media_url: string | null
+          status: string
           title: string
           user_id: string
         }
@@ -387,6 +470,9 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number
+          media_type?: string
+          media_url?: string | null
+          status?: string
           title: string
           user_id: string
         }
@@ -398,6 +484,9 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number
+          media_type?: string
+          media_url?: string | null
+          status?: string
           title?: string
           user_id?: string
         }
