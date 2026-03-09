@@ -7,6 +7,7 @@ interface LocationData {
   country: string;
   countryCode: string;
   calculationMethod: number;
+  school: number; // 0 = Shafi/Maliki/Hanbali, 1 = Hanafi
   loading: boolean;
   error: string | null;
 }
