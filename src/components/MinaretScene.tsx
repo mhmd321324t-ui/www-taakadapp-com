@@ -1,39 +1,35 @@
 import { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { Float, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
-/* ── Golden Particles ── */
-function GoldenParticles({ count = 800 }) {
+/* ── Golden Particles (dust/light motes) ── */
+function GoldenParticles({ count = 600 }) {
   const ref = useRef<THREE.Points>(null!);
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 30;
-      arr[i * 3 + 1] = Math.random() * 20 - 2;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 30;
+      arr[i * 3] = (Math.random() - 0.5) * 40;
+      arr[i * 3 + 1] = Math.random() * 25;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 40;
     }
     return arr;
   }, [count]);
 
   useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.03;
+    if (ref.current) ref.current.rotation.y += delta * 0.015;
   });
 
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-          count={count}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.06}
+        size={0.05}
         color="#ffd966"
         transparent
-        opacity={0.8}
+        opacity={0.7}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
         sizeAttenuation
@@ -42,176 +38,194 @@ function GoldenParticles({ count = 800 }) {
   );
 }
 
-/* ── Minaret (geometric) ── */
-function Minaret({ position = [0, 0, 0] as [number, number, number], scale = 1 }) {
-  const cyanMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#00cccc',
-    emissive: '#004444',
-    metalness: 0.6,
-    roughness: 0.3,
+/* ── Kaaba ── */
+function Kaaba() {
+  const kaabaMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#0a0a0a',
+    roughness: 0.8,
+    metalness: 0.1,
+  }), []);
+
+  const goldTrimMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#c9a23c',
+    emissive: '#8b6914',
+    emissiveIntensity: 0.3,
+    metalness: 0.9,
+    roughness: 0.15,
+  }), []);
+
+  return (
+    <group position={[0, 0, 0]}>
+      {/* Main Kaaba body */}
+      <mesh position={[0, 1.5, 0]} material={kaabaMat}>
+        <boxGeometry args={[3, 3, 3]} />
+      </mesh>
+      {/* Gold band (kiswa border) */}
+      <mesh position={[0, 2.6, 0]} material={goldTrimMat}>
+        <boxGeometry args={[3.05, 0.25, 3.05]} />
+      </mesh>
+      {/* Gold band lower */}
+      <mesh position={[0, 2.2, 0]} material={goldTrimMat}>
+        <boxGeometry args={[3.03, 0.05, 3.03]} />
+      </mesh>
+      {/* Door (gold) */}
+      <mesh position={[1.51, 1.8, 0]} material={goldTrimMat}>
+        <boxGeometry args={[0.05, 1.4, 0.9]} />
+      </mesh>
+      {/* Hajr Ismail (semi-circular wall) */}
+      <mesh position={[-2.5, 0.4, 0]} rotation={[0, 0, 0]}>
+        <torusGeometry args={[1.8, 0.15, 8, 32, Math.PI]} />
+        <meshStandardMaterial color="#d4c5a0" roughness={0.6} metalness={0.2} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ── Minaret (Masjid al-Haram style) ── */
+function Minaret({ position, height = 12 }: { position: [number, number, number]; height?: number }) {
+  const stoneMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#e8dcc8',
+    roughness: 0.7,
+    metalness: 0.1,
   }), []);
 
   const goldMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#ffd966',
-    emissive: '#665500',
-    metalness: 0.8,
-    roughness: 0.2,
+    color: '#c9a23c',
+    emissive: '#8b6914',
+    emissiveIntensity: 0.2,
+    metalness: 0.85,
+    roughness: 0.15,
   }), []);
 
-  const darkMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#0a1428',
-    emissive: '#001122',
-    metalness: 0.5,
-    roughness: 0.4,
-  }), []);
+  const s = height / 12;
 
   return (
-    <group position={position} scale={scale}>
+    <group position={position} scale={[s, s, s]}>
       {/* Base */}
-      <mesh position={[0, 0.6, 0]} material={darkMat}>
-        <cylinderGeometry args={[0.7, 0.85, 1.2, 8]} />
+      <mesh position={[0, 1, 0]} material={stoneMat}>
+        <cylinderGeometry args={[0.6, 0.8, 2, 12]} />
       </mesh>
-      {/* Base ring */}
-      <mesh position={[0, 1.2, 0]} material={goldMat}>
-        <torusGeometry args={[0.72, 0.06, 8, 24]} />
-      </mesh>
-
       {/* Main shaft */}
-      <mesh position={[0, 3.8, 0]} material={cyanMat}>
-        <cylinderGeometry args={[0.45, 0.6, 4, 8]} />
+      <mesh position={[0, 5, 0]} material={stoneMat}>
+        <cylinderGeometry args={[0.4, 0.55, 6, 12]} />
       </mesh>
-
-      {/* Decorative ribs */}
-      {[0, 1, 2, 3].map(i => (
+      {/* Balcony 1 */}
+      <mesh position={[0, 4, 0]} material={goldMat}>
+        <cylinderGeometry args={[0.7, 0.65, 0.15, 16]} />
+      </mesh>
+      {/* Balcony railing posts */}
+      {Array.from({ length: 16 }).map((_, i) => (
         <mesh key={i} position={[
-          Math.cos(i * Math.PI / 2) * 0.5,
-          3.8,
-          Math.sin(i * Math.PI / 2) * 0.5,
+          Math.cos(i * Math.PI / 8) * 0.65,
+          4.2,
+          Math.sin(i * Math.PI / 8) * 0.65,
         ]} material={goldMat}>
-          <boxGeometry args={[0.04, 3.6, 0.04]} />
+          <boxGeometry args={[0.025, 0.25, 0.025]} />
         </mesh>
       ))}
-
-      {/* Balcony */}
-      <mesh position={[0, 5.9, 0]} material={goldMat}>
-        <cylinderGeometry args={[0.8, 0.75, 0.15, 16]} />
+      {/* Balcony 2 */}
+      <mesh position={[0, 7, 0]} material={goldMat}>
+        <cylinderGeometry args={[0.6, 0.55, 0.12, 16]} />
       </mesh>
-      {/* Balcony fence posts */}
-      {Array.from({ length: 12 }).map((_, i) => (
-        <mesh key={`f${i}`} position={[
-          Math.cos(i * Math.PI / 6) * 0.75,
-          6.1,
-          Math.sin(i * Math.PI / 6) * 0.75,
-        ]} material={goldMat}>
-          <boxGeometry args={[0.03, 0.3, 0.03]} />
-        </mesh>
-      ))}
-
       {/* Upper shaft */}
-      <mesh position={[0, 7, 0]} material={cyanMat}>
-        <cylinderGeometry args={[0.25, 0.4, 2, 8]} />
+      <mesh position={[0, 9, 0]} material={stoneMat}>
+        <cylinderGeometry args={[0.25, 0.35, 3.5, 12]} />
       </mesh>
-
       {/* Dome */}
-      <mesh position={[0, 8.3, 0]} material={goldMat}>
-        <sphereGeometry args={[0.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <mesh position={[0, 11, 0]} material={goldMat}>
+        <sphereGeometry args={[0.35, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
-
       {/* Crescent pole */}
-      <mesh position={[0, 8.9, 0]} material={goldMat}>
-        <cylinderGeometry args={[0.02, 0.02, 0.5, 6]} />
+      <mesh position={[0, 11.6, 0]} material={goldMat}>
+        <cylinderGeometry args={[0.015, 0.015, 0.6, 6]} />
       </mesh>
-
       {/* Crescent */}
-      <mesh position={[0, 9.3, 0]} rotation={[0, 0, Math.PI / 6]} material={goldMat}>
-        <torusGeometry args={[0.15, 0.03, 8, 24, Math.PI * 1.5]} />
+      <mesh position={[0, 12, 0]} rotation={[0, 0, Math.PI / 6]} material={goldMat}>
+        <torusGeometry args={[0.12, 0.025, 8, 24, Math.PI * 1.5]} />
       </mesh>
     </group>
   );
 }
 
-/* ── Small pillar ── */
-function SmallPillar({ position }: { position: [number, number, number] }) {
+/* ── Arches (colonnade) ── */
+function Colonnade({ radius = 10, count = 24, height = 4 }: { radius?: number; count?: number; height?: number }) {
+  const stoneMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#e0d4be',
+    roughness: 0.65,
+    metalness: 0.1,
+  }), []);
+
   return (
-    <group position={position}>
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.12, 0.15, 1.6, 6]} />
-        <meshStandardMaterial color="#0a2030" emissive="#002233" metalness={0.5} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 1.7, 0]}>
-        <sphereGeometry args={[0.14, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#ffd966" emissive="#665500" metalness={0.8} roughness={0.2} />
-      </mesh>
+    <group>
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = (i / count) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        return (
+          <group key={i} position={[x, 0, z]} rotation={[0, -angle + Math.PI / 2, 0]}>
+            {/* Column */}
+            <mesh position={[0, height / 2, 0]} material={stoneMat}>
+              <cylinderGeometry args={[0.15, 0.18, height, 8]} />
+            </mesh>
+            {/* Arch top */}
+            <mesh position={[0, height, 0]} rotation={[Math.PI / 2, 0, 0]} material={stoneMat}>
+              <torusGeometry args={[0.5, 0.08, 8, 12, Math.PI]} />
+            </mesh>
+          </group>
+        );
+      })}
     </group>
   );
 }
 
-/* ── Floating shapes ── */
-function FloatingShapes() {
-  const colors = ['#00ffff', '#ffd966', '#ff6699'];
+/* ── Mataf (circular tawaf area) ── */
+function Mataf() {
   return (
-    <>
-      {colors.map((color, i) => (
-        <Float key={i} speed={1.5} rotationIntensity={2} floatIntensity={2}>
-          <mesh position={[
-            -4 + i * 4,
-            5 + Math.sin(i * 2) * 2,
-            -3 - i,
-          ]}>
-            <octahedronGeometry args={[0.3]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={0.4}
-              transparent
-              opacity={0.6}
-              wireframe
-            />
-          </mesh>
-        </Float>
+    <group>
+      {/* White marble floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <ringGeometry args={[3.5, 8, 64]} />
+        <meshStandardMaterial color="#f0ece4" roughness={0.3} metalness={0.05} />
+      </mesh>
+      {/* Tawaf path lines */}
+      {[4, 5.5, 7].map((r, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+          <ringGeometry args={[r - 0.02, r + 0.02, 64]} />
+          <meshStandardMaterial color="#c9a23c" transparent opacity={0.3} />
+        </mesh>
       ))}
-    </>
+    </group>
   );
 }
 
 /* ── Ground ── */
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-      <planeGeometry args={[40, 40]} />
-      <meshStandardMaterial
-        color="#030514"
-        emissive="#001122"
-        emissiveIntensity={0.2}
-        metalness={0.9}
-        roughness={0.1}
-      />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+      <circleGeometry args={[50, 64]} />
+      <meshStandardMaterial color="#1a1520" roughness={0.9} metalness={0} />
     </mesh>
   );
 }
 
-/* ── Animated lights ── */
-function AnimatedLights() {
-  const ref1 = useRef<THREE.PointLight>(null!);
-  const ref2 = useRef<THREE.PointLight>(null!);
+/* ── Animated scene lights ── */
+function SceneLights() {
+  const spotRef = useRef<THREE.PointLight>(null!);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (ref1.current) {
-      ref1.current.position.x = Math.sin(t * 0.3) * 6;
-      ref1.current.position.z = Math.cos(t * 0.3) * 6;
-    }
-    if (ref2.current) {
-      ref2.current.position.x = Math.cos(t * 0.2) * 5;
-      ref2.current.position.z = Math.sin(t * 0.2) * 5;
+    if (spotRef.current) {
+      spotRef.current.intensity = 1.5 + Math.sin(t * 0.5) * 0.5;
     }
   });
 
   return (
     <>
-      <pointLight ref={ref1} position={[4, 6, 4]} color="#00ffff" intensity={2} distance={20} />
-      <pointLight ref={ref2} position={[-4, 4, -4]} color="#ffd966" intensity={1.5} distance={20} />
-      <pointLight position={[0, 10, 0]} color="#ff6699" intensity={0.5} distance={15} />
+      <ambientLight intensity={0.2} color="#c4b896" />
+      <directionalLight position={[10, 15, 5]} intensity={0.6} color="#fff5e0" castShadow />
+      <pointLight ref={spotRef} position={[0, 8, 0]} color="#ffd966" intensity={2} distance={30} />
+      <pointLight position={[8, 5, 8]} color="#00cccc" intensity={0.4} distance={25} />
+      <pointLight position={[-8, 5, -8]} color="#ffc080" intensity={0.4} distance={25} />
     </>
   );
 }
@@ -219,12 +233,12 @@ function AnimatedLights() {
 /* ── Camera auto-rotate ── */
 function CameraRig() {
   useFrame(({ camera, clock }) => {
-    const t = clock.getElapsedTime() * 0.08;
-    const radius = 14;
+    const t = clock.getElapsedTime() * 0.06;
+    const radius = 18;
     camera.position.x = Math.sin(t) * radius;
     camera.position.z = Math.cos(t) * radius;
-    camera.position.y = 5 + Math.sin(t * 0.5) * 1.5;
-    camera.lookAt(0, 4, 0);
+    camera.position.y = 7 + Math.sin(t * 0.3) * 2;
+    camera.lookAt(0, 3, 0);
   });
   return null;
 }
@@ -234,25 +248,33 @@ export default function MinaretScene() {
   return (
     <div className="fixed inset-0 z-0" style={{ pointerEvents: 'none' }}>
       <Canvas
-        dpr={[1, 2]}
-        camera={{ position: [14, 5, 0], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
+        dpr={[1, 1.5]}
+        camera={{ position: [18, 7, 0], fov: 40 }}
+        gl={{ antialias: true, alpha: false }}
+        style={{ background: '#030514' }}
       >
-        <fog attach="fog" args={['#030514', 10, 30]} />
-        <ambientLight intensity={0.15} />
-        <directionalLight position={[5, 10, 5]} intensity={0.4} color="#aaddff" />
+        <fog attach="fog" args={['#030514', 20, 55]} />
+        <color attach="background" args={['#030514']} />
 
-        <Minaret />
-        <SmallPillar position={[-3, 0, -2]} />
-        <SmallPillar position={[3, 0, -2]} />
-        <SmallPillar position={[-2, 0, 3]} />
-        <SmallPillar position={[2, 0, 3]} />
+        <Stars radius={80} depth={60} count={1500} factor={3} saturation={0.1} fade speed={0.5} />
+
+        <Kaaba />
+        <Mataf />
+        <Colonnade />
+
+        {/* 4 main minarets */}
+        <Minaret position={[-9, 0, -9]} height={14} />
+        <Minaret position={[9, 0, -9]} height={14} />
+        <Minaret position={[-9, 0, 9]} height={14} />
+        <Minaret position={[9, 0, 9]} height={14} />
+
+        {/* 2 smaller side minarets */}
+        <Minaret position={[-12, 0, 0]} height={10} />
+        <Minaret position={[12, 0, 0]} height={10} />
 
         <GoldenParticles />
-        <FloatingShapes />
         <Ground />
-        <AnimatedLights />
+        <SceneLights />
         <CameraRig />
       </Canvas>
     </div>
