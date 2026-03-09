@@ -17,10 +17,58 @@ export function setAthanAlertCallback(cb: AthanAlertCallback | null) {
   onAthanAlert = cb;
 }
 
+/** Get reminder minutes from localStorage (default 10) */
+function getReminderMinutes(): number {
+  const saved = localStorage.getItem('prayer-reminder-minutes');
+  return saved ? parseInt(saved, 10) : 10;
+}
+
+/** Play a short alert tone using Web Audio API */
+function playReminderTone() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const vol = parseFloat(localStorage.getItem('athan-volume') || '0.8');
+
+    // Two-tone chime
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
+
+    gain.gain.setValueAtTime(vol * 0.5, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+
+    // Second chime after a short pause
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.7);
+    osc2.frequency.setValueAtTime(1320, ctx.currentTime + 0.85);
+
+    gain2.gain.setValueAtTime(vol * 0.5, ctx.currentTime + 0.7);
+    gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
+
+    osc2.start(ctx.currentTime + 0.7);
+    osc2.stop(ctx.currentTime + 1.2);
+
+    setTimeout(() => ctx.close(), 2000);
+  } catch {
+    // Web Audio not supported
+  }
+}
+
 export async function schedulePrayerNotifications(
   prayers: { key: string; time24: string; time: string }[]
 ) {
-  // Cancel any previously scheduled notifications
   const existingTimers = (window as any).__prayerTimers as number[] | undefined;
   if (existingTimers) {
     existingTimers.forEach(clearTimeout);
@@ -29,6 +77,7 @@ export async function schedulePrayerNotifications(
 
   const now = new Date();
   const currentMs = now.getTime();
+  const reminderMin = getReminderMinutes();
 
   for (const prayer of prayers) {
     if (prayer.key === 'sunrise') continue;
@@ -40,16 +89,14 @@ export async function schedulePrayerNotifications(
     const diff = prayerDate.getTime() - currentMs;
     if (diff <= 0) continue;
 
+    // Main athan timer
     const timer = window.setTimeout(() => {
-      // Play athan audio
       playAthan(prayer.key);
 
-      // Show full-screen alert
       if (onAthanAlert) {
         onAthanAlert(prayer.key, prayer.time);
       }
 
-      // Also show browser notification (for when app is in background)
       if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(reg => {
           reg.showNotification('حان وقت الصلاة 🕌', {
@@ -67,14 +114,16 @@ export async function schedulePrayerNotifications(
 
     timers.push(timer);
 
-    // 10-min reminder (no athan, just notification)
-    const reminderDiff = diff - 10 * 60 * 1000;
+    // Pre-prayer reminder with alert tone
+    const reminderDiff = diff - reminderMin * 60 * 1000;
     if (reminderDiff > 0) {
       const reminderTimer = window.setTimeout(() => {
+        playReminderTone();
+
         if ('serviceWorker' in navigator && Notification.permission === 'granted') {
           navigator.serviceWorker.ready.then(reg => {
             reg.showNotification('تذكير بالصلاة 🔔', {
-              body: `${PRAYER_NAMES[prayer.key] || prayer.key} بعد 10 دقائق`,
+              body: `${PRAYER_NAMES[prayer.key] || prayer.key} بعد ${reminderMin} دقائق`,
               icon: '/pwa-icon-192.png',
               badge: '/pwa-icon-192.png',
               tag: `prayer-reminder-${prayer.key}`,
