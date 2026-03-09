@@ -21,7 +21,6 @@ export function useAthanNotifications(
   enabled: boolean = true,
   onAlert?: AthanAlertCallback
 ) {
-
   // Register the alert callback
   useEffect(() => {
     if (enabled && onAlert) {
@@ -37,8 +36,6 @@ export function useAthanNotifications(
 
   useEffect(() => {
     if (!enabled || prayers.length === 0) return;
-
-    // Schedule (or re-schedule) notifications whenever prayers actually change
     schedulePrayerNotifications(prayers);
   }, [prayersKey, enabled]);
 }

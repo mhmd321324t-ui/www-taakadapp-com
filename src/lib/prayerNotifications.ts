@@ -1,4 +1,4 @@
-// Service Worker notification helper for prayer times
+// Prayer notification system with interval-based checking for reliability
 import { playAthan } from './athanAudio';
 
 const PRAYER_NAMES: Record<string, string> = {
@@ -64,10 +64,12 @@ function playReminderTone() {
   }
 }
 
-/** Send a browser notification (works even in background) */
+/** Send a browser notification */
 function sendNotification(title: string, body: string, tag: string, silent: boolean = true) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
   // Try service worker notification first (works in background)
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller && Notification.permission === 'granted') {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification(title, {
         body,
@@ -79,86 +81,125 @@ function sendNotification(title: string, body: string, tag: string, silent: bool
         data: { url: '/' },
       } as NotificationOptions);
     }).catch(() => {
-      // Fallback to regular notification
-      try {
-        new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent });
-      } catch {}
+      try { new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent }); } catch {}
     });
-  } else if (Notification.permission === 'granted') {
-    // Direct notification (foreground only)
-    try {
-      new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent });
-    } catch {}
+  } else {
+    try { new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent }); } catch {}
+  }
+}
+
+/** Send a test notification to verify everything works */
+export function sendTestNotification(): boolean {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission !== 'granted') return false;
+
+  sendNotification(
+    'إشعار تجريبي ✅',
+    'الإشعارات تعمل بنجاح! سيتم إعلامك عند وقت كل صلاة.',
+    'test-notification',
+    false
+  );
+  return true;
+}
+
+// ─── Interval-based prayer checker (more reliable than setTimeout) ───
+
+interface ScheduledPrayer {
+  key: string;
+  time: string;
+  time24: string;
+  minuteOfDay: number; // h*60+m for fast comparison
+}
+
+let scheduledPrayers: ScheduledPrayer[] = [];
+let firedToday = new Set<string>();
+let checkInterval: ReturnType<typeof setInterval> | null = null;
+
+function resetFiredIfNewDay() {
+  const todayKey = new Date().toISOString().split('T')[0];
+  const lastDay = (window as any).__prayerLastDay;
+  if (lastDay !== todayKey) {
+    firedToday.clear();
+    (window as any).__prayerLastDay = todayKey;
+  }
+}
+
+function checkPrayers() {
+  resetFiredIfNewDay();
+
+  const now = new Date();
+  const currentMin = now.getHours() * 60 + now.getMinutes();
+  const reminderMin = getReminderMinutes();
+  const reminderEnabled = localStorage.getItem('notif-prayer-reminder') !== 'false';
+
+  for (const prayer of scheduledPrayers) {
+    if (prayer.key === 'sunrise') continue;
+
+    // Main athan - fire if we're within 1 minute of the prayer time
+    const athanKey = `athan-${prayer.key}`;
+    if (!firedToday.has(athanKey) && currentMin >= prayer.minuteOfDay && currentMin <= prayer.minuteOfDay + 1) {
+      firedToday.add(athanKey);
+      console.log(`[PrayerNotifications] Firing athan for ${prayer.key}`);
+
+      playAthan(prayer.key);
+      if (onAthanAlert) onAthanAlert(prayer.key, prayer.time);
+      sendNotification(
+        'حان وقت الصلاة 🕌',
+        `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}`,
+        `prayer-${prayer.key}`,
+        true
+      );
+    }
+
+    // Pre-prayer reminder
+    if (reminderEnabled) {
+      const reminderKey = `reminder-${prayer.key}`;
+      const reminderMinute = prayer.minuteOfDay - reminderMin;
+      if (!firedToday.has(reminderKey) && reminderMinute >= 0 && currentMin >= reminderMinute && currentMin <= reminderMinute + 1) {
+        firedToday.add(reminderKey);
+        playReminderTone();
+        sendNotification(
+          'تذكير بالصلاة 🔔',
+          `${PRAYER_NAMES[prayer.key] || prayer.key} بعد ${reminderMin} دقائق`,
+          `prayer-reminder-${prayer.key}`,
+          false
+        );
+      }
+    }
   }
 }
 
 export async function schedulePrayerNotifications(
   prayers: { key: string; time24: string; time: string }[]
 ) {
-  const existingTimers = (window as any).__prayerTimers as number[] | undefined;
-  if (existingTimers) {
-    existingTimers.forEach(clearTimeout);
+  // Clear previous interval
+  if (checkInterval) {
+    clearInterval(checkInterval);
+    checkInterval = null;
   }
-  const timers: number[] = [];
 
-  const now = new Date();
-  const currentMs = now.getTime();
-  const reminderMin = getReminderMinutes();
-  const reminderEnabled = localStorage.getItem('notif-prayer-reminder') !== 'false';
+  // Build schedule
+  scheduledPrayers = prayers.map(p => {
+    const [h, m] = p.time24.split(':').map(Number);
+    return { ...p, minuteOfDay: h * 60 + m };
+  });
 
-  for (const prayer of prayers) {
-    if (prayer.key === 'sunrise') continue;
+  // Reset fired set for a fresh schedule
+  resetFiredIfNewDay();
 
-    const [h, m] = prayer.time24.split(':').map(Number);
-    const prayerDate = new Date(now);
-    prayerDate.setHours(h, m, 0, 0);
+  // Check immediately then every 15 seconds
+  checkPrayers();
+  checkInterval = setInterval(checkPrayers, 15_000);
 
-    const diff = prayerDate.getTime() - currentMs;
-    if (diff <= 0) continue;
+  console.log(`[PrayerNotifications] Scheduled checker for ${prayers.filter(p => p.key !== 'sunrise').length} prayers`);
+}
 
-    // Main athan timer
-    const timer = window.setTimeout(() => {
-      // Play the athan sound
-      playAthan(prayer.key);
-
-      // Trigger the full-screen alert
-      if (onAthanAlert) {
-        onAthanAlert(prayer.key, prayer.time);
-      }
-
-      // Send notification
-      sendNotification(
-        'حان وقت الصلاة 🕌',
-        `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}`,
-        `prayer-${prayer.key}`,
-        true // silent because athan is playing
-      );
-    }, diff) as unknown as number;
-
-    timers.push(timer);
-
-    // Pre-prayer reminder
-    if (reminderEnabled) {
-      const reminderDiff = diff - reminderMin * 60 * 1000;
-      if (reminderDiff > 0) {
-        const reminderTimer = window.setTimeout(() => {
-          playReminderTone();
-
-          sendNotification(
-            'تذكير بالصلاة 🔔',
-            `${PRAYER_NAMES[prayer.key] || prayer.key} بعد ${reminderMin} دقائق`,
-            `prayer-reminder-${prayer.key}`,
-            false
-          );
-        }, reminderDiff) as unknown as number;
-
-        timers.push(reminderTimer);
-      }
+// Re-check on visibility change (tab comes back from background)
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && scheduledPrayers.length > 0) {
+      console.log('[PrayerNotifications] Tab visible, re-checking prayers');
+      checkPrayers();
     }
-  }
-
-  (window as any).__prayerTimers = timers;
-  
-  // Log for debugging
-  console.log(`[PrayerNotifications] Scheduled ${timers.length} timers for ${prayers.filter(p => p.key !== 'sunrise').length} prayers`);
+  });
 }
