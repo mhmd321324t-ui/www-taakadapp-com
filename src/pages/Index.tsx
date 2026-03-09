@@ -214,7 +214,7 @@ export default function Index() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[10px] text-muted-foreground mb-0.5">متبقي</span>
+                <span className="text-[10px] text-muted-foreground mb-0.5">{t('remaining')}</span>
                 <span className="text-lg font-bold tabular-nums text-foreground leading-none">
                   {remaining || '00:00'}
                 </span>
