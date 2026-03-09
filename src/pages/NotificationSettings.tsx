@@ -125,7 +125,7 @@ export default function NotificationSettings() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3">
-          <Link to="/more" className="p-2 -mr-2 rounded-xl transition-all active:scale-90">
+          <Link to="/more" className="p-2 -me-2 rounded-xl transition-all active:scale-90">
             <ArrowRight className="h-5 w-5 text-foreground" />
           </Link>
           <h1 className="text-base font-bold text-foreground">الإشعارات والأذان</h1>
