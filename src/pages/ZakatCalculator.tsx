@@ -211,25 +211,11 @@ export default function ZakatCalculator() {
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      {/* Header */}
-      <div className="gradient-islamic relative px-5 pb-8 pt-safe-header-compact">
-        <div className="absolute inset-0 islamic-pattern opacity-20" />
-        <h1 className="text-2xl font-bold text-primary-foreground relative z-10">{t('zakatCalculator')}</h1>
-        <p className="text-primary-foreground/70 text-sm mt-1 relative z-10">حاسبة ذكية متعددة العملات</p>
-
-        {/* Location badge */}
-        {city && country && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs text-primary-foreground"
-          >
-            <MapPin className="h-3 w-3" />
-            <span>{city}، {country}</span>
-          </motion.div>
-        )}
-        <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
-      </div>
+      <PageHeader
+        title={t('zakatCalculator')}
+        subtitle={city && country ? `${city}، ${country}` : 'حاسبة ذكية متعددة العملات'}
+        compact
+      />
 
       <div className="px-5 -mt-2 relative z-10 space-y-4 max-w-md mx-auto">
         {/* Currency selector */}
