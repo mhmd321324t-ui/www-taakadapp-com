@@ -35,6 +35,9 @@ const QuranGoal = lazy(() => import("./pages/QuranGoal"));
 const DhikrSettings = lazy(() => import("./pages/DhikrSettings"));
 const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
 const Ruqyah = lazy(() => import("./pages/Ruqyah"));
+const RamadanCards = lazy(() => import("./pages/RamadanCards"));
+const RamadanBook = lazy(() => import("./pages/RamadanBook"));
+const PeriodTracker = lazy(() => import("./pages/PeriodTracker"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
