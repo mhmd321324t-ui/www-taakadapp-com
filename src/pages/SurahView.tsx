@@ -69,14 +69,37 @@ export default function SurahView() {
   const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
-    fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`)
-      .then(r => r.json())
-      .then(d => {
-        setAyahs(d.data.ayahs);
-        setSurahName(d.data.name);
+    const fetchAyahs = async () => {
+      try {
+        const arabicRes = await fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`);
+        const arabicData = await arabicRes.json();
+        let ayahsList: Ayah[] = arabicData.data.ayahs;
+        setSurahName(arabicData.data.name);
+
+        // Fetch translation if non-Arabic locale
+        const edition = locale !== 'ar' ? quranTranslationEditions[locale] : null;
+        if (edition) {
+          try {
+            const transRes = await fetch(`https://api.alquran.cloud/v1/surah/${id}/${edition}`);
+            const transData = await transRes.json();
+            if (transData.data?.ayahs) {
+              ayahsList = ayahsList.map((ayah, i) => ({
+                ...ayah,
+                translation: transData.data.ayahs[i]?.text || '',
+              }));
+            }
+          } catch {
+            // Translation not available, continue without
+          }
+        }
+
+        setAyahs(ayahsList);
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch {
+        setLoading(false);
+      }
+    };
+    fetchAyahs();
 
     if (user && id) {
       supabase
