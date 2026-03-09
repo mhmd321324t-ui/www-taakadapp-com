@@ -309,6 +309,10 @@ export default function MosquePrayerTimesPage() {
       const adjustedTimes = applyAllDiffs(result, diffs);
       setTimes(adjustedTimes);
       setTimesSource(hasDiffs(diffs) ? 'adjusted' : 'api');
+      // Save to shared cache
+      const dateKey = today.replace(/-/g, '');
+      const liveCacheKey = LIVE_CACHE_PREFIX + mosque.osm_id + '_' + dateKey;
+      try { localStorage.setItem(liveCacheKey, JSON.stringify({ times: result, source: 'api' })); } catch {}
       mosque.hasAutoSync = false;
     } else {
       setBaseTimes(emptyTimes);
