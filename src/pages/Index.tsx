@@ -419,10 +419,10 @@ export default function Index() {
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Zap className="h-4 w-4 text-accent" />
-          <h3 className="text-sm font-bold text-foreground">وصول سريع</h3>
+          <h3 className="text-sm font-bold text-foreground">{t('quickAccessLabel')}</h3>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          {quickAccessItems.map((item) => (
+          {getQuickAccessItems(t).map((item) => (
             <Link key={item.path} to={item.path} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/40 transition-all active:scale-95">
               <div className={cn(
                 'h-12 w-12 rounded-2xl bg-gradient-to-br flex items-center justify-center',
