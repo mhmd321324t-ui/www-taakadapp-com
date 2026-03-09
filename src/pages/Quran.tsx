@@ -133,7 +133,7 @@ export default function Quran() {
     <div className="min-h-screen pb-24" dir="rtl">
       <PageHeader
         title={t('quran')}
-        subtitle="القرآن الكريم"
+        subtitle={t('quranSubtitle')}
         image="https://images.unsplash.com/photo-1558617861-07ffd51a4782?w=1200&q=85"
         compact
         actionsLeft={
