@@ -123,6 +123,8 @@ export function useSavedMosqueTimes(): SavedMosqueData {
             mosqueCity: mosque.address?.split(',').pop()?.trim() || '',
             websiteUrl: mosque.websiteUrl || null,
             mawaqitSlug: mosque.mawaqitSlug || null,
+            latitude: mosque.latitude || null,
+            longitude: mosque.longitude || null,
           },
         });
 

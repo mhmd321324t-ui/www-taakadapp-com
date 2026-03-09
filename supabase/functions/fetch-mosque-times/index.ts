@@ -5,10 +5,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface MosqueTimes {
+  fajr: string;
+  sunrise: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+}
+
 /**
- * Try fetching from Mawaqit page (scrape the embedded JSON config)
+ * Search Mawaqit API for a mosque by name + coordinates
  */
-async function fetchMawaqitTimes(slug: string): Promise<Record<string, string> | null> {
+async function fetchFromMawaqitAPI(mosqueName: string, lat?: number, lon?: number): Promise<{ times: MosqueTimes; source: string } | null> {
+  try {
+    const word = encodeURIComponent(mosqueName);
+    let url = `https://mawaqit.net/api/2.0/mosque/search?word=${word}`;
+    if (lat && lon) url += `&lat=${lat}&lon=${lon}`;
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; QiblaApp/1.0)", "Accept": "application/json" },
+    });
+    if (!res.ok) {
+      console.error("Mawaqit API error:", res.status);
+      return null;
+    }
+
+    const mosques = await res.json();
+    if (!Array.isArray(mosques) || mosques.length === 0) return null;
+
+    // Pick closest/first match
+    const mosque = mosques[0];
+    if (!mosque.times || mosque.times.length < 5) return null;
+
+    const times: MosqueTimes = {
+      fajr: mosque.times[0] || '',
+      sunrise: mosque.times[1] || '',
+      dhuhr: mosque.times[2] || '',
+      asr: mosque.times[3] || '',
+      maghrib: mosque.times[4] || '',
+      isha: mosque.times[5] || '',
+    };
+
+    console.log(`Mawaqit found: ${mosque.name} — times:`, times);
+    return { times, source: 'mawaqit' };
+  } catch (e) {
+    console.error("Mawaqit API error:", e);
+    return null;
+  }
+}
+
+/**
+ * Fetch times by Mawaqit slug (direct page scrape as fallback)
+ */
+async function fetchByMawaqitSlug(slug: string): Promise<{ times: MosqueTimes; source: string } | null> {
   try {
     const url = `https://mawaqit.net/en/m/${slug}`;
     const res = await fetch(url, {
@@ -17,47 +67,32 @@ async function fetchMawaqitTimes(slug: string): Promise<Record<string, string> |
     if (!res.ok) return null;
     const html = await res.text();
 
-    // Mawaqit embeds config as JSON in the page
-    // Look for confData or similar patterns
-    const confMatch = html.match(/var\s+confData\s*=\s*(\{[\s\S]*?\});/);
-    if (confMatch) {
-      try {
-        const conf = JSON.parse(confMatch[1]);
-        if (conf.times && Array.isArray(conf.times)) {
-          const today = conf.times[0]; // first entry is today
-          if (today && today.length >= 6) {
-            return {
-              fajr: today[0] || '',
-              sunrise: today[1] || '',
-              dhuhr: today[2] || '',
-              asr: today[3] || '',
-              maghrib: today[4] || '',
-              isha: today[5] || '',
-            };
-          }
-        }
-        // Also check iqamaCalendar
-        if (conf.iqamaCalendar) {
-          const month = new Date().getMonth(); // 0-based
-          const day = new Date().getDate() - 1;
-          const iqama = conf.iqamaCalendar[month]?.[day];
-          if (iqama && iqama.length >= 5) {
-            return {
-              fajr: iqama[0] || '',
-              dhuhr: iqama[1] || '',
-              asr: iqama[2] || '',
-              maghrib: iqama[3] || '',
-              isha: iqama[4] || '',
-              sunrise: '',
-            };
-          }
-        }
-      } catch { /* parse error */ }
+    // Parse prayer times from HTML DOM structure
+    const prayerNames = ['Fadjr', 'Dohr', 'Assr', 'Maghrib', 'Ishaa'];
+    const keys: (keyof MosqueTimes)[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    const times: MosqueTimes = { fajr: '', sunrise: '', dhuhr: '', asr: '', maghrib: '', isha: '' };
+
+    // Extract from .prayers div structure
+    const prayerBlocks = html.match(/<div class="[^"]*">\s*<div class="name">[^<]*<\/div>\s*<div class="time"><div>(\d{1,2}:\d{2})<\/div><\/div>/g);
+    if (prayerBlocks && prayerBlocks.length >= 5) {
+      const timeRegex = /<div class="time"><div>(\d{1,2}:\d{2})<\/div><\/div>/;
+      for (let i = 0; i < Math.min(prayerBlocks.length, 5); i++) {
+        const match = prayerBlocks[i].match(timeRegex);
+        if (match) times[keys[i]] = match[1];
+      }
     }
 
-    return null;
+    // Extract sunrise (chourouk)
+    const sunriseMatch = html.match(/chourouk-id[^>]*><div>(\d{1,2}:\d{2})<\/div>/);
+    if (sunriseMatch) times.sunrise = sunriseMatch[1];
+
+    const hasAny = Object.values(times).some(v => v !== '');
+    if (!hasAny) return null;
+
+    console.log(`Mawaqit slug ${slug} scraped:`, times);
+    return { times, source: 'mawaqit' };
   } catch (e) {
-    console.error("Mawaqit fetch error:", e);
+    console.error("Mawaqit slug scrape error:", e);
     return null;
   }
 }
@@ -65,40 +100,25 @@ async function fetchMawaqitTimes(slug: string): Promise<Record<string, string> |
 /**
  * Use Gemini AI to extract prayer times from any mosque website HTML
  */
-async function extractTimesWithAI(websiteUrl: string): Promise<Record<string, string> | null> {
+async function extractTimesWithAI(websiteUrl: string): Promise<{ times: MosqueTimes; source: string } | null> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) {
-    console.error("GEMINI_API_KEY not configured");
-    return null;
-  }
+  if (!GEMINI_API_KEY) return null;
 
   try {
-    // Fetch the website HTML
     const pageRes = await fetch(websiteUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; QiblaApp/1.0)" },
     });
-    if (!pageRes.ok) {
-      console.error("Failed to fetch website:", pageRes.status);
-      return null;
-    }
+    if (!pageRes.ok) return null;
     let html = await pageRes.text();
-    
-    // Truncate to ~15K chars to fit in context
-    if (html.length > 15000) {
-      html = html.substring(0, 15000);
-    }
+    if (html.length > 15000) html = html.substring(0, 15000);
 
-    // Call Gemini API
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-    
-    const prompt = `Extract the prayer/salah times from this mosque website HTML. 
-I need the IQAMAH (إقامة) times if available, otherwise the ATHAN (أذان) times.
-Return ONLY a JSON object with these keys: fajr, sunrise, dhuhr, asr, maghrib, isha
-Each value should be in 24h format like "05:30" or "13:15".
-If a time is not found, use empty string "".
-Do NOT include any text before or after the JSON.
+    const prompt = `Extract prayer/salah times from this mosque website HTML.
+I need IQAMAH times if available, otherwise ATHAN times.
+Return ONLY JSON: {"fajr":"HH:MM","sunrise":"HH:MM","dhuhr":"HH:MM","asr":"HH:MM","maghrib":"HH:MM","isha":"HH:MM"}
+Use 24h format. Empty string if not found. NO other text.
 
-HTML content:
+HTML:
 ${html}`;
 
     const geminiRes = await fetch(geminiUrl, {
@@ -106,79 +126,31 @@ ${html}`;
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 200,
-        },
+        generationConfig: { temperature: 0.1, maxOutputTokens: 200 },
       }),
     });
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini API error:", geminiRes.status, errText);
-      return null;
-    }
+    if (!geminiRes.ok) return null;
 
     const geminiData = await geminiRes.json();
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    // Extract JSON from response
-    const jsonMatch = responseText.match(/\{[\s\S]*?\}/);
-    if (!jsonMatch) {
-      console.error("No JSON found in Gemini response:", responseText);
-      return null;
-    }
+    const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*?\}/);
+    if (!jsonMatch) return null;
 
-    const times = JSON.parse(jsonMatch[0]);
-    
-    // Validate format
+    const parsed = JSON.parse(jsonMatch[0]);
     const validTime = (t: string) => /^\d{1,2}:\d{2}$/.test(t);
-    const result: Record<string, string> = {};
-    for (const key of ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']) {
-      result[key] = validTime(times[key]) ? times[key] : '';
-    }
+    const times: MosqueTimes = {
+      fajr: validTime(parsed.fajr) ? parsed.fajr : '',
+      sunrise: validTime(parsed.sunrise) ? parsed.sunrise : '',
+      dhuhr: validTime(parsed.dhuhr) ? parsed.dhuhr : '',
+      asr: validTime(parsed.asr) ? parsed.asr : '',
+      maghrib: validTime(parsed.maghrib) ? parsed.maghrib : '',
+      isha: validTime(parsed.isha) ? parsed.isha : '',
+    };
 
-    // Check if we got at least some times
-    const hasAny = Object.values(result).some(v => v !== '');
-    return hasAny ? result : null;
+    if (!Object.values(times).some(v => v !== '')) return null;
+    return { times, source: 'website' };
   } catch (e) {
     console.error("AI extraction error:", e);
-    return null;
-  }
-}
-
-/**
- * Google search to find mosque website
- */
-async function findMosqueWebsite(mosqueName: string, city: string): Promise<string | null> {
-  try {
-    // Try common patterns first
-    const slug = mosqueName.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-');
-    
-    // Check Mawaqit first
-    const mawaqitCheck = await fetch(`https://mawaqit.net/en/m/${slug}`, {
-      method: 'HEAD',
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; QiblaApp/1.0)" },
-    });
-    if (mawaqitCheck.ok) {
-      return `mawaqit:${slug}`;
-    }
-
-    // Try with city
-    const slugWithCity = `${slug}-${city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-    const mawaqitCheck2 = await fetch(`https://mawaqit.net/en/m/${slugWithCity}`, {
-      method: 'HEAD',
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; QiblaApp/1.0)" },
-    });
-    if (mawaqitCheck2.ok) {
-      return `mawaqit:${slugWithCity}`;
-    }
-
-    return null;
-  } catch {
     return null;
   }
 }
@@ -189,49 +161,36 @@ serve(async (req) => {
   }
 
   try {
-    const { mosqueName, mosqueCity, websiteUrl, mawaqitSlug } = await req.json();
+    const { mosqueName, mosqueCity, websiteUrl, mawaqitSlug, latitude, longitude } = await req.json();
+    console.log("fetch-mosque-times called:", { mosqueName, mosqueCity, mawaqitSlug, latitude, longitude });
 
-    let times: Record<string, string> | null = null;
-    let source = 'none';
+    let result: { times: MosqueTimes; source: string } | null = null;
 
     // Priority 1: Direct Mawaqit slug
-    if (mawaqitSlug) {
-      times = await fetchMawaqitTimes(mawaqitSlug);
-      if (times) source = 'mawaqit';
+    if (!result && mawaqitSlug) {
+      result = await fetchByMawaqitSlug(mawaqitSlug);
     }
 
-    // Priority 2: Direct website URL → AI scrape
-    if (!times && websiteUrl) {
-      // Check if it's a mawaqit URL
+    // Priority 2: Mawaqit API search by name + coordinates
+    if (!result && mosqueName) {
+      result = await fetchFromMawaqitAPI(mosqueName, latitude, longitude);
+    }
+
+    // Priority 3: Direct website URL → check if Mawaqit, then AI scrape
+    if (!result && websiteUrl) {
       const mawaqitMatch = websiteUrl.match(/mawaqit\.net\/\w+\/m\/([^/?]+)/);
       if (mawaqitMatch) {
-        times = await fetchMawaqitTimes(mawaqitMatch[1]);
-        if (times) source = 'mawaqit';
+        result = await fetchByMawaqitSlug(mawaqitMatch[1]);
       }
-      
-      if (!times) {
-        times = await extractTimesWithAI(websiteUrl);
-        if (times) source = 'website';
+      if (!result) {
+        result = await extractTimesWithAI(websiteUrl);
       }
     }
 
-    // Priority 3: Auto-discover mosque website
-    if (!times && mosqueName) {
-      const website = await findMosqueWebsite(mosqueName, mosqueCity || '');
-      if (website?.startsWith('mawaqit:')) {
-        const slug = website.replace('mawaqit:', '');
-        times = await fetchMawaqitTimes(slug);
-        if (times) source = 'mawaqit';
-      } else if (website) {
-        times = await extractTimesWithAI(website);
-        if (times) source = 'website';
-      }
-    }
-
-    return new Response(JSON.stringify({ 
-      times, 
-      source,
-      success: !!times,
+    return new Response(JSON.stringify({
+      times: result?.times || null,
+      source: result?.source || 'none',
+      success: !!result,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
