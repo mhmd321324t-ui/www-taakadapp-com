@@ -324,7 +324,7 @@ export default function Index() {
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          {prayers.map((prayer, i) => {
+          {prayers.filter(p => p.key !== 'sunrise').map((prayer, i) => {
             const isNext = nextPrayer?.key === prayer.key;
             return (
               <motion.div
