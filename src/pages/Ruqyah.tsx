@@ -32,6 +32,8 @@ interface RuqyahTrack {
 type ViewMode = 'categories' | 'tracks';
 
 export default function Ruqyah() {
+  const { t, locale } = useLocale();
+  const isArabic = locale === 'ar';
   const [categories, setCategories] = useState<RuqyahCategory[]>([]);
   const [tracks, setTracks] = useState<RuqyahTrack[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<RuqyahCategory | null>(null);
