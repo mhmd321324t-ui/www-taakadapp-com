@@ -182,7 +182,7 @@ export default function MosquePrayerTimesPage() {
     return () => clearInterval(interval);
   }, [selectedMosque, times]);
 
-  // Load saved mosque
+  // Load saved mosque + auto-refresh at midnight
   useEffect(() => {
     const saved = localStorage.getItem(SAVED_MOSQUE_KEY);
     if (saved) {
@@ -193,6 +193,20 @@ export default function MosquePrayerTimesPage() {
       } catch { /* ignore */ }
     }
   }, []);
+
+  // Midnight refresh for mosque times
+  useEffect(() => {
+    if (!selectedMosque) return;
+    let lastDate = getTodayStr();
+    const interval = setInterval(() => {
+      const now = getTodayStr();
+      if (now !== lastDate) {
+        lastDate = now;
+        loadTimesForMosque(selectedMosque);
+      }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [selectedMosque]);
 
   const getTodayStr = () => {
     const d = new Date();
