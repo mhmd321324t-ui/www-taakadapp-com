@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { detectDeviceLanguage, getDirection, isRTLLanguage, loadTranslations, getTranslation } from '@/lib/i18n';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  detectDeviceLanguage,
+  getDirection,
+  getTranslation,
+  getArabicStrings,
+  isRTLLanguage,
+  loadTranslations,
+} from '@/lib/i18n';
 
 interface LocaleContextType {
   locale: string;
@@ -12,27 +19,46 @@ interface LocaleContextType {
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
+function looksLikeArabicFallback(trans: Record<string, string>, sampleKeys: string[]): boolean {
+  const arabic = getArabicStrings();
+  return sampleKeys.every((k) => trans[k] && trans[k] === arabic[k]);
+}
+
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<string>(() => detectDeviceLanguage());
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [ready, setReady] = useState(false);
+  const [dir, setDir] = useState<'rtl' | 'ltr'>(() => getDirection(detectDeviceLanguage()));
 
-  const dir = getDirection(locale);
-  const isRTL = isRTLLanguage(locale);
+  const isRTL = dir === 'rtl';
 
   useEffect(() => {
-    document.documentElement.dir = dir;
-    document.documentElement.lang = locale;
-
     // Load translations for detected language
     setReady(false);
-    loadTranslations(locale).then(t => {
-      setTranslations(t);
-      setReady(true);
-    });
-  }, [locale, dir]);
 
-  const t = (key: string) => translations[key] || getTranslation(key, locale) || key;
+    loadTranslations(locale).then((t) => {
+      const sampleKeys = ['appName', 'home', 'more', 'login', 'signup', 'prayerTimes', 'qibla', 'quran'];
+
+      // If translation failed (or blocked) we fall back to Arabic strings.
+      // In that case, force RTL so Arabic text doesn’t render in LTR layouts.
+      const shouldForceArabicDir =
+        locale !== 'ar' && !isRTLLanguage(locale) && looksLikeArabicFallback(t, sampleKeys);
+
+      const effectiveLang = shouldForceArabicDir ? 'ar' : locale;
+      const nextDir = getDirection(effectiveLang);
+
+      setTranslations(t);
+      setDir(nextDir);
+      setReady(true);
+
+      document.documentElement.dir = nextDir;
+      document.documentElement.lang = effectiveLang;
+    });
+  }, [locale]);
+
+  const t = useMemo(() => {
+    return (key: string) => translations[key] || getTranslation(key, locale) || key;
+  }, [translations, locale]);
 
   const setLocale = (newLocale: string) => {
     setLocaleState(newLocale);

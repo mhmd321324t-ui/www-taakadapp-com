@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
+import { clearLovableAuthStorage, isRefreshTokenNotFoundError } from '@/lib/authStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -22,25 +23,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    let alive = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!alive) return;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      setLoading((prev) => (prev ? false : prev));
     });
 
-    return () => subscription.unsubscribe();
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error && isRefreshTokenNotFoundError(error)) {
+          // Broken local session: clear and force local sign-out so the app can recover.
+          clearLovableAuthStorage();
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+
+          if (!alive) return;
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        if (!alive) return;
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setLoading(false);
+      } catch (err) {
+        if (!alive) return;
+        if (isRefreshTokenNotFoundError(err)) {
+          clearLovableAuthStorage();
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        }
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    clearLovableAuthStorage();
+    await supabase.auth.signOut({ scope: 'local' });
   };
 
   return (
