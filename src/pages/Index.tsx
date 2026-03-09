@@ -133,6 +133,7 @@ export default function Index() {
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
           <button
             onClick={toggleNotifications}
+            aria-label={notificationsEnabled ? 'إيقاف الإشعارات' : 'تفعيل الإشعارات'}
             className="p-2.5 rounded-2xl bg-black/25 backdrop-blur-xl border border-white/10 transition-all active:scale-95"
           >
             {notificationsEnabled ? (
