@@ -493,9 +493,9 @@ export default function MosquePrayerTimesPage() {
 
   const fmt = (t: string) => (!t ? '—' : is12h ? to12Hour(t) : t);
 
-  const shareMosqueTimes = async () => {
-    if (!selectedMosque) return;
-    const lines = [
+  const getShareText = () => {
+    if (!selectedMosque) return '';
+    return [
       `🕌 أوقات الصلاة — ${selectedMosque.name}`,
       selectedMosque.address ? `📍 ${selectedMosque.address}` : '',
       '',
@@ -509,16 +509,36 @@ export default function MosquePrayerTimesPage() {
       '',
       `📅 ${new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
     ].filter(Boolean).join('\n');
+  };
 
+  const shareViaWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(getShareText())}`, '_blank');
+  };
+
+  const shareViaTelegram = () => {
+    window.open(`https://t.me/share/url?text=${encodeURIComponent(getShareText())}`, '_blank');
+  };
+
+  const shareViaMessenger = () => {
+    // Messenger share requires a URL, fallback to facebook dialog
+    window.open(`fb-messenger://share?link=${encodeURIComponent(window.location.href)}`, '_blank');
+  };
+
+  const shareViaNative = async () => {
+    const text = getShareText();
     if (navigator.share) {
       try {
-        await navigator.share({ title: `أوقات ${selectedMosque.name}`, text: lines });
+        await navigator.share({ title: `أوقات ${selectedMosque?.name}`, text });
         return;
-      } catch { /* user cancelled or not supported */ }
+      } catch { /* cancelled */ }
     }
-    // Fallback: copy to clipboard
+    // Fallback: copy
+    await copyToClipboard();
+  };
+
+  const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(lines);
+      await navigator.clipboard.writeText(getShareText());
       toast.success('تم نسخ الأوقات إلى الحافظة 📋');
     } catch {
       toast.error('تعذر النسخ');
