@@ -104,7 +104,8 @@ export function usePrayerTimes(latitude: number, longitude: number, method: numb
         const yyyy = today.getFullYear();
 
         const res = await fetch(
-          `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${latitude}&longitude=${longitude}&method=${method}`
+          `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${latitude}&longitude=${longitude}&method=${method}`,
+          { cache: 'no-store' }
         );
         const json = await res.json();
         const timings = json.data.timings;

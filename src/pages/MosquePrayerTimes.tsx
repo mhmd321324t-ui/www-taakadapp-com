@@ -95,10 +95,15 @@ function applyTimeDiff(time: string, diffMinutes: number): string {
 
 function getCalcMethod(): number {
   try {
-    const v = localStorage.getItem('calculation_method');
-    if (v) return parseInt(v, 10) || 2;
+    const explicit = localStorage.getItem('calculation_method');
+    if (explicit) return parseInt(explicit, 10) || 3;
+    const cached = localStorage.getItem('cached-location');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.calculationMethod) return parsed.calculationMethod;
+    }
   } catch { /* ignore */ }
-  return 2;
+  return 3;
 }
 
 async function fetchAladhanTimes(lat: number, lon: number): Promise<PrayerTimesMap | null> {

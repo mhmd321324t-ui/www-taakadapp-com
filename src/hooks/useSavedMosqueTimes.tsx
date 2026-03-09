@@ -93,10 +93,17 @@ function parseStoredTimes(raw: string): { times: Record<string, string> | null; 
 
 function getCalcMethod(): number {
   try {
-    const profile = localStorage.getItem('calculation_method');
-    if (profile) return parseInt(profile, 10) || 2;
+    // First check explicit setting
+    const explicit = localStorage.getItem('calculation_method');
+    if (explicit) return parseInt(explicit, 10) || 3;
+    // Then check cached-location (same source as useGeoLocation)
+    const cached = localStorage.getItem('cached-location');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.calculationMethod) return parsed.calculationMethod;
+    }
   } catch { /* ignore */ }
-  return 2;
+  return 3; // Default: Muslim World League (matches useGeoLocation default for Europe)
 }
 
 export function useSavedMosqueTimes(): SavedMosqueData {
