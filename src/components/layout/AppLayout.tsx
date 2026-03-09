@@ -3,6 +3,7 @@ import { BottomNav } from './BottomNav';
 import InstallBanner from '@/components/InstallBanner';
 import { PopUnderLoader } from '@/components/AdBanner';
 import { useDailyReminders } from '@/hooks/useDailyReminders';
+import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   // Auto-schedule daily reminders if enabled
@@ -14,6 +15,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <BottomNav />
       <InstallBanner />
       <PopUnderLoader />
+      <PWAUpdatePrompt />
     </div>
   );
 }

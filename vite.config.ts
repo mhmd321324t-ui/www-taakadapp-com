@@ -52,6 +52,8 @@ export default defineConfig(({ mode }) => ({
         categories: ["lifestyle", "education"],
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
         importScripts: ['/sw-custom.js'],
