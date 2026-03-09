@@ -266,7 +266,7 @@ export default function MosquePrayerTimesPage() {
         if (awaited && awaited.length > 0) {
           const sorted = awaited
             .map((m: Mosque) => ({ ...m, _dist: distanceKm(location.latitude!, location.longitude!, m.latitude, m.longitude) }))
-            .filter((m: Mosque) => m._dist! <= 10)
+            .filter((m: Mosque) => m._dist! <= 5)
             .sort((a: any, b: any) => a._dist - b._dist);
           if (sorted.length > 0) {
             setMosques(sorted);
