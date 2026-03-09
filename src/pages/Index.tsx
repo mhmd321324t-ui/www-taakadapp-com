@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,8 +16,9 @@ import { AdBanner } from '@/components/AdBanner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-const meccaImage = '/mecca-hero.webp';
 import { getCurrentOccasion, isRamadan } from '@/data/islamicOccasions';
+
+const MinaretScene = lazy(() => import('@/components/MinaretScene'));
 
 const quickAccessItems = [
   { icon: Heart, labelKey: 'tasbeeh', path: '/tasbeeh', gradient: 'from-primary/20 to-islamic-teal/10' },
