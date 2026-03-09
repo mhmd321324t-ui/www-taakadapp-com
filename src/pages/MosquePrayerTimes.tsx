@@ -94,7 +94,7 @@ function applyTimeDiff(time: string, diffMinutes: number): string {
   return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
 }
 
-function getCalcSettings(): { method: number; school: number } {
+function getCalcSettings(): { method: number; school: number; latitude?: number; longitude?: number } {
   try {
     const cached = localStorage.getItem('cached-location');
     if (cached) {
@@ -102,6 +102,8 @@ function getCalcSettings(): { method: number; school: number } {
       return {
         method: parsed.calculationMethod || 3,
         school: parsed.school ?? 0,
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
       };
     }
   } catch { /* ignore */ }
