@@ -20,14 +20,22 @@ serve(async (req) => {
       });
     }
 
-    const r = radius || 5000; // default 5km
+    const r = radius || 10000; // default 10km
 
-    // Overpass API query for mosques
+    // Comprehensive Overpass query: covers all ways mosques are tagged in OSM
     const query = `
-      [out:json][timeout:10];
+      [out:json][timeout:25];
       (
         node["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
         way["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
+        relation["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat},${lon});
+        node["building"="mosque"](around:${r},${lat},${lon});
+        way["building"="mosque"](around:${r},${lat},${lon});
+        relation["building"="mosque"](around:${r},${lat},${lon});
+        node["amenity"="place_of_worship"]["denomination"="sunni"](around:${r},${lat},${lon});
+        way["amenity"="place_of_worship"]["denomination"="sunni"](around:${r},${lat},${lon});
+        node["amenity"="place_of_worship"]["denomination"="shia"](around:${r},${lat},${lon});
+        way["amenity"="place_of_worship"]["denomination"="shia"](around:${r},${lat},${lon});
       );
       out center tags;
     `;
@@ -48,13 +56,22 @@ serve(async (req) => {
 
     const data = await response.json();
 
-    const mosques = (data.elements || []).map((el: any) => ({
-      osm_id: String(el.id),
-      name: el.tags?.name || el.tags?.["name:ar"] || el.tags?.["name:en"] || "مسجد",
-      address: [el.tags?.["addr:street"], el.tags?.["addr:city"]].filter(Boolean).join(", ") || "",
-      latitude: el.lat || el.center?.lat,
-      longitude: el.lon || el.center?.lon,
-    })).filter((m: any) => m.latitude && m.longitude);
+    // Deduplicate by OSM id
+    const seen = new Set<string>();
+    const mosques = (data.elements || [])
+      .map((el: any) => {
+        const id = String(el.id);
+        if (seen.has(id)) return null;
+        seen.add(id);
+        return {
+          osm_id: id,
+          name: el.tags?.name || el.tags?.["name:ar"] || el.tags?.["name:en"] || el.tags?.["name:de"] || "مسجد",
+          address: [el.tags?.["addr:street"], el.tags?.["addr:housenumber"], el.tags?.["addr:city"]].filter(Boolean).join(", ") || "",
+          latitude: el.lat || el.center?.lat,
+          longitude: el.lon || el.center?.lon,
+        };
+      })
+      .filter((m: any) => m && m.latitude && m.longitude);
 
     return new Response(JSON.stringify({ mosques }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
