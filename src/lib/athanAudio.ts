@@ -169,11 +169,12 @@ function playBeep() {
 // Preload selected athan on module load
 preloadSelectedAthan(true);
 
+// Only preload all athans when user opens settings, not on startup
 if (typeof window !== 'undefined') {
-  const warmAll = () => preloadAllAthans();
+  const warmSelected = () => preloadSelectedAthan(true);
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(warmAll, { timeout: 2000 });
+    (window as any).requestIdleCallback(warmSelected, { timeout: 3000 });
   } else {
-    globalThis.setTimeout(warmAll, 1200);
+    globalThis.setTimeout(warmSelected, 2000);
   }
 }
