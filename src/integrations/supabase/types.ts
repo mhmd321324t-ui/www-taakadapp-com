@@ -301,6 +301,7 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          mosque_times: Json | null
           p256dh: string
           updated_at: string
         }
@@ -312,6 +313,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          mosque_times?: Json | null
           p256dh: string
           updated_at?: string
         }
@@ -323,6 +325,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          mosque_times?: Json | null
           p256dh?: string
           updated_at?: string
         }

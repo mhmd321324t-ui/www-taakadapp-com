@@ -7,11 +7,17 @@ const corsHeaders = {
 };
 
 const PRAYER_NAMES: Record<string, string> = {
-  Fajr: '🌅 الفجر',
-  Dhuhr: '🌞 الظهر',
-  Asr: '🌤️ العصر',
-  Maghrib: '🌅 المغرب',
-  Isha: '🌙 العشاء',
+  fajr: '🌅 الفجر',
+  dhuhr: '🌞 الظهر',
+  asr: '🌤️ العصر',
+  maghrib: '🌅 المغرب',
+  isha: '🌙 العشاء',
+};
+
+// Also support capitalized keys from Aladhan
+const PRAYER_KEY_MAP: Record<string, string> = {
+  Fajr: 'fajr', Dhuhr: 'dhuhr', Asr: 'asr', Maghrib: 'maghrib', Isha: 'isha',
+  fajr: 'fajr', dhuhr: 'dhuhr', asr: 'asr', maghrib: 'maghrib', isha: 'isha',
 };
 
 Deno.serve(async (req) => {
@@ -34,7 +40,7 @@ Deno.serve(async (req) => {
     const privateKey = settings?.find((s: any) => s.key === 'vapid_private_key')?.value;
 
     if (!publicKey || !privateKey) {
-      return new Response(JSON.stringify({ error: 'VAPID keys not configured. Call setup-push first.' }), {
+      return new Response(JSON.stringify({ error: 'VAPID keys not configured.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -50,9 +56,69 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Group subscriptions by location (rounded to 0.1°) + calculation method
+    let totalSent = 0;
+    const expiredEndpoints: string[] = [];
+
+    // Separate subs: those with mosque_times (use directly) vs those without (group by location)
+    const mosqueSubs = subs.filter((s: any) => s.mosque_times && Array.isArray(s.mosque_times) && s.mosque_times.length > 0);
+    const locationSubs = subs.filter((s: any) => !s.mosque_times || !Array.isArray(s.mosque_times) || s.mosque_times.length === 0);
+
+    // --- Handle mosque-based subscriptions (no API call needed) ---
+    for (const sub of mosqueSubs) {
+      if (!sub.latitude || !sub.longitude) continue;
+      try {
+        // Get timezone for this location
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+
+        const tzRes = await fetch(
+          `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${sub.latitude}&longitude=${sub.longitude}&method=2`
+        );
+        const tzJson = await tzRes.json();
+        if (tzJson.code !== 200) continue;
+        const timezone = tzJson.data.meta.timezone;
+
+        const localTimeStr = new Date().toLocaleString('en-US', { timeZone: timezone, hour12: false });
+        const localDate = new Date(localTimeStr);
+        const currentHH = String(localDate.getHours()).padStart(2, '0');
+        const currentMM = String(localDate.getMinutes()).padStart(2, '0');
+        const currentHHMM = `${currentHH}:${currentMM}`;
+
+        for (const mt of sub.mosque_times) {
+          const key = mt.key?.toLowerCase();
+          if (!key || !PRAYER_NAMES[key]) continue;
+          const prayerTime = mt.time24;
+          if (!prayerTime || prayerTime !== currentHHMM) continue;
+
+          const payload = JSON.stringify({
+            title: `الأذان ${prayerTime}`,
+            body: `${PRAYER_NAMES[key]} - ${prayerTime}\nصل الآن. فتأخير الصلاة يجعلها أصعب.`,
+            prayer: key,
+            time: prayerTime,
+            url: '/',
+          });
+
+          try {
+            await webpush.sendNotification(
+              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
+              payload
+            );
+            totalSent++;
+          } catch (err: any) {
+            if (err.statusCode === 410 || err.statusCode === 404) expiredEndpoints.push(sub.endpoint);
+            console.error(`Push failed for ${sub.endpoint}:`, err.message);
+          }
+        }
+      } catch (err) {
+        console.error('Error processing mosque sub:', err);
+      }
+    }
+
+    // --- Handle location-based subscriptions (group by location, fetch from Aladhan) ---
     const groups = new Map<string, { lat: number; lng: number; method: number; subs: any[] }>();
-    for (const sub of subs) {
+    for (const sub of locationSubs) {
       if (!sub.latitude || !sub.longitude) continue;
       const key = `${Math.round(sub.latitude * 10) / 10},${Math.round(sub.longitude * 10) / 10},${sub.calculation_method || 2}`;
       if (!groups.has(key)) {
@@ -60,9 +126,6 @@ Deno.serve(async (req) => {
       }
       groups.get(key)!.subs.push(sub);
     }
-
-    let totalSent = 0;
-    const expiredEndpoints: string[] = [];
 
     for (const [_, group] of groups) {
       try {
@@ -80,25 +143,22 @@ Deno.serve(async (req) => {
         const timings = json.data.timings;
         const timezone = json.data.meta.timezone;
 
-        // Get current local time for this timezone
         const localTimeStr = new Date().toLocaleString('en-US', { timeZone: timezone, hour12: false });
         const localDate = new Date(localTimeStr);
         const currentHH = String(localDate.getHours()).padStart(2, '0');
         const currentMM = String(localDate.getMinutes()).padStart(2, '0');
         const currentHHMM = `${currentHH}:${currentMM}`;
 
-        for (const [prayerKey, prayerName] of Object.entries(PRAYER_NAMES)) {
-          const rawTime = timings[prayerKey];
-          if (!rawTime) continue;
-          const prayerTime = rawTime.replace(/\s*\(.*\)$/, '').trim();
-
+        for (const [apiKey, rawTime] of Object.entries(timings)) {
+          const prayerKey = PRAYER_KEY_MAP[apiKey];
+          if (!prayerKey) continue;
+          const prayerTime = (rawTime as string).replace(/\s*\(.*\)$/, '').trim();
           if (prayerTime !== currentHHMM) continue;
 
-          // Match! Send push to all subscribers in this location group
           const payload = JSON.stringify({
-            title: 'حان وقت الصلاة 🕌',
-            body: `${prayerName} - ${prayerTime}`,
-            prayer: prayerKey.toLowerCase(),
+            title: `الأذان ${prayerTime}`,
+            body: `${PRAYER_NAMES[prayerKey]} - ${prayerTime}\nصل الآن. فتأخير الصلاة يجعلها أصعب.`,
+            prayer: prayerKey,
             time: prayerTime,
             url: '/',
           });
@@ -106,17 +166,12 @@ Deno.serve(async (req) => {
           for (const sub of group.subs) {
             try {
               await webpush.sendNotification(
-                {
-                  endpoint: sub.endpoint,
-                  keys: { p256dh: sub.p256dh, auth: sub.auth_key },
-                },
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
                 payload
               );
               totalSent++;
             } catch (err: any) {
-              if (err.statusCode === 410 || err.statusCode === 404) {
-                expiredEndpoints.push(sub.endpoint);
-              }
+              if (err.statusCode === 410 || err.statusCode === 404) expiredEndpoints.push(sub.endpoint);
               console.error(`Push failed for ${sub.endpoint}:`, err.message);
             }
           }

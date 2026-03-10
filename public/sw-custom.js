@@ -1,5 +1,4 @@
 // Custom service worker additions for notification click handling and push
-// This file is injected into the generated service worker by vite-plugin-pwa
 
 // Handle push notifications from the server
 self.addEventListener('push', (event) => {
@@ -21,18 +20,27 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
+  const prayer = event.notification.data?.prayer;
+  const time = event.notification.data?.time;
   const url = event.notification.data?.url || '/';
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Try to find an existing window and send message to trigger full-screen alert
       for (const client of clientList) {
         if ('focus' in client) {
           client.focus();
-          client.navigate(url);
+          // Post message to trigger the full-screen athan alert in the app
+          client.postMessage({
+            type: 'ATHAN_ALERT',
+            prayer: prayer,
+            time: time,
+          });
           return;
         }
       }
-      return clients.openWindow(url);
+      // No existing window — open a new one with query params
+      return clients.openWindow(`${url}?athan_prayer=${prayer}&athan_time=${time}`);
     })
   );
 });
@@ -45,7 +53,6 @@ self.addEventListener('message', (event) => {
 });
 
 // Periodic background sync for prayer notifications
-// This fires even when the app is closed (if browser supports it)
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'prayer-check') {
     event.waitUntil(checkPrayerTimesInBackground());
@@ -62,7 +69,6 @@ self.addEventListener('sync', (event) => {
 // Background prayer time checker
 async function checkPrayerTimesInBackground() {
   try {
-    // Read cached prayer times from the cache API
     const cache = await caches.open('prayer-bg-data');
     const cachedResp = await cache.match('/bg-prayer-data');
     if (!cachedResp) return;
@@ -74,7 +80,6 @@ async function checkPrayerTimesInBackground() {
     const currentMin = now.getHours() * 60 + now.getMinutes();
     const todayKey = now.toISOString().split('T')[0];
 
-    // Check fired status
     const firedResp = await cache.match('/bg-fired-today');
     let fired = {};
     if (firedResp) {
@@ -101,12 +106,13 @@ async function checkPrayerTimesInBackground() {
         didFire = true;
 
         const name = PRAYER_NAMES[prayer.key] || prayer.key;
-        await self.registration.showNotification('حان وقت الصلاة 🕌', {
-          body: `${name} - ${prayer.time24}`,
+        await self.registration.showNotification(`الأذان ${prayer.time24}`, {
+          body: `${name} - ${prayer.time24}\nصل الآن. فتأخير الصلاة يجعلها أصعب.`,
           icon: '/pwa-icon-192.png',
           badge: '/pwa-icon-192.png',
           tag: `prayer-${prayer.key}`,
           requireInteraction: true,
+          silent: false,
           vibrate: [200, 100, 200, 100, 200],
           data: { url: '/', prayer: prayer.key, time: prayer.time24 },
         });

@@ -19,7 +19,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 const meccaImage = '/mecca-hero.webp';
 import { getCurrentOccasion, isRamadan } from '@/data/islamicOccasions';
-import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushSubscription';
+import { subscribeToPush, unsubscribeFromPush, updatePushMosqueTimes } from '@/lib/pushSubscription';
+import { useSearchParams } from 'react-router-dom';
 
 // Lazy load below-the-fold components
 const VideoContentCarousel = lazy(() => import('@/components/VideoContentCarousel'));
@@ -58,9 +59,35 @@ export default function Index() {
 
   const currentOccasion = getCurrentOccasion(hijriMonthNumber, parseInt(hijriDay) || 1);
   const [alertPrayer, setAlertPrayer] = useState<{ key: string; time: string } | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const handleAthanAlert = useCallback((prayerKey: string, prayerTime: string) => {
     setAlertPrayer({ key: prayerKey, time: prayerTime });
+  }, []);
+
+  // Handle notification click → full-screen alert (URL params)
+  useEffect(() => {
+    const prayer = searchParams.get('athan_prayer');
+    const time = searchParams.get('athan_time');
+    if (prayer && time) {
+      setAlertPrayer({ key: prayer, time });
+      // Clean up URL params
+      searchParams.delete('athan_prayer');
+      searchParams.delete('athan_time');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
+
+  // Handle notification click → full-screen alert (SW postMessage)
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'ATHAN_ALERT') {
+        setAlertPrayer({ key: event.data.prayer, time: event.data.time });
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
   }, []);
 
   const [prayersDone, setPrayersDone] = useState(0);
@@ -98,6 +125,16 @@ export default function Index() {
       subscribeToPush(location.latitude, location.longitude, location.calculationMethod).catch(console.error);
     }
   }, [notificationsEnabled, location.latitude, location.longitude, location.loading]);
+
+  // Sync mosque prayer times to push subscription (prevents duplicate notifications)
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    if (mosquePrayers && mosquePrayers.length > 0) {
+      updatePushMosqueTimes(mosquePrayers.map(p => ({ key: p.key, time24: p.time24 }))).catch(console.error);
+    } else {
+      updatePushMosqueTimes(null).catch(console.error);
+    }
+  }, [mosquePrayers, notificationsEnabled]);
 
   const toggleNotifications = async () => {
     if (!notificationsEnabled) {

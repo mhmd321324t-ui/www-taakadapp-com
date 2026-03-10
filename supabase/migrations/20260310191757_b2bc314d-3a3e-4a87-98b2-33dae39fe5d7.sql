@@ -1,0 +1,1 @@
+ALTER TABLE public.push_subscriptions ADD COLUMN mosque_times jsonb DEFAULT NULL;

@@ -65,26 +65,31 @@ function playReminderTone() {
 }
 
 /** Send a browser notification */
-function sendNotification(title: string, body: string, tag: string, silent: boolean = true) {
+function sendNotification(title: string, body: string, tag: string, silent: boolean = false) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const options: NotificationOptions = {
+    body,
+    icon: '/pwa-icon-192.png',
+    badge: '/pwa-icon-192.png',
+    tag,
+    requireInteraction: true,
+    silent,
+    data: { url: '/', prayer: tag.replace('prayer-', '') },
+  };
 
   // Try service worker notification first (works in background)
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification(title, {
-        body,
-        icon: '/pwa-icon-192.png',
-        badge: '/pwa-icon-192.png',
-        tag,
-        requireInteraction: true,
-        silent,
-        data: { url: '/' },
+        ...options,
+        vibrate: [200, 100, 200, 100, 200],
       } as NotificationOptions);
     }).catch(() => {
-      try { new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent }); } catch {}
+      try { new Notification(title, options); } catch {}
     });
   } else {
-    try { new Notification(title, { body, icon: '/pwa-icon-192.png', tag, silent }); } catch {}
+    try { new Notification(title, options); } catch {}
   }
 }
 
@@ -108,7 +113,7 @@ interface ScheduledPrayer {
   key: string;
   time: string;
   time24: string;
-  minuteOfDay: number; // h*60+m for fast comparison
+  minuteOfDay: number;
 }
 
 let scheduledPrayers: ScheduledPrayer[] = [];
@@ -144,10 +149,10 @@ function checkPrayers() {
       playAthan(prayer.key);
       if (onAthanAlert) onAthanAlert(prayer.key, prayer.time);
       sendNotification(
-        'حان وقت الصلاة 🕌',
-        `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}`,
+        `الأذان ${prayer.time}`,
+        `${PRAYER_NAMES[prayer.key] || prayer.key} - ${prayer.time}\nصل الآن. فتأخير الصلاة يجعلها أصعب.`,
         `prayer-${prayer.key}`,
-        true
+        false // NOT silent — play sound
       );
     }
 
@@ -229,7 +234,7 @@ async function registerBackgroundSync() {
       const status = await navigator.permissions.query({ name: 'periodic-background-sync' as any });
       if (status.state === 'granted') {
         await (reg as any).periodicSync.register('prayer-check', {
-          minInterval: 60 * 1000, // every 1 minute
+          minInterval: 60 * 1000,
         });
         console.log('[PrayerNotifications] Periodic background sync registered');
       }

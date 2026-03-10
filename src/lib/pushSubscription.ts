@@ -31,6 +31,18 @@ async function getVapidPublicKey(): Promise<string> {
   return data.publicKey;
 }
 
+/** Get the current push subscription endpoint */
+async function getCurrentEndpoint(): Promise<string | null> {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    return subscription?.endpoint || null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Subscribe the browser to push notifications and save subscription to DB
  */
@@ -89,6 +101,28 @@ export async function subscribeToPush(
   } catch (err) {
     console.error('[Push] Subscription failed:', err);
     return false;
+  }
+}
+
+/**
+ * Update mosque prayer times on the push subscription so the server
+ * uses those instead of fetching from Aladhan (prevents duplicate notifications)
+ */
+export async function updatePushMosqueTimes(
+  mosqueTimes: { key: string; time24: string }[] | null
+): Promise<void> {
+  try {
+    const endpoint = await getCurrentEndpoint();
+    if (!endpoint) return;
+
+    await (supabase as any)
+      .from('push_subscriptions')
+      .update({ mosque_times: mosqueTimes })
+      .eq('endpoint', endpoint);
+
+    console.log('[Push] Mosque times updated:', mosqueTimes ? 'set' : 'cleared');
+  } catch (err) {
+    console.error('[Push] Failed to update mosque times:', err);
   }
 }
 
