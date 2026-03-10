@@ -1,4 +1,4 @@
-// fetch-mosque-times v3 — deployed 2026-03-10
+// fetch-mosque-times v4 — stricter name matching with stop-words
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -7,12 +7,8 @@ const corsHeaders = {
 };
 
 interface MosqueTimes {
-  fajr: string;
-  sunrise: string;
-  dhuhr: string;
-  asr: string;
-  maghrib: string;
-  isha: string;
+  fajr: string; sunrise: string; dhuhr: string;
+  asr: string; maghrib: string; isha: string;
 }
 
 async function fetchWithTimeout(url: string, opts: RequestInit = {}, ms = 3000): Promise<Response> {
@@ -22,25 +18,65 @@ async function fetchWithTimeout(url: string, opts: RequestInit = {}, ms = 3000):
   finally { clearTimeout(t); }
 }
 
+// Generic/stop words that should NOT count as a name match
+const STOP_WORDS = new Set([
+  // German generic
+  'moschee', 'islamische', 'islamisches', 'islamisch', 'gemeinschaft', 'gemeinde',
+  'zentrum', 'kulturzentrum', 'kulturverein', 'verein', 'kulturelle', 'ev',
+  'deutsche', 'muslime', 'muslimische', 'gebetshaus', 'gebetsraum',
+  // Turkish generic
+  'camii', 'cami', 'diyanet', 'isleri', 'birligi', 'dernegi',
+  // Arabic generic
+  'مسجد', 'جامع', 'مصلى', 'اسلامي', 'إسلامي', 'الإسلامي', 'الاسلامي',
+  // English generic
+  'mosque', 'masjid', 'islamic', 'center', 'centre', 'community', 'prayer', 'room',
+  // Common city names (Germany)
+  'osnabrück', 'osnabruck', 'berlin', 'hamburg', 'münchen', 'munchen', 'munich',
+  'köln', 'koln', 'cologne', 'frankfurt', 'stuttgart', 'düsseldorf', 'dusseldorf',
+  'dortmund', 'essen', 'bremen', 'hannover', 'leipzig', 'dresden', 'nürnberg',
+  'nurnberg', 'duisburg', 'bochum', 'wuppertal', 'bielefeld', 'bonn', 'mannheim',
+  'karlsruhe', 'augsburg', 'wiesbaden', 'gelsenkirchen', 'aachen', 'kiel',
+  'braunschweig', 'chemnitz', 'halle', 'magdeburg', 'freiburg', 'krefeld',
+  'mainz', 'lübeck', 'erfurt', 'rostock', 'kassel', 'hagen', 'potsdam',
+  // Common worldwide
+  'london', 'paris', 'amsterdam', 'vienna', 'wien', 'zurich', 'zürich',
+  'brussels', 'bruxelles', 'stockholm', 'oslo', 'copenhagen', 'copenhagen',
+]);
+
 function normalizeName(s: string): string {
   return s.toLowerCase()
     .replace(/[\"''""]/g, ' ')
     .replace(/[^\w\s\u0600-\u06FF]/g, ' ')
-    .replace(/\b(moschee|mosque|masjid|camii|cami|مسجد|جامع)\b/gi, ' ')
     .replace(/\s+/g, ' ').trim();
+}
+
+function getDistinctiveWords(normalized: string): string[] {
+  return normalized.split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
 }
 
 function namesMatch(requested: string, found: string): boolean {
   const a = normalizeName(requested);
   const b = normalizeName(found);
   if (!a || !b) return false;
-  if (a === b || a.includes(b) || b.includes(a)) return true;
-  const wordsA = a.split(/\s+/).filter(w => w.length > 2);
-  const wordsB = b.split(/\s+/).filter(w => w.length > 2);
+  
+  // Exact match after normalization
+  if (a === b) return true;
+  
+  const wordsA = getDistinctiveWords(a);
+  const wordsB = getDistinctiveWords(b);
+  
+  // If no distinctive words in either, can't match
   if (!wordsA.length || !wordsB.length) return false;
-  const matchCount = wordsA.filter(w => wordsB.some(wb => wb.includes(w) || w.includes(wb))).length;
-  // Require at least 1 significant word match AND it should be >30% of the shorter list
-  return matchCount > 0 && matchCount >= Math.max(1, Math.min(wordsA.length, wordsB.length) * 0.3);
+  
+  // Check if distinctive words overlap
+  const matchCount = wordsA.filter(w => 
+    wordsB.some(wb => wb.includes(w) || w.includes(wb))
+  ).length;
+  
+  // Require at least 1 distinctive word match AND >50% of shorter list
+  const minLen = Math.min(wordsA.length, wordsB.length);
+  return matchCount > 0 && matchCount >= Math.max(1, Math.ceil(minLen * 0.5));
 }
 
 async function fetchMawaqit(name: string, lat?: number, lon?: number): Promise<{
@@ -59,10 +95,9 @@ async function fetchMawaqit(name: string, lat?: number, lon?: number): Promise<{
 
     console.log(`Mawaqit returned ${mosques.length} results for "${name}":`, mosques.map((m: any) => m?.name).join(', '));
 
-    // Find mosque matching requested name
     const matched = mosques.find((m: any) => m?.name && namesMatch(name, m.name));
     if (!matched || !matched.times || matched.times.length < 5) {
-      console.log(`Mawaqit: NO NAME MATCH for "${name}" among [${mosques.map((m: any) => m?.name).join(', ')}]`);
+      console.log(`Mawaqit v4: NO NAME MATCH for "${name}" among [${mosques.map((m: any) => m?.name).join(', ')}]`);
       return null;
     }
 
@@ -71,7 +106,7 @@ async function fetchMawaqit(name: string, lat?: number, lon?: number): Promise<{
       dhuhr: matched.times[2] || '', asr: matched.times[3] || '',
       maghrib: matched.times[4] || '', isha: matched.times[5] || '',
     };
-    console.log(`Mawaqit MATCHED: "${matched.name}" for requested "${name}" → fajr=${times.fajr} dhuhr=${times.dhuhr}`);
+    console.log(`Mawaqit v4 MATCHED: "${matched.name}" for requested "${name}" → fajr=${times.fajr} dhuhr=${times.dhuhr}`);
     return {
       times, source: 'mawaqit', matchedName: matched.name,
       iqama: matched.iqama, jumua: matched.jumua, iqamaEnabled: matched.iqamaEnabled,
@@ -114,16 +149,14 @@ serve(async (req) => {
   }
   try {
     const { mosqueName, latitude, longitude, method, school } = await req.json();
-    console.log("fetch-mosque-times v3:", { mosqueName, latitude, longitude });
+    console.log("fetch-mosque-times v4:", { mosqueName, latitude, longitude });
 
     let result: any = null;
 
-    // 1. Try Mawaqit with name matching
     if (mosqueName) {
       result = await fetchMawaqit(mosqueName, latitude, longitude);
     }
 
-    // 2. Fallback: Aladhan with MOSQUE's coordinates (not user's)
     if (!result && latitude && longitude) {
       result = await fetchAladhan(latitude, longitude, method ?? 3, school ?? 0);
     }
