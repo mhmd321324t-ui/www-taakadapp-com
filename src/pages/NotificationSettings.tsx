@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bell, Volume2, Clock, BookOpen, Moon, MessageSquare, Sparkles, TestTube, ChevronDown } from 'lucide-react';
+import { ArrowRight, Bell, Volume2, Clock, BookOpen, Moon, MessageSquare, Sparkles, TestTube, ChevronDown, Smartphone } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import { sendTestNotification } from '@/lib/prayerNotifications';
 import { testAthanPlayback } from '@/lib/athanAudio';
+import { subscribeToPush, isSubscribedToPush } from '@/lib/pushSubscription';
 import { toast } from 'sonner';
 import AthanSelector from '@/components/AthanSelector';
 
