@@ -354,6 +354,11 @@ export default function MosquePrayerTimesPage() {
         .sort((a: any, b: any) => a._dist - b._dist);
       setMosques(sorted);
       if (sorted.length === 0) toast('لم يتم العثور على مساجد — جرّب البحث بالاسم');
+      // Auto-check availability after loading
+      if (sorted.length > 0) {
+        batchCheckRef.current = false;
+        autoCheckAvailability(sorted);
+      }
     } catch { toast.error('خطأ في البحث عن المساجد'); }
     finally { setLoading(false); }
   }, [location.latitude, location.longitude]);
