@@ -126,6 +126,16 @@ export default function Index() {
     }
   }, [notificationsEnabled, location.latitude, location.longitude, location.loading]);
 
+  // Sync mosque prayer times to push subscription (prevents duplicate notifications)
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    if (mosquePrayers && mosquePrayers.length > 0) {
+      updatePushMosqueTimes(mosquePrayers.map(p => ({ key: p.key, time24: p.time24 }))).catch(console.error);
+    } else {
+      updatePushMosqueTimes(null).catch(console.error);
+    }
+  }, [mosquePrayers, notificationsEnabled]);
+
   const toggleNotifications = async () => {
     if (!notificationsEnabled) {
       const granted = await requestNotificationPermission();
