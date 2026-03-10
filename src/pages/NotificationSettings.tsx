@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bell, Volume2, Clock, BookOpen, Moon, MessageSquare, Sparkles, TestTube, ChevronDown } from 'lucide-react';
+import { ArrowRight, Bell, Volume2, Clock, BookOpen, Moon, MessageSquare, Sparkles, TestTube, ChevronDown, Smartphone } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { requestNotificationPermission } from '@/hooks/useAthanNotifications';
 import { sendTestNotification } from '@/lib/prayerNotifications';
 import { testAthanPlayback } from '@/lib/athanAudio';
+import { subscribeToPush, isSubscribedToPush } from '@/lib/pushSubscription';
 import { toast } from 'sonner';
 import AthanSelector from '@/components/AthanSelector';
 
@@ -96,6 +97,42 @@ function SettingsSection({ title, settings }: { title: string; settings: NotifSe
 
 export default function NotificationSettings() {
   const [showAthanSelector, setShowAthanSelector] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  // Check push subscription status on mount
+  useEffect(() => {
+    isSubscribedToPush().then(setPushSubscribed);
+  }, []);
+
+  const handleEnablePush = async () => {
+    setPushLoading(true);
+    try {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        toast.error('يرجى السماح بالإشعارات من إعدادات المتصفح');
+        return;
+      }
+      // Get user location
+      const cached = localStorage.getItem('cached-location');
+      if (cached) {
+        const loc = JSON.parse(cached);
+        const success = await subscribeToPush(loc.latitude, loc.longitude, loc.calculationMethod || 3);
+        setPushSubscribed(success);
+        if (success) {
+          toast.success('تم تفعيل الإشعارات في الخلفية ✅ ستصلك حتى عند إغلاق التطبيق');
+        } else {
+          toast.error('تعذر تفعيل الإشعارات في الخلفية');
+        }
+      } else {
+        toast.error('يرجى تفعيل الموقع أولاً لتحديد أوقات الصلاة');
+      }
+    } catch {
+      toast.error('حدث خطأ');
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const handleTestNotification = async () => {
     const granted = await requestNotificationPermission();
@@ -133,7 +170,30 @@ export default function NotificationSettings() {
         </div>
       </div>
 
-      {/* Test buttons */}
+      {/* Push notification banner */}
+      {!pushSubscribed && (
+        <div className="px-4 mt-4">
+          <div className="rounded-2xl bg-primary/10 border border-primary/20 p-4">
+            <div className="flex items-start gap-3">
+              <Smartphone className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">إشعارات الأذان في الخلفية</p>
+                <p className="text-xs text-muted-foreground mt-1">فعّل الإشعارات لتصلك تنبيهات الأذان حتى عند إغلاق التطبيق</p>
+                <Button
+                  onClick={handleEnablePush}
+                  disabled={pushLoading}
+                  size="sm"
+                  className="mt-2 rounded-xl gap-1.5"
+                >
+                  {pushLoading ? <Bell className="h-3.5 w-3.5 animate-pulse" /> : <Bell className="h-3.5 w-3.5" />}
+                  تفعيل الإشعارات
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 mt-4 flex gap-3">
         <Button
           onClick={handleTestNotification}

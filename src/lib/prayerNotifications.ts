@@ -192,6 +192,20 @@ export async function schedulePrayerNotifications(
   checkInterval = setInterval(checkPrayers, 15_000);
 
   console.log(`[PrayerNotifications] Scheduled checker for ${prayers.filter(p => p.key !== 'sunrise').length} prayers`);
+
+  // Store prayer data in Cache API for service worker background checks
+  try {
+    const cache = await caches.open('prayer-bg-data');
+    await cache.put('/bg-prayer-data', new Response(JSON.stringify({
+      prayers: prayers.map(p => ({ key: p.key, time24: p.time24 })),
+      updated: new Date().toISOString(),
+    })));
+  } catch (e) {
+    console.warn('[PrayerNotifications] Failed to cache for background:', e);
+  }
+
+  // Register periodic background sync if supported
+  registerBackgroundSync();
 }
 
 // Re-check on visibility change (tab comes back from background)
@@ -202,4 +216,25 @@ if (typeof document !== 'undefined') {
       checkPrayers();
     }
   });
+}
+
+/** Register periodic background sync for prayer notifications */
+async function registerBackgroundSync() {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    
+    // Try periodic sync (works on Chrome Android when PWA installed)
+    if ('periodicSync' in reg) {
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' as any });
+      if (status.state === 'granted') {
+        await (reg as any).periodicSync.register('prayer-check', {
+          minInterval: 60 * 1000, // every 1 minute
+        });
+        console.log('[PrayerNotifications] Periodic background sync registered');
+      }
+    }
+  } catch (e) {
+    console.warn('[PrayerNotifications] Background sync not supported:', e);
+  }
 }

@@ -7,3 +7,9 @@ project_id = "vnbysqlkaceulzmjhgxc"
     verify_jwt = false
   [functions.search-mosques]
     verify_jwt = false
+  [functions.fetch-mosque-times]
+    verify_jwt = false
+  [functions.setup-push]
+    verify_jwt = false
+  [functions.send-prayer-push]
+    verify_jwt = false
