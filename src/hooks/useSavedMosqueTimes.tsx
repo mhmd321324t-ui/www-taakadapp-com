@@ -172,13 +172,15 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         } catch {}
       }
 
-      // 3. Edge function (Mawaqit first, Aladhan fallback — all handled server-side)
+      // 3. Edge function — use mosque's own coordinates (each mosque is at a different location)
+      const lat = mosque.latitude || calcSettings.latitude;
+      const lon = mosque.longitude || calcSettings.longitude;
       try {
         const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
           body: {
             mosqueName: mosque.name,
-            latitude: mosque.latitude || calcSettings.latitude,
-            longitude: mosque.longitude || calcSettings.longitude,
+            latitude: lat,
+            longitude: lon,
             method: calcSettings.method,
             school: calcSettings.school,
           },

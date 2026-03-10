@@ -386,21 +386,9 @@ export default function MosquePrayerTimesPage() {
   useEffect(() => {
     if (location.latitude && location.longitude && !autoSearched.current) {
       autoSearched.current = true;
-      searchMosques().then(() => {
-        // Auto-check will be triggered after mosques are set
-      });
+      searchMosques();
     }
   }, [location.latitude, location.longitude, searchMosques]);
-
-  // Trigger auto-check when mosques list changes
-  const lastCheckedRef = useRef<string>('');
-  useEffect(() => {
-    const key = mosques.map(m => m.osm_id).join(',');
-    if (key && key !== lastCheckedRef.current && mosques.some(m => m.hasAutoSync === undefined)) {
-      lastCheckedRef.current = key;
-      autoCheckAvailability(mosques);
-    }
-  }, [mosques, autoCheckAvailability]);
 
   const selectMosque = async (mosque: Mosque) => {
     setSelectedMosque(mosque);
