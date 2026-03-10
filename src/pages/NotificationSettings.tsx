@@ -170,7 +170,30 @@ export default function NotificationSettings() {
         </div>
       </div>
 
-      {/* Test buttons */}
+      {/* Push notification banner */}
+      {!pushSubscribed && (
+        <div className="px-4 mt-4">
+          <div className="rounded-2xl bg-primary/10 border border-primary/20 p-4">
+            <div className="flex items-start gap-3">
+              <Smartphone className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">إشعارات الأذان في الخلفية</p>
+                <p className="text-xs text-muted-foreground mt-1">فعّل الإشعارات لتصلك تنبيهات الأذان حتى عند إغلاق التطبيق</p>
+                <Button
+                  onClick={handleEnablePush}
+                  disabled={pushLoading}
+                  size="sm"
+                  className="mt-2 rounded-xl gap-1.5"
+                >
+                  {pushLoading ? <Bell className="h-3.5 w-3.5 animate-pulse" /> : <Bell className="h-3.5 w-3.5" />}
+                  تفعيل الإشعارات
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 mt-4 flex gap-3">
         <Button
           onClick={handleTestNotification}
