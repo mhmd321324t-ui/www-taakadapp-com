@@ -902,6 +902,16 @@ export default function MosquePrayerTimesPage() {
             <div className="space-y-2">
               {mosques
                 .filter(m => mosqueFilter === 'all' ? true : mosqueFilter === 'auto' ? m.hasAutoSync === true : m.hasAutoSync === false)
+                .sort((a, b) => {
+                  // In "all" tab, sort auto-sync mosques first
+                  if (mosqueFilter === 'all') {
+                    if (a.hasAutoSync === true && b.hasAutoSync !== true) return -1;
+                    if (b.hasAutoSync === true && a.hasAutoSync !== true) return 1;
+                    if (a.hasAutoSync === false && b.hasAutoSync === undefined) return -1;
+                    if (b.hasAutoSync === false && a.hasAutoSync === undefined) return 1;
+                  }
+                  return 0;
+                })
                 .map((mosque, idx) => {
                 const isSelected = selectedMosque?.osm_id === mosque.osm_id;
                 return (
