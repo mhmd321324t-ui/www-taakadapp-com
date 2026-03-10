@@ -97,6 +97,42 @@ function SettingsSection({ title, settings }: { title: string; settings: NotifSe
 
 export default function NotificationSettings() {
   const [showAthanSelector, setShowAthanSelector] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  // Check push subscription status on mount
+  useEffect(() => {
+    isSubscribedToPush().then(setPushSubscribed);
+  }, []);
+
+  const handleEnablePush = async () => {
+    setPushLoading(true);
+    try {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        toast.error('يرجى السماح بالإشعارات من إعدادات المتصفح');
+        return;
+      }
+      // Get user location
+      const cached = localStorage.getItem('cached-location');
+      if (cached) {
+        const loc = JSON.parse(cached);
+        const success = await subscribeToPush(loc.latitude, loc.longitude, loc.calculationMethod || 3);
+        setPushSubscribed(success);
+        if (success) {
+          toast.success('تم تفعيل الإشعارات في الخلفية ✅ ستصلك حتى عند إغلاق التطبيق');
+        } else {
+          toast.error('تعذر تفعيل الإشعارات في الخلفية');
+        }
+      } else {
+        toast.error('يرجى تفعيل الموقع أولاً لتحديد أوقات الصلاة');
+      }
+    } catch {
+      toast.error('حدث خطأ');
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const handleTestNotification = async () => {
     const granted = await requestNotificationPermission();
