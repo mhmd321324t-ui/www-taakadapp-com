@@ -21,7 +21,26 @@ async function fetchWithTimeout(url: string, opts: RequestInit = {}, ms = 3000):
   finally { clearTimeout(t); }
 }
 
-// Single Mawaqit search — return first result immediately
+function normalizeName(s: string): string {
+  return s.toLowerCase()
+    .replace(/[\"''""]/g, ' ')
+    .replace(/[^\w\s\u0600-\u06FF]/g, ' ')
+    .replace(/\b(moschee|mosque|masjid|camii|cami|مسجد|جامع)\b/gi, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+function namesMatch(requested: string, found: string): boolean {
+  const a = normalizeName(requested);
+  const b = normalizeName(found);
+  if (!a || !b) return false;
+  if (a === b || a.includes(b) || b.includes(a)) return true;
+  const wordsA = a.split(/\s+/).filter(w => w.length > 2);
+  const wordsB = b.split(/\s+/).filter(w => w.length > 2);
+  if (!wordsA.length || !wordsB.length) return false;
+  return wordsA.some(w => wordsB.some(wb => wb.includes(w) || w.includes(wb)));
+}
+
+// Mawaqit search — match by name, not just first result
 async function fetchMawaqit(name: string, lat?: number, lon?: number): Promise<{
   times: MosqueTimes; source: string; matchedName: string;
   iqama?: string[]; jumua?: string; iqamaEnabled?: boolean;
@@ -35,18 +54,23 @@ async function fetchMawaqit(name: string, lat?: number, lon?: number): Promise<{
     if (!res.ok) return null;
     const mosques = await res.json();
     if (!Array.isArray(mosques) || !mosques.length) return null;
-    // Take first result (closest match by Mawaqit's own ranking)
-    const m = mosques[0];
-    if (!m?.times || m.times.length < 5) return null;
+
+    // Find the mosque that matches the requested name
+    const matched = mosques.find((m: any) => m?.name && namesMatch(name, m.name));
+    if (!matched || !matched.times || matched.times.length < 5) {
+      console.log(`Mawaqit: no name match for "${name}" among ${mosques.length} results`);
+      return null;
+    }
+
     const times: MosqueTimes = {
-      fajr: m.times[0] || '', sunrise: m.times[1] || '',
-      dhuhr: m.times[2] || '', asr: m.times[3] || '',
-      maghrib: m.times[4] || '', isha: m.times[5] || '',
+      fajr: matched.times[0] || '', sunrise: matched.times[1] || '',
+      dhuhr: matched.times[2] || '', asr: matched.times[3] || '',
+      maghrib: matched.times[4] || '', isha: matched.times[5] || '',
     };
-    console.log(`Mawaqit found: ${m.name}`);
+    console.log(`Mawaqit matched: ${matched.name} for "${name}"`);
     return {
-      times, source: 'mawaqit', matchedName: m.name,
-      iqama: m.iqama, jumua: m.jumua, iqamaEnabled: m.iqamaEnabled,
+      times, source: 'mawaqit', matchedName: matched.name,
+      iqama: matched.iqama, jumua: matched.jumua, iqamaEnabled: matched.iqamaEnabled,
     };
   } catch (e) {
     console.log("Mawaqit error:", e instanceof Error ? e.message : "timeout");
