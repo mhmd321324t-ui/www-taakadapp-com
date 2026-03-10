@@ -380,34 +380,8 @@ export default function MosquePrayerTimesPage() {
     finally { setCheckingAvailability(null); }
   };
 
-  // Auto-check availability for all mosques after load
-  const autoCheckAvailability = useCallback(async (mosqueList: Mosque[]) => {
-    const unchecked = mosqueList.filter(m => m.hasAutoSync === undefined).slice(0, 10);
-    if (!unchecked.length) return;
-
-    const results = await Promise.all(
-      unchecked.map(async (mosque) => {
-        try {
-          const { data, error } = await supabase.functions.invoke('fetch-mosque-times', {
-            body: { mosqueName: mosque.name, latitude: mosque.latitude, longitude: mosque.longitude, ...getCalcSettings() },
-          });
-          return { osm_id: mosque.osm_id, hasAutoSync: !error && data?.success && data?.source === 'mawaqit' };
-        } catch { return { osm_id: mosque.osm_id, hasAutoSync: false }; }
-      })
-    );
-
-    setMosques(prev => {
-      const updated = prev.map(m => {
-        const r = results.find(r => r.osm_id === m.osm_id);
-        return r ? { ...m, hasAutoSync: r.hasAutoSync } : m;
-      });
-      return updated.sort((a, b) => {
-        if (a.hasAutoSync === true && b.hasAutoSync !== true) return -1;
-        if (b.hasAutoSync === true && a.hasAutoSync !== true) return 1;
-        return (a._dist || 999) - (b._dist || 999);
-      });
-    });
-  }, []);
+  // Removed autoCheckAvailability — was flooding edge function with 10+ parallel calls
+  // Availability is now checked only when user selects a specific mosque
 
   useEffect(() => {
     if (location.latitude && location.longitude && !autoSearched.current) {
