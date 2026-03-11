@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Play, Pause, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -101,42 +100,29 @@ export default function SurahView() {
     };
     fetchAyahs();
 
-    if (user && id) {
-      supabase
-        .from('quran_bookmarks')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('surah_number', parseInt(id))
-        .is('ayah_number', null)
-        .maybeSingle()
-        .then(({ data }) => setBookmarked(!!data));
+    if (id) {
+      // Load bookmark from localStorage
+      const savedBookmarks: number[] = JSON.parse(localStorage.getItem('quran_bookmarks') || '[]');
+      setBookmarked(savedBookmarks.includes(parseInt(id)));
     }
 
     return () => { audio.pause(); };
   }, [id, user, locale]);
 
   const toggleBookmark = async () => {
-    if (!user) {
-      toast.error(t('loginToSaveBookmarks'));
-      return;
-    }
     const surahNum = parseInt(id!);
+    const savedBookmarks: number[] = JSON.parse(localStorage.getItem('quran_bookmarks') || '[]');
 
     if (bookmarked) {
-      await supabase
-        .from('quran_bookmarks')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('surah_number', surahNum)
-        .is('ayah_number', null);
+      const updated = savedBookmarks.filter(n => n !== surahNum);
+      localStorage.setItem('quran_bookmarks', JSON.stringify(updated));
       setBookmarked(false);
-      toast.success(t('surahRemovedFromFav'));
+      toast.success(t('surahRemovedFromFav') || 'تم إزالة السورة من المفضلة');
     } else {
-      await supabase
-        .from('quran_bookmarks')
-        .insert({ user_id: user.id, surah_number: surahNum });
+      const updated = [...savedBookmarks, surahNum];
+      localStorage.setItem('quran_bookmarks', JSON.stringify(updated));
       setBookmarked(true);
-      toast.success(t('surahAddedToFav'));
+      toast.success(t('surahAddedToFav') || 'تم حفظ السورة في المفضلة ❤️');
     }
   };
 

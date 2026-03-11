@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Check, Moon, BookOpen, MessageSquare, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { isRamadan } from '@/data/islamicOccasions';
 import { dhikrDetails } from '@/data/dhikrDetails';
 import DhikrCounterDrawer from '@/components/DhikrCounterDrawer';
@@ -106,22 +105,8 @@ export default function DailyGoals({ hijriMonthNumber }: { hijriMonthNumber: num
   const activeDhikr = activeDhikrKey ? dhikrDetails.find(d => d.key === activeDhikrKey) || null : null;
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('daily_goals')
-      .select('goal_key, progress, completed')
-      .eq('user_id', user.id)
-      .eq('date', todayKey)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const dbGoals: GoalProgress = {};
-          data.forEach((row: any) => {
-            dbGoals[row.goal_key] = { progress: row.progress, completed: row.completed };
-          });
-          setGoals(dbGoals);
-          localStorage.setItem(`daily-goals-${todayKey}`, JSON.stringify(dbGoals));
-        }
-      });
+    // Always use localStorage for goals (cloud sync can be added later)
+    return;
   }, [user, todayKey]);
 
   const updateGoal = async (goalKey: string, target: number) => {
@@ -135,17 +120,6 @@ export default function DailyGoals({ hijriMonthNumber }: { hijriMonthNumber: num
     };
     setGoals(updated);
     localStorage.setItem(`daily-goals-${todayKey}`, JSON.stringify(updated));
-
-    if (user) {
-      await supabase.from('daily_goals').upsert({
-        user_id: user.id,
-        date: todayKey,
-        goal_key: goalKey,
-        progress: newCompleted ? target : newProgress,
-        completed: newCompleted,
-        target,
-      }, { onConflict: 'user_id,date,goal_key' });
-    }
   };
 
   const completeFromDrawer = async (goalKey: string, target: number) => {
@@ -155,34 +129,12 @@ export default function DailyGoals({ hijriMonthNumber }: { hijriMonthNumber: num
     };
     setGoals(updated);
     localStorage.setItem(`daily-goals-${todayKey}`, JSON.stringify(updated));
-
-    if (user) {
-      await supabase.from('daily_goals').upsert({
-        user_id: user.id,
-        date: todayKey,
-        goal_key: goalKey,
-        progress: target,
-        completed: true,
-        target,
-      }, { onConflict: 'user_id,date,goal_key' });
-    }
   };
 
   const resetGoal = async (goalKey: string) => {
     const updated = { ...goals, [goalKey]: { progress: 0, completed: false } };
     setGoals(updated);
     localStorage.setItem(`daily-goals-${todayKey}`, JSON.stringify(updated));
-
-    if (user) {
-      await supabase.from('daily_goals').upsert({
-        user_id: user.id,
-        date: todayKey,
-        goal_key: goalKey,
-        progress: 0,
-        completed: false,
-        target: 1,
-      }, { onConflict: 'user_id,date,goal_key' });
-    }
   };
 
   const handleGoalClick = (goal: Goal) => {

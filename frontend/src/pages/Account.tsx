@@ -29,10 +29,10 @@ export default function Account() {
 
   if (!user) return null;
 
-  const name = user.user_metadata?.full_name || user.user_metadata?.name || '';
+  const name = user.name || user.user_metadata?.full_name || user.user_metadata?.name || '';
   const email = user.email || '';
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
-  const provider = user.app_metadata?.provider || 'email';
+  const provider = 'email';
   const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('ar-EG', {
     year: 'numeric', month: 'long', day: 'numeric'
   }) : '';

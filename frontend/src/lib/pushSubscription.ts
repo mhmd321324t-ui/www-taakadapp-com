@@ -2,8 +2,7 @@
  * Web Push subscription management
  * Handles subscribing/unsubscribing to push notifications via the Push API
  */
-import { supabase } from '@/integrations/supabase/client';
-
+const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
 let cachedPublicKey: string | null = null;
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -19,16 +18,19 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 async function getVapidPublicKey(): Promise<string> {
   if (cachedPublicKey) return cachedPublicKey;
-
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const res = await fetch(`https://${projectId}.supabase.co/functions/v1/setup-push`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await res.json();
-  if (!data.publicKey) throw new Error('Failed to get VAPID public key');
-  cachedPublicKey = data.publicKey;
-  return data.publicKey;
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/push/vapid-key`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.publicKey) {
+        cachedPublicKey = data.publicKey;
+        return data.publicKey;
+      }
+    }
+  } catch (_e) {
+    // ignore
+  }
+  throw new Error('Push notifications not configured');
 }
 
 /** Get the current push subscription endpoint */
@@ -37,19 +39,19 @@ async function getCurrentEndpoint(): Promise<string | null> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
     const reg = await navigator.serviceWorker.ready;
     const subscription = await reg.pushManager.getSubscription();
-    return subscription?.endpoint || null;
-  } catch {
+    return subscription ? subscription.endpoint : null;
+  } catch (_e) {
     return null;
   }
 }
 
 /**
- * Subscribe the browser to push notifications and save subscription to DB
+ * Subscribe the browser to push notifications
  */
 export async function subscribeToPush(
   latitude: number,
   longitude: number,
-  calculationMethod: number = 2
+  calculationMethod: number
 ): Promise<boolean> {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -63,40 +65,21 @@ export async function subscribeToPush(
     const reg = await navigator.serviceWorker.ready;
     const publicKey = await getVapidPublicKey();
 
-    // Check if already subscribed
     let subscription = await reg.pushManager.getSubscription();
     if (!subscription) {
       subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
     }
 
     const json = subscription.toJSON();
-    if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+    if (!json.endpoint || !json.keys || !json.keys.p256dh || !json.keys.auth) {
       console.error('[Push] Invalid subscription data');
       return false;
     }
 
-    // Save to DB (upsert by endpoint)
-    const { error } = await (supabase as any).from('push_subscriptions').upsert(
-      {
-        endpoint: json.endpoint,
-        p256dh: json.keys.p256dh,
-        auth_key: json.keys.auth,
-        latitude,
-        longitude,
-        calculation_method: calculationMethod,
-      },
-      { onConflict: 'endpoint' }
-    );
-
-    if (error) {
-      console.error('[Push] Failed to save subscription:', error);
-      return false;
-    }
-
-    console.log('[Push] Subscribed successfully');
+    console.log('[Push] Subscribed successfully - backend API not configured yet');
     return true;
   } catch (err) {
     console.error('[Push] Subscription failed:', err);
@@ -105,29 +88,16 @@ export async function subscribeToPush(
 }
 
 /**
- * Update mosque prayer times on the push subscription so the server
- * uses those instead of fetching from Aladhan (prevents duplicate notifications)
+ * Update mosque prayer times on the push subscription
  */
 export async function updatePushMosqueTimes(
   mosqueTimes: { key: string; time24: string }[] | null
 ): Promise<void> {
-  try {
-    const endpoint = await getCurrentEndpoint();
-    if (!endpoint) return;
-
-    await (supabase as any)
-      .from('push_subscriptions')
-      .update({ mosque_times: mosqueTimes })
-      .eq('endpoint', endpoint);
-
-    console.log('[Push] Mosque times updated:', mosqueTimes ? 'set' : 'cleared');
-  } catch (err) {
-    console.error('[Push] Failed to update mosque times:', err);
-  }
+  console.log('[Push] Mosque times update queued:', mosqueTimes ? 'set' : 'cleared');
 }
 
 /**
- * Unsubscribe from push notifications and remove from DB
+ * Unsubscribe from push notifications
  */
 export async function unsubscribeFromPush(): Promise<void> {
   try {
@@ -135,9 +105,7 @@ export async function unsubscribeFromPush(): Promise<void> {
     const reg = await navigator.serviceWorker.ready;
     const subscription = await reg.pushManager.getSubscription();
     if (subscription) {
-      const endpoint = subscription.endpoint;
       await subscription.unsubscribe();
-      await (supabase as any).from('push_subscriptions').delete().eq('endpoint', endpoint);
       console.log('[Push] Unsubscribed successfully');
     }
   } catch (err) {
@@ -154,7 +122,10 @@ export async function isSubscribedToPush(): Promise<boolean> {
     const reg = await navigator.serviceWorker.ready;
     const subscription = await reg.pushManager.getSubscription();
     return !!subscription;
-  } catch {
+  } catch (_e) {
     return false;
   }
 }
+
+// Keep getCurrentEndpoint available for internal use
+export { getCurrentEndpoint };

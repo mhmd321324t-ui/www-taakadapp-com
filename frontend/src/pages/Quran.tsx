@@ -1,7 +1,6 @@
 import { useState, useEffect, forwardRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Search, BookOpen, Bookmark, BookmarkCheck, Play, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -71,40 +70,24 @@ export default function Quran() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      supabase
-        .from('quran_bookmarks')
-        .select('surah_number')
-        .eq('user_id', user.id)
-        .is('ayah_number', null)
-        .then(({ data }) => {
-          setBookmarks(data?.map(d => d.surah_number) || []);
-        });
-    }
+    // Load bookmarks from localStorage
+    const savedBookmarks = JSON.parse(localStorage.getItem('quran_bookmarks') || '[]');
+    setBookmarks(savedBookmarks);
   }, [user]);
 
   const toggleBookmark = async (e: React.MouseEvent, surahNum: number) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) {
-      toast.error(t('loginToSaveBookmarks'));
-      return;
-    }
     if (bookmarks.includes(surahNum)) {
-      await supabase
-        .from('quran_bookmarks')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('surah_number', surahNum)
-        .is('ayah_number', null);
-      setBookmarks(prev => prev.filter(n => n !== surahNum));
-      toast.success(t('removedFromBookmarks'));
+      const updated = bookmarks.filter(n => n !== surahNum);
+      setBookmarks(updated);
+      localStorage.setItem('quran_bookmarks', JSON.stringify(updated));
+      toast.success(t('removedFromBookmarks') || 'تم إزالة الإشارة');
     } else {
-      await supabase
-        .from('quran_bookmarks')
-        .insert({ user_id: user.id, surah_number: surahNum });
-      setBookmarks(prev => [...prev, surahNum]);
-      toast.success(t('addedToBookmarks'));
+      const updated = [...bookmarks, surahNum];
+      setBookmarks(updated);
+      localStorage.setItem('quran_bookmarks', JSON.stringify(updated));
+      toast.success(t('addedToBookmarks') || 'تم إضافة الإشارة ❤️');
     }
   };
 

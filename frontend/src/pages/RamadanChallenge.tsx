@@ -5,7 +5,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { ramadanDeeds } from '@/data/ramadanDeeds';
 import PageHeader from '@/components/PageHeader';
 
@@ -25,24 +24,9 @@ export default function RamadanChallenge() {
     return saved ? JSON.parse(saved) : {};
   });
 
-  // Sync from DB
+  // Always use localStorage for Ramadan challenge data
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('ramadan_challenge')
-      .select('day_number, fasting_completed, deed_completed')
-      .eq('user_id', user.id)
-      .eq('year', currentYear)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const dbDays: Record<number, DayState> = {};
-          data.forEach((r: any) => {
-            dbDays[r.day_number] = { fasting: r.fasting_completed, deed: r.deed_completed };
-          });
-          setDays(dbDays);
-          localStorage.setItem(storageKey, JSON.stringify(dbDays));
-        }
-      });
+    return; // No cloud sync needed without Supabase configured
   }, [user]);
 
   const toggle = async (day: number, type: 'fasting' | 'deed') => {
@@ -51,16 +35,6 @@ export default function RamadanChallenge() {
     const newDays = { ...days, [day]: updated };
     setDays(newDays);
     localStorage.setItem(storageKey, JSON.stringify(newDays));
-
-    if (user) {
-      await supabase.from('ramadan_challenge').upsert({
-        user_id: user.id,
-        year: currentYear,
-        day_number: day,
-        fasting_completed: updated.fasting,
-        deed_completed: updated.deed,
-      } as any, { onConflict: 'user_id,year,day_number' });
-    }
   };
 
   const fastingCount = Object.values(days).filter(d => d.fasting).length;

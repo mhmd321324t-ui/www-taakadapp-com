@@ -70,7 +70,7 @@ export default function More() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground truncate text-base">
-                {user.user_metadata?.full_name || user.email}
+                {user.name || user.user_metadata?.full_name || user.email}
               </p>
               <p className="text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
             </div>

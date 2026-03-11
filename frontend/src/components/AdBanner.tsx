@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 
 interface AdSlot {
   id: string;
@@ -72,6 +72,13 @@ export function AdBanner({ position }: { position: string }) {
   useEffect(() => {
     let mounted = true;
     setStatus('loading');
+
+    // Skip ad fetch if Supabase is not configured
+    if (!isSupabaseConfigured) {
+      setAd(null);
+      setStatus('loaded');
+      return;
+    }
 
     (async () => {
       try {
@@ -232,6 +239,9 @@ export function PopUnderLoader() {
   const [scripts, setScripts] = useState<string[]>([]);
 
   useEffect(() => {
+    // Skip if Supabase not configured
+    if (!isSupabaseConfigured) return;
+    
     supabase
       .from('ad_slots')
       .select('id, ad_code')

@@ -1,4 +1,4 @@
-const GOOGLE_TRANSLATE_API_KEY = 'AIzaSyBwFHv3bkEEWemeykzLK8oqB-ps6OrO5po';
+const GOOGLE_TRANSLATE_API_KEY = import.meta.env.VITE_GOOGLE_TRANSLATE_KEY || '';
 
 // All UI strings in Arabic (source language)
 const arabicStrings: Record<string, string> = {
@@ -494,6 +494,11 @@ async function translateBatch(targetLang: string): Promise<Record<string, string
   }
 
   try {
+    // If no API key configured, fall back to Arabic
+    if (!GOOGLE_TRANSLATE_API_KEY) {
+      return arabicStrings;
+    }
+
     const keys = Object.keys(arabicStrings);
     const texts = Object.values(arabicStrings);
 

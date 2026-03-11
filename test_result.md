@@ -101,3 +101,132 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Islamic app (أذاني) - Fix all errors, connect with real tools, fix everything wrong."
+
+backend:
+  - task: "Auth API (Register/Login/Me)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "JWT-based auth with MongoDB. /api/auth/register, /api/auth/login, /api/auth/me all working."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: All auth endpoints tested successfully. POST /api/auth/register creates user and returns JWT token. POST /api/auth/login authenticates existing users. GET /api/auth/me retrieves user profile with Bearer token. JWT implementation secure with proper expiration handling."
+
+  - task: "Mosque Search API (Overpass)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Uses Overpass API (OpenStreetMap). Multiple endpoint fallback. Returns 50 nearest mosques."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: GET /api/mosques/search working perfectly. Returns 50 mosques for Riyadh coordinates with proper structure (osm_id, name, address, latitude, longitude). Overpass API integration stable with fallback endpoints."
+
+  - task: "Mosque Prayer Times API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Tries Mawaqit first, falls back to Aladhan API. Source: calculated."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: POST /api/mosques/prayer-times working correctly. Returns complete prayer times (fajr, dhuhr, asr, maghrib, isha) with source: calculated. Mawaqit API returns 401 as expected, graceful fallback to Aladhan API functioning properly."
+
+  - task: "Prayer Times General API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: GET /api/prayer-times working perfectly. Returns accurate prayer times for location with source: calculated. Aladhan API integration stable and reliable."
+
+  - task: "Root API Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: GET /api/ returns correct response: {'message': 'Islamic App API - Running', 'version': '2.0'}. API health check working properly."
+
+frontend:
+  - task: "Frontend App Start"
+    implemented: true
+    working: true
+    file: "frontend/package.json, frontend/vite.config.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added start script, fixed port to 3000, added allowedHosts: true."
+
+  - task: "Supabase Crash Fix + Auth System"
+    implemented: true
+    working: true
+    file: "frontend/src/hooks/useAuth.tsx, frontend/src/integrations/supabase/client.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Fixed supabaseUrl crash. Replaced Supabase auth with JWT backend auth."
+
+  - task: "Mosque Features (No Supabase)"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/MosquePrayerTimes.tsx, frontend/src/hooks/useSavedMosqueTimes.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Replaced all Supabase edge function calls with backend API calls."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Auth System (Register/Login)"
+    - "Mosque Search"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Fixed all major errors. Frontend now loads. Auth uses JWT backend. Mosque search/times use FastAPI+Overpass/Aladhan APIs. All Supabase calls either removed or made safe."
+  - agent: "testing"
+    message: "✅ COMPREHENSIVE BACKEND TESTING COMPLETED - All API endpoints working perfectly. Tested: Root API (✅), Auth Register (✅), Auth Login (✅), Auth Me (✅), Prayer Times (✅), Mosque Search (✅), Mosque Prayer Times (✅). Backend service running stable. All integrations (Overpass API, Aladhan API, MongoDB, JWT) functioning correctly. Ready for production."

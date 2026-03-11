@@ -196,7 +196,8 @@ export default function Index() {
           alt="المسجد الحرام"
           className="w-full h-full object-cover scale-105"
           loading="eager"
-          fetchPriority="high"
+          // @ts-ignore - fetchpriority is valid HTML but React types are behind
+          fetchpriority="high"
           width="1335"
           height="280"
           decoding="async"

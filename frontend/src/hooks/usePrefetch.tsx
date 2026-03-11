@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
-import { supabase } from '@/integrations/supabase/client';
 
 // In-memory cache for instant access (no parsing needed)
 let mosquesCache: any[] | null = null;
 let mosquesFetchPromise: Promise<any[]> | null = null;
 let quranIndexCache: any[] | null = null;
 let pagesPreloaded = false;
+
+const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
 
 /**
  * Prefetches data for all major sections on app load
@@ -44,12 +45,13 @@ function prefetchMosques(lat: number, lon: number): Promise<any[]> {
 
   mosquesFetchPromise = (async () => {
     try {
-      const { data } = await supabase.functions.invoke('search-mosques', {
-        body: { lat, lon, radius: 10000 },
-      });
-      if (data?.mosques) {
-        mosquesCache = data.mosques;
-        return data.mosques;
+      const res = await fetch(`${BACKEND_URL}/api/mosques/search?lat=${lat}&lon=${lon}&radius=10000`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.mosques) {
+          mosquesCache = data.mosques;
+          return data.mosques;
+        }
       }
     } catch { /* silent */ }
     return [];

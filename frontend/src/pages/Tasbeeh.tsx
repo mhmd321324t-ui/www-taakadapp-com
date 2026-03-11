@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { RotateCcw, LogIn, Sparkles, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -31,38 +30,19 @@ export default function Tasbeeh() {
 
   const dhikr = dhikrOptions[selected];
   const today = getTodayKey();
+  const TASBEEH_LOCAL_KEY = `tasbeeh-${dhikr.key}-${today}`;
+  const TASBEEH_TOTAL_KEY = `tasbeeh-total-${dhikr.key}`;
 
   useEffect(() => {
-    if (user) {
-      loadFromDB();
-    } else {
-      const saved = localStorage.getItem('tasbeeh-total');
-      setTotal(saved ? parseInt(saved) : 0);
-      setCount(0);
-      setLoading(false);
-    }
-  }, [user, selected]);
+    const savedCount = parseInt(localStorage.getItem(TASBEEH_LOCAL_KEY) || '0');
+    const savedTotal = parseInt(localStorage.getItem(TASBEEH_TOTAL_KEY) || '0');
+    setCount(savedCount);
+    setTotal(savedTotal);
+    setLoading(false);
+  }, [selected, TASBEEH_LOCAL_KEY, TASBEEH_TOTAL_KEY]);
 
   const loadFromDB = async () => {
-    if (!user) return;
-    setLoading(true);
-    const { data: todayData } = await supabase
-      .from('tasbeeh_counts')
-      .select('count, total')
-      .eq('user_id', user.id)
-      .eq('dhikr_key', dhikr.key)
-      .eq('date', today)
-      .maybeSingle();
-
-    const { data: totalData } = await supabase
-      .from('tasbeeh_counts')
-      .select('total')
-      .eq('user_id', user.id)
-      .eq('dhikr_key', dhikr.key);
-
-    const overallTotal = totalData?.reduce((sum, row) => sum + (row.total || 0), 0) || 0;
-    setCount(todayData?.count || 0);
-    setTotal(overallTotal);
+    // Uses localStorage for now
     setLoading(false);
   };
 
@@ -80,28 +60,14 @@ export default function Tasbeeh() {
       setTimeout(() => setShowComplete(false), 2000);
     }
 
-    if (user) {
-      await supabase
-        .from('tasbeeh_counts')
-        .upsert(
-          { user_id: user.id, dhikr_key: dhikr.key, date: today, count: newCount, total: newCount },
-          { onConflict: 'user_id,dhikr_key,date' }
-        );
-    } else {
-      localStorage.setItem('tasbeeh-total', String(newTotal));
-    }
+    // Always save to localStorage
+    localStorage.setItem(TASBEEH_LOCAL_KEY, String(newCount));
+    localStorage.setItem(TASBEEH_TOTAL_KEY, String(newTotal));
   };
 
   const handleReset = async () => {
     setCount(0);
-    if (user) {
-      await supabase
-        .from('tasbeeh_counts')
-        .upsert(
-          { user_id: user.id, dhikr_key: dhikr.key, date: today, count: 0, total: 0 },
-          { onConflict: 'user_id,dhikr_key,date' }
-        );
-    }
+    localStorage.setItem(TASBEEH_LOCAL_KEY, '0');
   };
 
   const handleSelectDhikr = (i: number) => {

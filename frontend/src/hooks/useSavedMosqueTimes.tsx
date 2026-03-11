@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import type { PrayerTime } from './usePrayerTimes';
 
 const SAVED_MOSQUE_KEY = 'selected_mosque';
 const SAVED_TIMES_PREFIX = 'mosque_times_';
 const SAVED_DIFFS_PREFIX = 'mosque_diffs_';
 const LIVE_CACHE_PREFIX = 'mosque_live_';
+
+const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
 
 type TimesSource = 'manual' | 'mawaqit' | 'website' | 'api' | 'calculated' | 'none';
 
@@ -172,30 +173,35 @@ export function useSavedMosqueTimes(): SavedMosqueData {
         } catch {}
       }
 
-      // 3. Edge function — use mosque's own coordinates (each mosque is at a different location)
+      // 3. Backend API — use mosque's own coordinates
       const lat = mosque.latitude || calcSettings.latitude;
       const lon = mosque.longitude || calcSettings.longitude;
       try {
-        const { data: liveData, error } = await supabase.functions.invoke('fetch-mosque-times', {
-          body: {
+        const res = await fetch(`${BACKEND_URL}/api/mosques/prayer-times`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             mosqueName: mosque.name,
             latitude: lat,
             longitude: lon,
             method: calcSettings.method,
             school: calcSettings.school,
-          },
+          }),
         });
 
-        if (!error && liveData?.success && liveData?.times) {
-          localStorage.setItem(liveCacheKey, JSON.stringify({ times: liveData.times, source: liveData.source }));
-          setData({
-            mosqueName: mosque.name,
-            prayers: timesMapToPrayers(applyDiffsToTimes(liveData.times, diffs), is12h),
-            loading: false,
-            source: (liveData.source as TimesSource) || 'calculated',
-          });
-          lastFetchRef.current = Date.now();
-          return;
+        if (res.ok) {
+          const liveData = await res.json();
+          if (liveData?.success && liveData?.times) {
+            localStorage.setItem(liveCacheKey, JSON.stringify({ times: liveData.times, source: liveData.source }));
+            setData({
+              mosqueName: mosque.name,
+              prayers: timesMapToPrayers(applyDiffsToTimes(liveData.times, diffs), is12h),
+              loading: false,
+              source: (liveData.source as TimesSource) || 'calculated',
+            });
+            lastFetchRef.current = Date.now();
+            return;
+          }
         }
       } catch {}
 

@@ -1,82 +1,125 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
-import { clearLovableAuthStorage, isRefreshTokenNotFoundError } from '@/lib/authStorage';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+
+const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
+const AUTH_TOKEN_KEY = 'auth_token';
+const AUTH_USER_KEY = 'auth_user';
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  created_at?: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  getToken: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  session: null,
   loading: true,
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
   signOut: async () => {},
+  getToken: () => null,
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load user from localStorage on mount
   useEffect(() => {
-    let alive = true;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!alive) return;
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setLoading((prev) => (prev ? false : prev));
-    });
-
-    (async () => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const savedUser = localStorage.getItem(AUTH_USER_KEY);
+    if (token && savedUser) {
       try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error && isRefreshTokenNotFoundError(error)) {
-          // Broken local session: clear and force local sign-out so the app can recover.
-          clearLovableAuthStorage();
-          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-
-          if (!alive) return;
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        if (!alive) return;
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
-        setLoading(false);
-      } catch (err) {
-        if (!alive) return;
-        if (isRefreshTokenNotFoundError(err)) {
-          clearLovableAuthStorage();
-          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-        }
-        setSession(null);
-        setUser(null);
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        // Verify token is still valid with backend
+        fetch(`${BACKEND_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) setUser(data);
+            else {
+              localStorage.removeItem(AUTH_TOKEN_KEY);
+              localStorage.removeItem(AUTH_USER_KEY);
+              setUser(null);
+            }
+          })
+          .catch(() => { /* Keep local user if network fails */ })
+          .finally(() => setLoading(false));
+      } catch {
         setLoading(false);
       }
-    })();
-
-    return () => {
-      alive = false;
-      subscription.unsubscribe();
-    };
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const signOut = async () => {
-    clearLovableAuthStorage();
-    await supabase.auth.signOut({ scope: 'local' });
-  };
+  const signIn = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { error: new Error(data.detail || 'Login failed') };
+      }
+      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+      setUser(data.user);
+      return { error: null };
+    } catch (e: any) {
+      return { error: e };
+    }
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string, name?: string) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { error: new Error(data.detail || 'Registration failed') };
+      }
+      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+      setUser(data.user);
+      return { error: null };
+    } catch (e: any) {
+      return { error: e };
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    setUser(null);
+  }, []);
+
+  const getToken = useCallback(() => {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, getToken }}>
       {children}
     </AuthContext.Provider>
   );
