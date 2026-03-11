@@ -42,8 +42,8 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
             </svg>
           </div>
 
-          <h1 className="relative z-10 text-3xl font-bold text-foreground mb-2">صلاتي</h1>
-          <p className="relative z-10 text-sm text-muted-foreground">رفيقك الإسلامي اليومي</p>
+          <h1 className="relative z-10 text-3xl font-bold text-foreground mb-2">المؤذن العالمي</h1>
+          <p className="relative z-10 text-sm text-muted-foreground">مواقيت الصلاة والأذان في كل مكان</p>
         </motion.div>
       )}
     </AnimatePresence>

@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Sparkles, RefreshCw, BookOpen, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { duasData } from '@/data/duas';
 import { useFavoriteDuas } from '@/hooks/useFavoriteDuas';
+
+const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
 
 interface AiDua {
   arabic: string;
@@ -82,11 +83,10 @@ export default function DailyDuas() {
   const fetchDuas = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('daily-duas', {
-        body: { context },
-      });
-      if (!error && data?.duas && Array.isArray(data.duas) && data.duas.length > 0) {
-        setDuas(data.duas);
+      const res = await fetch(`${BACKEND_URL}/api/ai/daily-athkar?context=${context}`);
+      const data = await res.json();
+      if (data?.athkar && Array.isArray(data.athkar) && data.athkar.length > 0) {
+        setDuas(data.athkar.map((a: any) => ({ arabic: a.text || a.arabic, reference: a.reference || '', count: a.count || 3 })));
         setIsAi(true);
       } else {
         throw new Error("fallback");

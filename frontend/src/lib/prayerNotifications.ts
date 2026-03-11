@@ -96,36 +96,51 @@ export function formatPrayerTime(date: Date, is12h = false): string {
 
 // ==================== NOTIFICATION SCHEDULER ====================
 
-let scheduledTimers: ReturnType<typeof setTimeout>[] = [];
+export type AthanAlertCallback = (prayerKey: string, prayerTime: string) => void;
 
-export function schedulePrayerNotifications(lat: number, lon: number, method: PrayerMethod = 'UmmAlQura', enabledPrayers: string[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'], reminderMinutes = 0) {
-  // Clear existing timers
+let scheduledTimers: ReturnType<typeof setTimeout>[] = [];
+let athanAlertCallback: AthanAlertCallback | null = null;
+
+export function setAthanAlertCallback(cb: AthanAlertCallback | null) {
+  athanAlertCallback = cb;
+}
+
+interface PrayerTimeInput {
+  key: string;
+  time24: string;
+  time?: string;
+  name?: string;
+}
+
+export function schedulePrayerNotifications(prayers: PrayerTimeInput[], enabledPrayers?: string[], reminderMinutes = 0) {
   clearPrayerSchedule();
   
   try {
-    const times = calculatePrayerTimes(lat, lon, method);
-    const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
+    const enabled = enabledPrayers || ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
     
     for (const prayer of prayers) {
-      if (!enabledPrayers.includes(prayer)) continue;
+      if (!enabled.includes(prayer.key)) continue;
+      if (prayer.key === 'sunrise') continue;
       
-      const prayerTime = times[prayer];
-      const now = Date.now();
-      const diff = prayerTime.getTime() - now;
+      const [h, m] = prayer.time24.split(':').map(Number);
+      const now = new Date();
+      const prayerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+      const diff = prayerDate.getTime() - now.getTime();
       
-      // Schedule main notification (at prayer time)
       if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
         const timer = setTimeout(() => {
-          showPrayerNotification(prayer);
+          showPrayerNotification(prayer.key);
+          if (athanAlertCallback) {
+            athanAlertCallback(prayer.key, prayer.time || prayer.time24);
+          }
         }, diff);
         scheduledTimers.push(timer);
         
-        // Schedule reminder (X minutes before)
         if (reminderMinutes > 0) {
           const reminderDiff = diff - reminderMinutes * 60 * 1000;
           if (reminderDiff > 0) {
             const reminderTimer = setTimeout(() => {
-              showPrayerReminder(prayer, reminderMinutes);
+              showPrayerReminder(prayer.key, reminderMinutes);
             }, reminderDiff);
             scheduledTimers.push(reminderTimer);
           }

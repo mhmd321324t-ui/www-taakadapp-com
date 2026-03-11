@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Check, Flame, LogIn, ListChecks } from 'lucide-react';
@@ -25,39 +24,12 @@ export default function PrayerTracker() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      loadFromDB();
-    } else {
-      const saved = localStorage.getItem('prayer-tracker');
-      const parsed = saved ? JSON.parse(saved) : {};
-      setAllTracking(parsed);
-      setTodayPrayers(parsed[todayKey] || []);
-      setLoading(false);
-    }
-  }, [user, todayKey]);
-
-  const loadFromDB = async () => {
-    if (!user) return;
-    setLoading(true);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data } = await supabase
-      .from('prayer_tracking')
-      .select('date, prayers_completed')
-      .eq('user_id', user.id)
-      .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
-      .order('date', { ascending: false });
-
-    const trackingMap: Record<string, string[]> = {};
-    data?.forEach(row => {
-      trackingMap[row.date] = row.prayers_completed || [];
-    });
-
-    setAllTracking(trackingMap);
-    setTodayPrayers(trackingMap[todayKey] || []);
+    const saved = localStorage.getItem('prayer-tracker');
+    const parsed = saved ? JSON.parse(saved) : {};
+    setAllTracking(parsed);
+    setTodayPrayers(parsed[todayKey] || []);
     setLoading(false);
-  };
+  }, [todayKey]);
 
   const togglePrayer = async (key: string) => {
     const updated = todayPrayers.includes(key)
@@ -67,18 +39,9 @@ export default function PrayerTracker() {
     setTodayPrayers(updated);
     setAllTracking(prev => ({ ...prev, [todayKey]: updated }));
 
-    if (user) {
-      await supabase
-        .from('prayer_tracking')
-        .upsert(
-          { user_id: user.id, date: todayKey, prayers_completed: updated },
-          { onConflict: 'user_id,date' }
-        );
-    } else {
-      const saved = JSON.parse(localStorage.getItem('prayer-tracker') || '{}');
-      saved[todayKey] = updated;
-      localStorage.setItem('prayer-tracker', JSON.stringify(saved));
-    }
+    const saved = JSON.parse(localStorage.getItem('prayer-tracker') || '{}');
+    saved[todayKey] = updated;
+    localStorage.setItem('prayer-tracker', JSON.stringify(saved));
   };
 
   const streak = (() => {

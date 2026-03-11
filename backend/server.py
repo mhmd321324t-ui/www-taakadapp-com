@@ -558,48 +558,24 @@ async def get_daily_athkar(req: DhikrAIRequest):
     if req.occasion:
         prompt += f". المناسبة: {req.occasion}"
     
-    # Try Gemini first
-    if GEMINI_API_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=20) as c:
-                r = await c.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
-                    json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 1024}}
-                )
-                if r.status_code == 200:
-                    text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
-                    # Extract JSON from response
-                    json_match = re.search(r'\[.*\]', text, re.DOTALL)
-                    if json_match:
-                        athkar = json_module.loads(json_match.group())
-                        return {"success": True, "source": "gemini", "athkar": athkar, "time_of_day": req.time_of_day}
-        except Exception as e:
-            logger.warning(f"Gemini failed: {e}")
-    
-    # Fallback to Emergent LLM (OpenAI compatible)
+    # Try Emergent LLM with Gemini
     if EMERGENT_LLM_KEY:
         try:
-            async with httpx.AsyncClient(timeout=20) as c:
-                r = await c.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {EMERGENT_LLM_KEY}"},
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "أنت عالم إسلامي متخصص في الأذكار والأدعية. أجب دائماً بـ JSON صحيح فقط."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.7, "max_tokens": 1024
-                    }
-                )
-                if r.status_code == 200:
-                    text = r.json()["choices"][0]["message"]["content"]
-                    json_match = re.search(r'\[.*\]', text, re.DOTALL)
-                    if json_match:
-                        athkar = json_module.loads(json_match.group())
-                        return {"success": True, "source": "ai", "athkar": athkar, "time_of_day": req.time_of_day}
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"athkar-{req.time_of_day}-{date.today().isoformat()}",
+                system_message="أنت عالم إسلامي متخصص في الأذكار والأدعية من الكتاب والسنة. أجب دائماً بـ JSON array صحيح فقط بدون أي نص إضافي."
+            ).with_model("gemini", "gemini-2.0-flash")
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            if response:
+                json_match = re.search(r'\[.*\]', response, re.DOTALL)
+                if json_match:
+                    athkar = json_module.loads(json_match.group())
+                    return {"success": True, "source": "gemini", "athkar": athkar, "time_of_day": req.time_of_day}
         except Exception as e:
-            logger.warning(f"LLM fallback failed: {e}")
+            logger.warning(f"Emergent Gemini failed: {e}")
     
     # Fallback to static athkar
     return {
@@ -634,30 +610,20 @@ async def smart_reminder(data: dict):
     
     prompt = f"أعطني تذكير إسلامي قصير (جملة واحدة) مناسب لشخص يبقى {minutes_left} دقيقة قبل صلاة {prayer}. أجب بالعربية فقط."
     
-    for api_key, model, base_url in [
-        (GEMINI_API_KEY, "gemini-1.5-flash", None),
-        (EMERGENT_LLM_KEY, "gpt-4o-mini", "https://api.openai.com/v1"),
-    ]:
-        if not api_key:
-            continue
+    if EMERGENT_LLM_KEY:
         try:
-            async with httpx.AsyncClient(timeout=10) as c:
-                if model.startswith("gemini"):
-                    r = await c.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
-                        json={"contents": [{"parts": [{"text": prompt}]}]}
-                    )
-                    if r.status_code == 200:
-                        return {"reminder": r.json()["candidates"][0]["content"]["parts"][0]["text"]}
-                else:
-                    r = await c.post(f"{base_url}/chat/completions",
-                        headers={"Authorization": f"Bearer {api_key}"},
-                        json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 100}
-                    )
-                    if r.status_code == 200:
-                        return {"reminder": r.json()["choices"][0]["message"]["content"]}
-        except Exception:
-            continue
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"reminder-{prayer}-{datetime.now().isoformat()}",
+                system_message="أنت مذكّر إسلامي لطيف. أجب بجملة واحدة فقط بالعربية."
+            ).with_model("gemini", "gemini-2.0-flash")
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            if response:
+                return {"reminder": response.strip()}
+        except Exception as e:
+            logger.warning(f"Emergent reminder failed: {e}")
     
     reminders = [
         "تذكر أن الصلاة عماد الدين، استعد لها بالوضوء",
@@ -686,6 +652,58 @@ async def hijri_date(lat: float = Query(24.68), lon: float = Query(46.72)):
         }
     except Exception as e:
         raise HTTPException(500, str(e))
+
+# ==================== DAILY HADITH ====================
+STATIC_HADITHS = [
+    {"text": "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى", "narrator": "عمر بن الخطاب", "source": "صحيح البخاري", "number": "1"},
+    {"text": "مَنْ كَانَ يُؤْمِنُ بِاللهِ وَالْيَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ", "narrator": "أبو هريرة", "source": "صحيح البخاري ومسلم", "number": "15"},
+    {"text": "لا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ", "narrator": "أنس بن مالك", "source": "صحيح البخاري ومسلم", "number": "13"},
+    {"text": "الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ", "narrator": "عبد الله بن عمرو", "source": "صحيح البخاري", "number": "10"},
+    {"text": "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللهُ لَهُ بِهِ طَرِيقًا إِلَى الجَنَّةِ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2699"},
+    {"text": "إِنَّ اللهَ لا يَنْظُرُ إِلَى صُوَرِكُمْ وَأَمْوَالِكُمْ، وَلَكِنْ يَنْظُرُ إِلَى قُلُوبِكُمْ وَأَعْمَالِكُمْ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2564"},
+    {"text": "الطُّهُورُ شَطْرُ الإِيمَانِ، وَالحَمْدُ لِلَّهِ تَمْلأُ المِيزَانَ", "narrator": "أبو مالك الأشعري", "source": "صحيح مسلم", "number": "223"},
+    {"text": "خَيْرُكُمْ مَنْ تَعَلَّمَ القُرْآنَ وَعَلَّمَهُ", "narrator": "عثمان بن عفان", "source": "صحيح البخاري", "number": "5027"},
+    {"text": "الدُّعَاءُ هُوَ الْعِبَادَةُ", "narrator": "النعمان بن بشير", "source": "سنن الترمذي", "number": "3247"},
+    {"text": "مَا مِنْ عَبْدٍ يَسْتَغْفِرُ اللهَ إِلا غَفَرَ اللهُ لَهُ", "narrator": "أبو هريرة", "source": "سنن الترمذي", "number": "3559"},
+    {"text": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ", "narrator": "أبو ذر", "source": "سنن الترمذي", "number": "1956"},
+    {"text": "أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ", "narrator": "عائشة", "source": "صحيح البخاري ومسلم", "number": "6464"},
+    {"text": "الدُّنْيَا سِجْنُ الْمُؤْمِنِ وَجَنَّةُ الْكَافِرِ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2956"},
+    {"text": "مَنْ صَلَّى عَلَيَّ صَلاةً صَلَّى اللهُ عَلَيْهِ بِهَا عَشْرًا", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "408"},
+    {"text": "اتَّقِ اللهَ حَيْثُمَا كُنْتَ وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا وَخَالِقِ النَّاسَ بِخُلُقٍ حَسَنٍ", "narrator": "معاذ بن جبل", "source": "سنن الترمذي", "number": "1987"},
+    {"text": "الصَّلَوَاتُ الْخَمْسُ وَالْجُمُعَةُ إِلَى الْجُمُعَةِ كَفَّارَاتٌ لِمَا بَيْنَهُنَّ مَا اجْتُنِبَتِ الْكَبَائِرُ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "233"},
+    {"text": "إِذَا مَاتَ الإِنْسَانُ انْقَطَعَ عَمَلُهُ إِلا مِنْ ثَلاثٍ: صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "1631"},
+    {"text": "رِضَا اللهِ فِي رِضَا الْوَالِدَيْنِ وَسَخَطُ اللهِ فِي سَخَطِ الْوَالِدَيْنِ", "narrator": "عبد الله بن عمرو", "source": "سنن الترمذي", "number": "1899"},
+    {"text": "مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ إِلا عِزًّا", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2588"},
+    {"text": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ ثَقِيلَتَانِ فِي المِيزَانِ: سُبْحَانَ اللهِ وَبِحَمْدِهِ سُبْحَانَ اللهِ العَظِيمِ", "narrator": "أبو هريرة", "source": "صحيح البخاري ومسلم", "number": "6406"},
+    {"text": "لَا تَحَاسَدُوا وَلَا تَنَاجَشُوا وَلَا تَبَاغَضُوا وَلَا تَدَابَرُوا وَكُونُوا عِبَادَ اللهِ إِخْوَانًا", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2564"},
+    {"text": "مَنْ قَرَأَ آيَةَ الْكُرْسِيِّ دُبُرَ كُلِّ صَلاةٍ مَكْتُوبَةٍ لَمْ يَمْنَعْهُ مِنْ دُخُولِ الْجَنَّةِ إِلا أَنْ يَمُوتَ", "narrator": "أبو أمامة", "source": "سنن النسائي", "number": "9928"},
+    {"text": "إِنَّ مِنْ أَحَبِّكُمْ إِلَيَّ وَأَقْرَبِكُمْ مِنِّي مَجْلِسًا يَوْمَ الْقِيَامَةِ أَحَاسِنُكُمْ أَخْلاقًا", "narrator": "جابر", "source": "سنن الترمذي", "number": "2018"},
+    {"text": "الْجَنَّةُ تَحْتَ أَقْدَامِ الأُمَّهَاتِ", "narrator": "أنس بن مالك", "source": "سنن النسائي", "number": "3104"},
+    {"text": "اقْرَأُوا الْقُرْآنَ فَإِنَّهُ يَأْتِي يَوْمَ الْقِيَامَةِ شَفِيعًا لِأَصْحَابِهِ", "narrator": "أبو أمامة", "source": "صحيح مسلم", "number": "804"},
+    {"text": "مَنْ يُرِدِ اللهُ بِهِ خَيْرًا يُفَقِّهْهُ فِي الدِّينِ", "narrator": "معاوية بن أبي سفيان", "source": "صحيح البخاري", "number": "71"},
+    {"text": "الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللهِ مِنَ الْمُؤْمِنِ الضَّعِيفِ وَفِي كُلٍّ خَيْرٌ", "narrator": "أبو هريرة", "source": "صحيح مسلم", "number": "2664"},
+    {"text": "بُنِيَ الإِسْلامُ عَلَى خَمْسٍ: شَهَادَةِ أَنْ لا إِلَهَ إِلا اللهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللهِ وَإِقَامِ الصَّلاةِ وَإِيتَاءِ الزَّكَاةِ وَصَوْمِ رَمَضَانَ وَحَجِّ الْبَيْتِ", "narrator": "ابن عمر", "source": "صحيح البخاري ومسلم", "number": "8"},
+    {"text": "مَثَلُ الَّذِي يَذْكُرُ رَبَّهُ وَالَّذِي لا يَذْكُرُ رَبَّهُ مَثَلُ الْحَيِّ وَالْمَيِّتِ", "narrator": "أبو موسى الأشعري", "source": "صحيح البخاري", "number": "6407"},
+    {"text": "مَا مَلَأَ آدَمِيٌّ وِعَاءً شَرًّا مِنْ بَطْنٍ", "narrator": "المقدام بن معدي كرب", "source": "سنن الترمذي", "number": "2380"},
+]
+
+@api_router.get("/daily-hadith")
+async def daily_hadith():
+    """Get today's hadith - rotates daily from collection"""
+    today = date.today()
+    day_of_year = today.timetuple().tm_yday
+    idx = day_of_year % len(STATIC_HADITHS)
+    hadith = STATIC_HADITHS[idx]
+    return {
+        "success": True,
+        "hadith": {
+            "text": hadith["text"],
+            "narrator": hadith["narrator"],
+            "source": hadith["source"],
+            "number": hadith["number"],
+        },
+        "date": today.isoformat(),
+    }
 
 # ==================== QURAN ====================
 @api_router.get("/quran/surah/{number}")

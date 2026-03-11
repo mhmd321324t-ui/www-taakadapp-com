@@ -2,6 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useDailyReminders } from '@/hooks/useDailyReminders';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import {
   Compass, Heart, Calculator, User,
@@ -196,6 +197,24 @@ export default function More() {
         <div className="rounded-3xl bg-card border border-border/50 p-5 shadow-elevated">
           <h2 className="text-foreground mb-3">🔊 صوت الأذان</h2>
           <AthanSelector />
+        </div>
+      </div>
+
+      {/* Theme Toggle */}
+      <div className="px-5 mt-5 mb-8">
+        <div className="rounded-3xl bg-card border border-border/50 p-5 shadow-elevated">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center">
+                <Moon className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">المظهر</p>
+                <p className="text-xs text-muted-foreground">تبديل الوضع الداكن / الفاتح</p>
+              </div>
+            </div>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </div>

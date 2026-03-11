@@ -23,7 +23,7 @@ import { subscribeToPush, unsubscribeFromPush, updatePushMosqueTimes } from '@/l
 import { useSearchParams } from 'react-router-dom';
 
 // Lazy load below-the-fold components
-const VideoContentCarousel = lazy(() => import('@/components/VideoContentCarousel'));
+const DailyHadith = lazy(() => import('@/components/DailyHadith'));
 const QuranPlayer = lazy(() => import('@/components/QuranPlayer'));
 const SuggestedGoals = lazy(() => import('@/components/SuggestedGoals'));
 const HijriCalendar = lazy(() => import('@/components/HijriCalendar'));
@@ -435,9 +435,9 @@ export default function Index() {
 
       <AdBanner position="home-middle" />
 
-      {/* ===== VIDEO CONTENT (lazy) ===== */}
+      {/* ===== DAILY HADITH (lazy) ===== */}
       <Suspense fallback={<div className="h-40" />}>
-        <VideoContentCarousel />
+        <DailyHadith />
       </Suspense>
 
       {/* ===== DAILY GOALS ===== */}
