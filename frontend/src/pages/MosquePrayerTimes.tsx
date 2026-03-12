@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { getPrefetchedMosques, waitForPrefetchedMosques } from '@/hooks/usePrefetch';
+import { MosqueService } from '@/lib/MosqueService';
 import { toast } from 'sonner';
 
 const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
@@ -461,16 +462,23 @@ export default function MosquePrayerTimesPage() {
     setSelectedMosque(mosque);
     setEditing(false);
     setTimeDiffs(emptyDiffs);
-    localStorage.setItem(SAVED_MOSQUE_KEY, JSON.stringify(mosque));
+    // Use MosqueService for instant propagation to all pages
+    MosqueService.selectMosque({
+      osm_id: mosque.osm_id,
+      mawaqit_uuid: (mosque as any).mawaqit_uuid,
+      name: mosque.name,
+      address: mosque.address,
+      latitude: mosque.latitude,
+      longitude: mosque.longitude,
+      hasMawaqit: mosque.hasAutoSync,
+    });
     loadTimesForMosque(mosque);
-    // userId-based DB sync removed (no auth configured)
-    if (userId) {
-      toast.success('تم ربط المسجد — الأوقات تتحدث تلقائياً ✅');
-    }
+    toast.success('تم ربط المسجد — الأوقات تتحدث فوراً في كل الصفحات ✅');
   };
 
   const unlinkMosque = () => {
-    localStorage.removeItem(SAVED_MOSQUE_KEY);
+    // Use MosqueService for instant propagation
+    MosqueService.unlinkMosque();
     if (selectedMosque?.osm_id) {
       localStorage.removeItem(SAVED_TIMES_PREFIX + selectedMosque.osm_id);
       localStorage.removeItem(SAVED_DIFFS_PREFIX + selectedMosque.osm_id);

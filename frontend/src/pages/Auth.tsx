@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { signInWithGoogle } from '@/lib/firebase';
 
 const BACKEND_URL = import.meta.env.REACT_APP_BACKEND_URL || '';
 
@@ -35,17 +34,45 @@ export default function Auth() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      toast.error('يرجى ملء جميع الحقول');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      return;
+    }
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) toast.error(error.message || 'بيانات الدخول غير صحيحة');
-        else { toast.success('أهلاً بك! ✅'); navigate('/'); }
+        const { error } = await signIn(email.trim(), password);
+        if (error) {
+          const msg = error.message || '';
+          if (msg.includes('غير صحيحة') || msg.includes('401')) {
+            toast.error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+          } else {
+            toast.error(msg || 'حدث خطأ أثناء تسجيل الدخول');
+          }
+        } else {
+          toast.success('أهلاً بك!');
+          navigate('/');
+        }
       } else {
-        const { error } = await signUp(email, password, name);
-        if (error) toast.error(error.message || 'حدث خطأ، حاول مرة أخرى');
-        else { toast.success('تم إنشاء حسابك بنجاح ✅'); navigate('/'); }
+        const { error } = await signUp(email.trim(), password, name.trim());
+        if (error) {
+          const msg = error.message || '';
+          if (msg.includes('مسجل')) {
+            toast.error('هذا البريد الإلكتروني مسجل مسبقاً');
+          } else {
+            toast.error(msg || 'حدث خطأ أثناء إنشاء الحساب');
+          }
+        } else {
+          toast.success('تم إنشاء حسابك بنجاح');
+          navigate('/');
+        }
       }
+    } catch {
+      toast.error('حدث خطأ في الاتصال. تأكد من اتصالك بالإنترنت');
     } finally {
       setLoading(false);
     }
@@ -54,38 +81,58 @@ export default function Auth() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
+      // Dynamically import firebase to avoid issues if not configured
+      const { signInWithGoogle } = await import('@/lib/firebase');
       const result = await signInWithGoogle();
-      if (!result) { toast.error('فشل تسجيل الدخول بـ Google'); return; }
-      
+      if (!result) {
+        toast.error('تم إلغاء تسجيل الدخول بـ Google');
+        return;
+      }
+
       // Exchange Firebase token for app JWT
       const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_token: result.idToken }),
       });
-      
-      if (!res.ok) { toast.error('فشل التحقق من الحساب'); return; }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.detail || 'فشل التحقق من حساب Google');
+        return;
+      }
+
       const data = await res.json();
-      
-      // Use the signIn mechanism to store the token
       localStorage.setItem('auth_token', data.access_token);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      toast.success('أهلاً بك!');
       window.location.href = '/';
-    } catch (err) {
+    } catch (err: any) {
       console.error('Google login error:', err);
-      toast.error('حدث خطأ أثناء تسجيل الدخول');
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user') {
+        toast.error('تم إغلاق نافذة Google');
+      } else if (code === 'auth/unauthorized-domain') {
+        toast.error('هذا النطاق غير مصرح به في إعدادات Firebase');
+      } else if (code.includes('invalid')) {
+        toast.error('حدث خطأ في إعدادات Google. استخدم البريد وكلمة المرور');
+      } else {
+        toast.error('حدث خطأ أثناء تسجيل الدخول بـ Google');
+      }
     } finally {
       setGoogleLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col pb-24" dir="rtl">
+    <div className="min-h-screen flex flex-col pb-24" dir="rtl" data-testid="auth-page">
       {/* Hero */}
       <div className="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-green-900 px-5 pb-14 pt-safe-header text-center overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/mecca-hero.webp')] bg-cover bg-center" />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
-          <div className="text-5xl mb-3">🕌</div>
+          <div className="h-16 w-16 mx-auto mb-3 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-3xl">🕌</span>
+          </div>
           <h1 className="text-3xl font-bold font-arabic text-white mb-1">المؤذن العالمي</h1>
           <p className="text-white/70 text-sm">رفيقك الروحي في كل وقت</p>
         </motion.div>
@@ -94,10 +141,18 @@ export default function Auth() {
 
       <div className="flex-1 px-5 pt-6 max-w-md mx-auto w-full">
         {/* Tabs */}
-        <div className="flex bg-muted rounded-2xl p-1 mb-6">
+        <div className="flex bg-muted rounded-2xl p-1 mb-6" data-testid="auth-tabs">
           {(['login', 'signup'] as const).map(tab => (
-            <button key={tab} onClick={() => setIsLogin(tab === 'login')}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${isLogin === (tab === 'login') ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'}`}>
+            <button
+              key={tab}
+              onClick={() => setIsLogin(tab === 'login')}
+              data-testid={`auth-tab-${tab}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                isLogin === (tab === 'login')
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
               {tab === 'login' ? 'تسجيل الدخول' : 'حساب جديد'}
             </button>
           ))}
@@ -108,7 +163,8 @@ export default function Auth() {
           onClick={handleGoogleLogin}
           disabled={googleLoading}
           whileTap={{ scale: 0.98 }}
-          className="w-full flex items-center justify-center gap-3 bg-card border border-border rounded-2xl py-3 mb-4 hover:bg-accent transition-all active:scale-[0.98]"
+          data-testid="google-login-btn"
+          className="w-full flex items-center justify-center gap-3 bg-card border border-border rounded-2xl py-3 mb-4 hover:bg-accent/50 transition-all active:scale-[0.98]"
         >
           {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -128,29 +184,67 @@ export default function Auth() {
         </div>
 
         {/* Email Form */}
-        <motion.form onSubmit={handleEmailAuth} className="space-y-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.form
+          onSubmit={handleEmailAuth}
+          className="space-y-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          data-testid="auth-form"
+        >
           {!isLogin && (
             <div className="relative">
               <User className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="الاسم الكامل" value={name} onChange={e => setName(e.target.value)} className="pe-9 rounded-2xl h-12 bg-card" />
+              <Input
+                placeholder="الاسم الكامل"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="pe-9 rounded-2xl h-12 bg-card"
+                data-testid="auth-name-input"
+              />
             </div>
           )}
           <div className="relative">
             <Mail className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="email" placeholder="البريد الإلكتروني" value={email} onChange={e => setEmail(e.target.value)} className="pe-9 rounded-2xl h-12 bg-card" required />
+            <Input
+              type="email"
+              placeholder="البريد الإلكتروني"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="pe-9 rounded-2xl h-12 bg-card"
+              required
+              data-testid="auth-email-input"
+            />
           </div>
           <div className="relative">
             <Lock className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" value={password} onChange={e => setPassword(e.target.value)} className="pe-9 rounded-2xl h-12 bg-card" required minLength={6} />
+            <Input
+              type="password"
+              placeholder="كلمة المرور (6 أحرف على الأقل)"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="pe-9 rounded-2xl h-12 bg-card"
+              required
+              minLength={6}
+              data-testid="auth-password-input"
+            />
           </div>
-          <Button type="submit" className="w-full rounded-2xl h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full rounded-2xl h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base"
+            disabled={loading}
+            data-testid="auth-submit-btn"
+          >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : isLogin ? 'دخول' : 'إنشاء حساب'}
           </Button>
         </motion.form>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
           {isLogin ? 'ليس لديك حساب؟' : 'لديك حساب؟'}{' '}
-          <button onClick={() => setIsLogin(!isLogin)} className="text-emerald-600 font-bold">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-emerald-600 font-bold"
+            data-testid="auth-toggle-mode"
+          >
             {isLogin ? 'سجّل الآن' : 'ادخل الآن'}
           </button>
         </p>

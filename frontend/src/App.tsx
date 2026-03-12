@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LocaleProvider } from "@/hooks/useLocale";
 import { AuthProvider } from "@/hooks/useAuth";
 import { UnifiedPrayerProvider } from "@/hooks/useUnifiedPrayer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { PermissionManager } from "@/components/PermissionManager";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSEO } from "@/hooks/useSEO";
 import { usePrefetch } from "@/hooks/usePrefetch";
@@ -65,54 +67,57 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LocaleProvider>
-        <AuthProvider>
-          <UnifiedPrayerProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <ScrollToTop />
-              <SEOWrapper>
-                <AppLayout>
-                  <Suspense fallback={<div className="min-h-screen" />}>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/prayer-times" element={<PrayerTimes />} />
-                      <Route path="/qibla" element={<Qibla />} />
-                      <Route path="/quran" element={<Quran />} />
-                      <Route path="/quran/:id" element={<SurahView />} />
-                      <Route path="/tasbeeh" element={<Tasbeeh />} />
-                      <Route path="/duas" element={<Duas />} />
-                      <Route path="/more" element={<More />} />
-                      <Route path="/tracker" element={<PrayerTracker />} />
-                      <Route path="/zakat" element={<ZakatCalculator />} />
-                      <Route path="/stories" element={<Stories />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/account" element={<Account />} />
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/install" element={<Install />} />
-                      <Route path="/daily-duas" element={<DailyDuas />} />
-                      <Route path="/mosque-times" element={<MosquePrayerTimes />} />
-                      <Route path="/ramadan-challenge" element={<RamadanChallenge />} />
-                      <Route path="/ramadan-calendar" element={<RamadanCalendar />} />
-                      <Route path="/quran-goal" element={<QuranGoal />} />
-                      <Route path="/dhikr-settings" element={<DhikrSettings />} />
-                      <Route path="/notifications" element={<NotificationSettings />} />
-                      <Route path="/ruqyah" element={<Ruqyah />} />
-                      <Route path="/ramadan-cards" element={<RamadanCards />} />
-                      <Route path="/ramadan-book" element={<RamadanBook />} />
-                      <Route path="/period-tracker" element={<PeriodTracker />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                </AppLayout>
-              </SEOWrapper>
-            </BrowserRouter>
-          </TooltipProvider>
-          </UnifiedPrayerProvider>
-        </AuthProvider>
-      </LocaleProvider>
+      <ThemeProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            <UnifiedPrayerProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                  <ScrollToTop />
+                  <SEOWrapper>
+                    <PermissionManager />
+                    <AppLayout>
+                      <Suspense fallback={<div className="min-h-screen" />}>
+                        <Routes>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/prayer-times" element={<PrayerTimes />} />
+                          <Route path="/qibla" element={<Qibla />} />
+                          <Route path="/quran" element={<Quran />} />
+                          <Route path="/quran/:id" element={<SurahView />} />
+                          <Route path="/tasbeeh" element={<Tasbeeh />} />
+                          <Route path="/duas" element={<Duas />} />
+                          <Route path="/more" element={<More />} />
+                          <Route path="/tracker" element={<PrayerTracker />} />
+                          <Route path="/zakat" element={<ZakatCalculator />} />
+                          <Route path="/stories" element={<Stories />} />
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="/account" element={<Account />} />
+                          <Route path="/admin" element={<AdminDashboard />} />
+                          <Route path="/install" element={<Install />} />
+                          <Route path="/daily-duas" element={<DailyDuas />} />
+                          <Route path="/mosque-times" element={<MosquePrayerTimes />} />
+                          <Route path="/ramadan-challenge" element={<RamadanChallenge />} />
+                          <Route path="/ramadan-calendar" element={<RamadanCalendar />} />
+                          <Route path="/quran-goal" element={<QuranGoal />} />
+                          <Route path="/dhikr-settings" element={<DhikrSettings />} />
+                          <Route path="/notifications" element={<NotificationSettings />} />
+                          <Route path="/ruqyah" element={<Ruqyah />} />
+                          <Route path="/ramadan-cards" element={<RamadanCards />} />
+                          <Route path="/ramadan-book" element={<RamadanBook />} />
+                          <Route path="/period-tracker" element={<PeriodTracker />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </AppLayout>
+                  </SEOWrapper>
+                </BrowserRouter>
+              </TooltipProvider>
+            </UnifiedPrayerProvider>
+          </AuthProvider>
+        </LocaleProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
