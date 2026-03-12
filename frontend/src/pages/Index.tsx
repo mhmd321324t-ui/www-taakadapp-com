@@ -2,12 +2,9 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import DuaOfDayDrawer from '@/components/DuaOfDayDrawer';
 import { dailyDuas } from '@/data/dhikrDetails';
 import { useLocale } from '@/hooks/useLocale';
-import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { useAuth } from '@/hooks/useAuth';
-import { usePrayerTimes, getNextPrayer } from '@/hooks/usePrayerTimes';
-import { useSavedMosqueTimes } from '@/hooks/useSavedMosqueTimes';
+import { useUnifiedPrayer } from '@/hooks/useUnifiedPrayer';
 import { useAthanNotifications, requestNotificationPermission } from '@/hooks/useAthanNotifications';
-import { useAutoTheme } from '@/hooks/useAutoTheme';
 import OccasionAthanAlert from '@/components/OccasionAthanAlert';
 import OccasionBanner from '@/components/OccasionBanner';
 import DailyGoals from '@/components/DailyGoals';
@@ -40,18 +37,13 @@ const getQuickAccessItems = (t: (key: string) => string) => [
 export default function Index() {
   const { t, isRTL } = useLocale();
   const { user } = useAuth();
-  const location = useGeoLocation();
-  const { prayers: apiPrayers, hijriDate, hijriDay, hijriMonthNumber, hijriYear, loading } = usePrayerTimes(
-    location.latitude,
-    location.longitude,
-    location.calculationMethod,
-    location.school
-  );
-  const { mosqueName, prayers: mosquePrayers, loading: mosqueLoading, unlinkMosque, source: mosqueSource } = useSavedMosqueTimes();
+  const {
+    prayers, nextPrayer, remaining, hijriDate, hijriDay, hijriMonthNumber, hijriYear,
+    loading, source, sourceLabel, mosqueName, city, latitude, longitude,
+    locationLoading, locationError, detectLocation, unlinkMosque, calculationMethod,
+  } = useUnifiedPrayer();
   
-  const prayers = mosquePrayers || apiPrayers;
-  const usingMosque = !!mosquePrayers;
-  const { prayer: nextPrayer, remaining } = getNextPrayer(prayers);
+  const usingMosque = source === 'mosque';
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     return localStorage.getItem('athan-notifications') === 'true';
@@ -117,24 +109,23 @@ export default function Index() {
   }, [remaining, nextPrayer]);
 
   useAthanNotifications(prayers, notificationsEnabled, handleAthanAlert);
-  useAutoTheme(prayers);
 
   // Auto-register push subscription when notifications are enabled and location is available
   useEffect(() => {
-    if (notificationsEnabled && location.latitude && location.longitude && !location.loading) {
-      subscribeToPush(location.latitude, location.longitude, location.calculationMethod).catch(console.error);
+    if (notificationsEnabled && latitude && longitude && !locationLoading) {
+      subscribeToPush(latitude, longitude, calculationMethod).catch(console.error);
     }
-  }, [notificationsEnabled, location.latitude, location.longitude, location.loading]);
+  }, [notificationsEnabled, latitude, longitude, locationLoading]);
 
-  // Sync mosque prayer times to push subscription (prevents duplicate notifications)
+  // Sync mosque prayer times to push subscription
   useEffect(() => {
     if (!notificationsEnabled) return;
-    if (mosquePrayers && mosquePrayers.length > 0) {
-      updatePushMosqueTimes(mosquePrayers.map(p => ({ key: p.key, time24: p.time24 }))).catch(console.error);
+    if (usingMosque && prayers.length > 0) {
+      updatePushMosqueTimes(prayers.map(p => ({ key: p.key, time24: p.time24 }))).catch(console.error);
     } else {
       updatePushMosqueTimes(null).catch(console.error);
     }
-  }, [mosquePrayers, notificationsEnabled]);
+  }, [prayers, usingMosque, notificationsEnabled]);
 
   const toggleNotifications = async () => {
     if (!notificationsEnabled) {
@@ -234,7 +225,7 @@ export default function Index() {
           <div className="flex items-center justify-center gap-2">
             <MapPin className="h-3.5 w-3.5 text-white/70" />
             <p className="text-white font-bold text-base">
-              {location.loading ? '...' : location.city || 'تحديد الموقع...'}
+              {locationLoading ? '...' : city || 'تحديد الموقع...'}
             </p>
           </div>
         </div>
@@ -302,13 +293,13 @@ export default function Index() {
       {currentOccasion && <OccasionBanner occasion={currentOccasion} />}
 
       {/* ===== LOCATION ERROR ===== */}
-      {location.error && prayers.length === 0 && (
+      {locationError && prayers.length === 0 && (
         <div className="px-4 mb-4">
           <div className="rounded-3xl bg-destructive/10 border border-destructive/30 p-5 flex flex-col items-center gap-3">
             <MapPinOff className="h-8 w-8 text-destructive" />
-            <p className="text-sm font-bold text-foreground text-center">{location.error}</p>
+            <p className="text-sm font-bold text-foreground text-center">{locationError}</p>
             <button
-              onClick={() => location.detectLocation()}
+              onClick={() => detectLocation()}
               className="rounded-2xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold transition-all active:scale-95"
             >
               {t('enableLocation')}
@@ -337,9 +328,7 @@ export default function Index() {
             <p className="text-[11px] text-primary flex items-center gap-1.5">
               <Building2 className="h-3.5 w-3.5" />
               {mosqueName}
-              {mosqueSource === 'mawaqit' && (
-                <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">{t('liveLabel')}</span>
-              )}
+              <span className="bg-primary/15 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">مسجد</span>
             </p>
             <button
               onClick={() => {

@@ -117,11 +117,13 @@ export function schedulePrayerNotifications(prayers: PrayerTimeInput[], enabledP
   
   try {
     const enabled = enabledPrayers || ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    const activePrayers = prayers.filter(p => enabled.includes(p.key) && p.key !== 'sunrise');
     
-    for (const prayer of prayers) {
-      if (!enabled.includes(prayer.key)) continue;
-      if (prayer.key === 'sunrise') continue;
-      
+    // Send prayer times to service worker for persistent background notifications
+    sendPrayerTimesToSW(activePrayers);
+    
+    // Also schedule in main thread as backup (works while app is open)
+    for (const prayer of activePrayers) {
       const [h, m] = prayer.time24.split(':').map(Number);
       const now = new Date();
       const prayerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
@@ -152,6 +154,53 @@ export function schedulePrayerNotifications(prayers: PrayerTimeInput[], enabledP
   } catch (_e) {
     return false;
   }
+}
+
+// Send prayer times to service worker for background notifications
+async function sendPrayerTimesToSW(prayers: PrayerTimeInput[]) {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (reg.active) {
+      reg.active.postMessage({
+        type: 'UPDATE_PRAYER_TIMES',
+        prayers: prayers.map(p => ({ key: p.key, time24: p.time24, name: p.name })),
+      });
+    }
+    
+    // Register periodic sync if available
+    if ('periodicSync' in reg) {
+      try {
+        // @ts-ignore
+        await reg.periodicSync.register('prayer-check', { minInterval: 60 * 1000 });
+      } catch (_e) { /* periodic sync not supported or permission denied */ }
+    }
+  } catch (_e) { /* Service worker not available */ }
+}
+
+export async function sendTestNotification(): Promise<boolean> {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission !== 'granted') {
+    const result = await Notification.requestPermission();
+    if (result !== 'granted') return false;
+  }
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg.active) {
+        reg.active.postMessage({ type: 'TEST_NOTIFICATION' });
+        return true;
+      }
+    } catch (_e) {}
+  }
+
+  // Fallback to regular notification
+  new Notification('🕌 اختبار - المؤذن العالمي', {
+    body: 'الإشعارات تعمل بنجاح!',
+    icon: '/pwa-icon-192.png',
+  });
+  return true;
 }
 
 export function clearPrayerSchedule() {
@@ -215,28 +264,37 @@ function showPrayerReminder(prayer: string, minutes: number) {
 }
 
 // Athan audio player
-const ATHAN_SOURCES = [
-  '/audio/athan-fajr.mp3',
-  'https://download.quranicaudio.com/quran/Abdul_Basit_Murattal_192kbps/001.mp3', // fallback
-];
-
 let athanAudio: HTMLAudioElement | null = null;
+
+function getSelectedAthanPath(prayer: string): string {
+  // Get user's selected athan from localStorage
+  const selected = localStorage.getItem('selected-athan') || 'makkah';
+  const isFajr = prayer === 'fajr';
+  
+  // Check if fajr variant exists
+  const fajrPath = `/audio/athan/${selected}-fajr.mp3`;
+  const normalPath = `/audio/athan/${selected}.mp3`;
+  
+  return isFajr ? fajrPath : normalPath;
+}
 
 export function playAthan(prayer: string) {
   try {
-    // Stop any existing athan
     stopAthan();
     
-    const athanSrc = prayer === 'fajr' ? '/audio/athan-fajr.mp3' : '/audio/athan.mp3';
+    const athanSrc = getSelectedAthanPath(prayer);
     athanAudio = new Audio(athanSrc);
     athanAudio.volume = 0.8;
-    athanAudio.play().catch((_e) => {
-      // Browser might block autoplay - this is okay
-      console.log('Athan autoplay blocked (user interaction required)');
+    
+    athanAudio.play().catch(() => {
+      // Fallback to default makkah if selected doesn't exist
+      athanAudio = new Audio('/audio/athan/makkah.mp3');
+      athanAudio.volume = 0.8;
+      athanAudio.play().catch(() => {
+        console.log('Athan autoplay blocked');
+      });
     });
-  } catch (_e) {
-    // Audio not available
-  }
+  } catch (_e) {}
 }
 
 export function stopAthan() {

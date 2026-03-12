@@ -1,48 +1,135 @@
 /**
- * Custom Service Worker for المؤذن العالمي
- * Handles: Push notifications, Athan audio, PWA caching
+ * Service Worker for المؤذن العالمي
+ * Prayer notification scheduling with periodic checking
  */
 
-const CACHE_NAME = 'almuadhin-v2';
-const OFFLINE_PAGE = '/offline.html';
+const CACHE_NAME = 'almuadhin-v3';
 const ATHAN_AUDIO_CACHE = 'athan-audio-v1';
 
-// Core assets to pre-cache
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
   '/pwa-icon-192.png',
   '/pwa-icon-512.png',
   '/mecca-hero.webp',
-  '/offline.html',
 ];
 
-// Install
+const PRAYER_NAMES = {
+  fajr: 'الفجر', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء'
+};
+
+// ============ PRAYER TIME STORAGE ============
+let storedPrayerTimes = [];
+let notifiedToday = {};
+let checkInterval = null;
+
+function loadPrayerData() {
+  // IndexedDB would be better, but for simplicity use global state + message passing
+}
+
+function isPrayerTime(prayerTime24, nowH, nowM) {
+  const [h, m] = prayerTime24.split(':').map(Number);
+  return h === nowH && m === nowM;
+}
+
+function checkAndNotify() {
+  if (!storedPrayerTimes || storedPrayerTimes.length === 0) return;
+
+  const now = new Date();
+  const nowH = now.getHours();
+  const nowM = now.getMinutes();
+  const todayKey = now.toISOString().split('T')[0];
+
+  // Reset notifications at midnight
+  if (notifiedToday._date !== todayKey) {
+    notifiedToday = { _date: todayKey };
+  }
+
+  for (const prayer of storedPrayerTimes) {
+    if (prayer.key === 'sunrise') continue;
+    const notifKey = `${todayKey}-${prayer.key}`;
+
+    if (notifiedToday[notifKey]) continue;
+
+    if (isPrayerTime(prayer.time24, nowH, nowM)) {
+      notifiedToday[notifKey] = true;
+      const name = PRAYER_NAMES[prayer.key] || prayer.key;
+
+      self.registration.showNotification(`🕌 حان وقت صلاة ${name}`, {
+        body: 'حيّ على الصلاة • حيّ على الفلاح',
+        icon: '/pwa-icon-192.png',
+        badge: '/pwa-icon-192.png',
+        tag: `athan-${prayer.key}`,
+        requireInteraction: true,
+        vibrate: [300, 100, 300, 100, 300, 100, 300],
+        renotify: true,
+        dir: 'rtl',
+        lang: 'ar',
+        silent: false,
+        data: { prayer: prayer.key, type: 'athan', url: '/' },
+        actions: [
+          { action: 'open', title: 'فتح التطبيق' },
+          { action: 'dismiss', title: 'تجاهل' },
+        ],
+      });
+    }
+
+    // 10-minute reminder
+    const [ph, pm] = prayer.time24.split(':').map(Number);
+    let remH = ph, remM = pm - 10;
+    if (remM < 0) { remM += 60; remH -= 1; }
+    if (remH < 0) remH += 24;
+    const remKey = `${todayKey}-rem-${prayer.key}`;
+
+    if (!notifiedToday[remKey] && nowH === remH && nowM === remM) {
+      notifiedToday[remKey] = true;
+      const name = PRAYER_NAMES[prayer.key] || prayer.key;
+      self.registration.showNotification(`⏰ بعد 10 دقائق صلاة ${name}`, {
+        body: 'استعد للصلاة بالوضوء',
+        icon: '/pwa-icon-192.png',
+        badge: '/pwa-icon-192.png',
+        tag: `reminder-${prayer.key}`,
+        vibrate: [200, 100, 200],
+        dir: 'rtl',
+        lang: 'ar',
+        data: { prayer: prayer.key, type: 'reminder', url: '/prayer-times' },
+      });
+    }
+  }
+}
+
+function startPeriodicCheck() {
+  if (checkInterval) clearInterval(checkInterval);
+  checkInterval = setInterval(checkAndNotify, 30000); // Check every 30 seconds
+  checkAndNotify(); // Immediate check
+}
+
+// ============ INSTALL ============
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_ASSETS.filter(Boolean)))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE_ASSETS.filter(Boolean)))
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate
+// ============ ACTIVATE ============
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE_NAME && k !== ATHAN_AUDIO_CACHE).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME && k !== ATHAN_AUDIO_CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
+  startPeriodicCheck();
 });
 
-// Fetch - Network first, fallback to cache
+// ============ FETCH ============
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip API calls
   if (url.pathname.startsWith('/api/')) return;
 
-  // Audio files - cache first
   if (url.pathname.includes('/audio/')) {
     event.respondWith(
       caches.open(ATHAN_AUDIO_CACHE).then(async cache => {
@@ -56,17 +143,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // HTML pages - network first
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() =>
-        caches.match(request) || caches.match(OFFLINE_PAGE) || new Response('<h1>غير متصل</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+        caches.match(request) || caches.match('/') || new Response('<h1 dir="rtl">غير متصل</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
       )
     );
     return;
   }
 
-  // Static assets - cache first
   event.respondWith(
     caches.match(request).then(cached =>
       cached || fetch(request).then(response => {
@@ -75,54 +160,42 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-    ).catch(() => caches.match(OFFLINE_PAGE))
+    ).catch(() => caches.match('/'))
   );
 });
 
-// Push notification received
+// ============ PUSH ============
 self.addEventListener('push', (event) => {
   let data = {};
-  try {
-    data = event.data?.json() || {};
-  } catch (_e) {
-    data = { title: 'المؤذن العالمي', body: event.data?.text() || '' };
-  }
-
-  const title = data.title || '🕌 المؤذن العالمي';
-  const options = {
-    body: data.body || 'حان وقت الصلاة',
-    icon: data.icon || '/pwa-icon-192.png',
-    badge: '/pwa-icon-192.png',
-    tag: data.tag || 'almuadhin',
-    requireInteraction: data.requireInteraction !== false,
-    vibrate: data.vibrate || [300, 100, 300, 100, 300],
-    data: { url: data.url || '/', prayer: data.prayer, ...data.data },
-    actions: data.actions || [
-      { action: 'open', title: '📖 فتح التطبيق' },
-      { action: 'dismiss', title: 'تجاهل' },
-    ],
-    // Rich notification
-    dir: 'rtl',
-    lang: 'ar',
-    silent: false,
-  };
+  try { data = event.data?.json() || {}; } catch (_e) { data = { title: 'المؤذن العالمي', body: event.data?.text() || '' }; }
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(data.title || '🕌 المؤذن العالمي', {
+      body: data.body || 'حان وقت الصلاة',
+      icon: '/pwa-icon-192.png',
+      badge: '/pwa-icon-192.png',
+      tag: data.tag || 'almuadhin',
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 300],
+      dir: 'rtl',
+      lang: 'ar',
+      data: { url: data.url || '/', ...data.data },
+      actions: [
+        { action: 'open', title: 'فتح التطبيق' },
+        { action: 'dismiss', title: 'تجاهل' },
+      ],
+    })
   );
 });
 
-// Notification click
+// ============ NOTIFICATION CLICK ============
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
   if (event.action === 'dismiss') return;
 
   const url = event.notification.data?.url || '/';
-  
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      // Focus existing window
       for (const client of clients) {
         if (client.url.includes(self.location.origin)) {
           client.focus();
@@ -130,47 +203,46 @@ self.addEventListener('notificationclick', (event) => {
           return;
         }
       }
-      // Open new window
       return self.clients.openWindow(url);
     })
   );
 });
 
-// Background sync for prayer schedules
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'prayer-sync') {
-    event.waitUntil(syncPrayerTimes());
-  }
-});
-
-async function syncPrayerTimes() {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    const settingsResponse = await cache.match('/api/settings');
-    // Update prayer times in background
-  } catch (_e) {}
-}
-
-// Message from app
+// ============ MESSAGE FROM APP ============
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  if (event.data?.type === 'PRAYER_NOTIFICATION') {
-    const { prayer, time } = event.data;
-    const delay = new Date(time).getTime() - Date.now();
-    if (delay > 0) {
-      setTimeout(() => {
-        self.registration.showNotification(`🕌 حان وقت صلاة ${prayer}`, {
-          body: 'استعد للصلاة • الصلاة خير من النوم',
-          icon: '/pwa-icon-192.png',
-          badge: '/pwa-icon-192.png',
-          tag: `prayer-${prayer}`,
-          requireInteraction: true,
-          vibrate: [300, 100, 300, 100, 300],
-          dir: 'rtl',
-        });
-      }, delay);
+
+  // Receive prayer times from the app
+  if (event.data?.type === 'UPDATE_PRAYER_TIMES') {
+    storedPrayerTimes = event.data.prayers || [];
+    startPeriodicCheck();
+
+    // Respond back
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ status: 'ok', count: storedPrayerTimes.length });
     }
+  }
+
+  // Test notification
+  if (event.data?.type === 'TEST_NOTIFICATION') {
+    self.registration.showNotification('🕌 اختبار - المؤذن العالمي', {
+      body: 'الإشعارات تعمل بنجاح! حيّ على الصلاة',
+      icon: '/pwa-icon-192.png',
+      badge: '/pwa-icon-192.png',
+      tag: 'test-notification',
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 300],
+      dir: 'rtl',
+      lang: 'ar',
+    });
+  }
+});
+
+// Keep alive via periodic sync
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'prayer-check') {
+    event.waitUntil(checkAndNotify());
   }
 });

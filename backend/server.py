@@ -749,6 +749,111 @@ async def get_user_data(user: dict = Depends(get_user)):
     doc = await db.user_data.find_one({"user_id": user["id"]}, {"_id": 0})
     return doc or {}
 
+# ==================== ADMIN ====================
+ADMIN_EMAILS = ['mhmd321324t@gmail.com', 'admin@almuadhin.com']
+
+async def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if not credentials:
+        raise HTTPException(status_code=401, detail="غير مصرح")
+    payload = verify_jwt(credentials.credentials)
+    if not payload or payload.get("email") not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="غير مصرح - ليس مسؤولاً")
+    return payload
+
+@api_router.get("/admin/stats")
+async def admin_stats(admin=Depends(get_admin_user)):
+    """Dashboard statistics"""
+    users_count = await db.users.count_documents({})
+    push_subs = await db.push_subscriptions.count_documents({})
+    status_checks = await db.status_checks.count_documents({})
+    
+    # Recent users
+    recent_users = await db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).to_list(10)
+    
+    return {
+        "stats": {
+            "total_users": users_count,
+            "push_subscribers": push_subs,
+            "status_checks": status_checks,
+        },
+        "recent_users": recent_users,
+    }
+
+@api_router.get("/admin/users")
+async def admin_users(admin=Depends(get_admin_user), page: int = 1, limit: int = 20):
+    """List all users"""
+    skip = (page - 1) * limit
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).skip(skip).to_list(limit)
+    total = await db.users.count_documents({})
+    return {"users": users, "total": total, "page": page, "pages": math.ceil(total / limit)}
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, admin=Depends(get_admin_user)):
+    """Delete a user"""
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    return {"success": True, "message": "تم حذف المستخدم"}
+
+@api_router.get("/admin/push-subscriptions")
+async def admin_push_subs(admin=Depends(get_admin_user)):
+    """List push subscriptions"""
+    subs = await db.push_subscriptions.find({}, {"_id": 0}).to_list(100)
+    return {"subscriptions": subs, "total": len(subs)}
+
+class AdminNotification(BaseModel):
+    title: str
+    body: str
+    target: str = "all"  # all, prayer, custom
+
+@api_router.post("/admin/send-notification")
+async def admin_send_notification(data: AdminNotification, admin=Depends(get_admin_user)):
+    """Send notification to all users (placeholder - needs VAPID for actual push)"""
+    subs = await db.push_subscriptions.find({}, {"_id": 0}).to_list(1000)
+    return {
+        "success": True,
+        "message": f"تم إرسال الإشعار إلى {len(subs)} مشترك",
+        "title": data.title,
+        "body": data.body,
+        "target_count": len(subs),
+    }
+
+class AdminAppSettings(BaseModel):
+    app_name: Optional[str] = None
+    default_method: Optional[int] = None
+    default_school: Optional[int] = None
+    maintenance_mode: Optional[bool] = None
+    announcement: Optional[str] = None
+
+@api_router.get("/admin/settings")
+async def admin_get_settings(admin=Depends(get_admin_user)):
+    """Get app settings"""
+    settings = await db.app_settings.find_one({"key": "global"}, {"_id": 0})
+    if not settings:
+        settings = {
+            "key": "global",
+            "app_name": "المؤذن العالمي",
+            "default_method": 4,
+            "default_school": 0,
+            "maintenance_mode": False,
+            "announcement": "",
+        }
+    return settings
+
+@api_router.put("/admin/settings")
+async def admin_update_settings(data: AdminAppSettings, admin=Depends(get_admin_user)):
+    """Update app settings"""
+    update = {k: v for k, v in data.dict().items() if v is not None}
+    update["updated_at"] = datetime.utcnow().isoformat()
+    update["updated_by"] = admin.get("email", "")
+    
+    await db.app_settings.update_one(
+        {"key": "global"},
+        {"$set": update},
+        upsert=True
+    )
+    return {"success": True, "message": "تم تحديث الإعدادات"}
+
 # ==================== STATUS (legacy) ====================
 class StatusCheckCreate(BaseModel):
     client_name: str

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LocaleProvider } from "@/hooks/useLocale";
 import { AuthProvider } from "@/hooks/useAuth";
+import { UnifiedPrayerProvider } from "@/hooks/useUnifiedPrayer";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSEO } from "@/hooks/useSEO";
 import { usePrefetch } from "@/hooks/usePrefetch";
@@ -66,6 +67,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <LocaleProvider>
         <AuthProvider>
+          <UnifiedPrayerProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -108,6 +110,7 @@ const App = () => {
               </SEOWrapper>
             </BrowserRouter>
           </TooltipProvider>
+          </UnifiedPrayerProvider>
         </AuthProvider>
       </LocaleProvider>
     </QueryClientProvider>
