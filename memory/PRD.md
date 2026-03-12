@@ -5,101 +5,92 @@ Build an Islamic prayer and lifestyle app named "المؤذن العالمي" wi
 - Accurate prayer times via Aladhan.com API
 - Quran text and audio from Alquran.cloud and Mp3Quran.net
 - Ruqyah page with relevant content
-- Daily Hadith from Sunnah.com API (using local curated collection)
+- Daily Hadith
 - AI-powered daily Athkar and smart reminders via Gemini
-- Push notifications for Athan with audio
-- Islamic-themed UI with Dark/Light mode toggle
-- PWA installation prompt for mobile users
-- Google social login (Firebase)
+- Push notifications for Athan with audio (persistent, lock screen)
+- Islamic-themed UI with manual Dark/Light mode toggle
+- PWA installation for mobile users
+- Admin dashboard for full app control
 - Google Play Store readiness
 
 ## Tech Stack
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Shadcn/UI, Framer Motion
 - **Backend:** FastAPI, Python 3.11, MongoDB (Motor async driver)
 - **AI:** Gemini 2.0 Flash via Emergent LLM Key (emergentintegrations library)
-- **APIs:** Aladhan.com (Prayer Times), Alquran.cloud (Quran), Mawaqit (Mosques)
-- **Auth:** Custom JWT + Firebase Google Social Login
-- **PWA:** Service Worker, Web App Manifest
-
-## Core Requirements
-1. Prayer Times with Aladhan.com API
-2. Quran reader with Alquran.cloud
-3. Daily Hadith (rotating 30 hadith collection)
-4. AI Athkar via Gemini (Emergent LLM key)
-5. Smart reminders via Gemini AI
-6. Ruqyah content pages
-7. Prayer tracker with streak counter
-8. Dark/Light theme toggle
-9. PWA manifest and install banner
-10. Push notification infrastructure
+- **APIs:** Aladhan.com (Prayer Times), Alquran.cloud (Quran)
+- **Auth:** Custom JWT (email/password)
+- **PWA:** Service Worker with periodic prayer check, Web App Manifest
 
 ## Architecture
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI with all endpoints
-│   ├── .env               # MONGO_URL, DB_NAME, EMERGENT_LLM_KEY, etc.
+│   ├── server.py          # FastAPI: auth, prayer, AI, admin endpoints
+│   ├── .env               # MONGO_URL, DB_NAME, EMERGENT_LLM_KEY
 │   ├── requirements.txt
-│   └── tests/test_api.py  # 14 pytest tests
+│   └── tests/             # test_api.py, test_admin_api.py
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx              # Router + Layout
-│   │   ├── pages/               # All page components
-│   │   ├── components/          # UI components
-│   │   ├── hooks/               # Custom hooks
-│   │   └── lib/                 # Utility libraries
-│   ├── public/
-│   │   ├── manifest.json        # PWA manifest
-│   │   ├── sw-custom.js         # Service worker
-│   │   └── audio/               # Athan audio files
-│   └── .env                     # REACT_APP_BACKEND_URL
+│   │   ├── App.tsx                    # Router + UnifiedPrayerProvider
+│   │   ├── main.tsx                   # Theme init + SW registration
+│   │   ├── pages/
+│   │   │   ├── Index.tsx              # Home (unified prayer context)
+│   │   │   ├── PrayerTimes.tsx        # Prayer times (unified context)
+│   │   │   ├── AdminDashboard.tsx     # Admin (4 tabs)
+│   │   │   ├── Quran.tsx, Ruqyah.tsx  # Content pages
+│   │   │   ├── Auth.tsx               # Login/Register
+│   │   │   └── More.tsx               # Settings + Theme toggle
+│   │   ├── hooks/
+│   │   │   ├── useUnifiedPrayer.tsx   # Centralized prayer times
+│   │   │   ├── useAuth.tsx, useAdmin.tsx
+│   │   │   └── usePrayerTimes.tsx, useGeoLocation.tsx
+│   │   └── lib/
+│   │       └── prayerNotifications.ts # SW notification scheduling
+│   └── public/
+│       ├── manifest.json, sw-custom.js
+│       └── audio/athan/              # 11 athan audio files
 ```
 
-## API Endpoints
-- `GET /api/health` - Health check
-- `GET /api/prayer-times?lat=&lon=&method=&school=` - Prayer times
-- `GET /api/daily-hadith` - Daily rotating hadith
-- `POST /api/ai/daily-athkar` - AI-generated athkar (Gemini)
-- `POST /api/ai/smart-reminder` - AI smart reminder (Gemini)
-- `GET /api/quran/surah/{number}` - Quran surah proxy
-- `GET /api/hijri-date` - Hijri date
-- `GET /api/mosques/search` - Mosque search
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+## Admin
+- Email: mhmd321324t@gmail.com
+- Password: admin123
+- Dashboard: /admin (4 tabs: overview, users, notifications, settings)
 
-## What's Implemented (March 2026)
-- [x] Backend server with all API endpoints
+## What's Implemented (March 12, 2026)
+- [x] Backend server with all API endpoints (18 tests passing)
 - [x] Prayer times via Aladhan.com API
+- [x] **Unified Prayer Times** - All pages share same prayer source
 - [x] Daily Hadith (30 curated hadiths, rotating daily)
-- [x] AI Athkar via Gemini (Emergent LLM key) - confirmed working
+- [x] AI Athkar via Gemini (Emergent LLM key) - confirmed source: "gemini"
 - [x] AI Smart Reminders via Gemini
 - [x] Quran page with 114 surahs from Alquran.cloud
 - [x] Ruqyah page with 6 categories
 - [x] Prayer tracker with localStorage persistence
-- [x] Dark/Light theme toggle on More page
+- [x] **Manual Dark/Light theme toggle** (localStorage: almuadhin_theme)
 - [x] PWA manifest.json and service worker
-- [x] PWA install banner for mobile
-- [x] Auth page with email + Google login
+- [x] **Service Worker with periodic prayer check** (every 30s for notifications)
+- [x] **Admin Dashboard** (stats, users, notifications, settings)
+- [x] Admin API endpoints secured with JWT + email whitelist
+- [x] Auth (email/password login/register)
 - [x] Bottom navigation between all pages
 - [x] Islamic-themed UI (RTL, Arabic)
 - [x] App name "المؤذن العالمي" everywhere
-- [x] 14 backend tests passing (100%)
-- [x] Frontend pages all rendering (95% pass rate)
+- [x] Athan audio (11 files: makkah, madinah, quds, etc.)
 
 ## Prioritized Backlog
 ### P0 (Critical)
-- [ ] Test push notifications on real mobile device
+- [ ] Test push notifications on real mobile device with Athan audio
 - [ ] Test Google social login with real Firebase credentials
-- [ ] Test Athan audio playback on lock screen
+- [ ] Verify notification persistence on lock screen
 
 ### P1 (Important)
-- [ ] Fetch Hadith from Sunnah.com API (currently using local collection)
+- [ ] Hadith from Sunnah.com API (currently local collection)
 - [ ] Quran audio playback from Mp3Quran.net
 - [ ] Qibla direction compass
-- [ ] Replace Supabase dependencies in Stories page
+- [ ] Phone storage optimization
 
 ### P2 (Nice to have)
 - [ ] Google Play Store compliance
 - [ ] Offline mode improvements
 - [ ] User preferences cloud sync
-- [ ] Community stories feature
+- [ ] Social sharing of prayer times

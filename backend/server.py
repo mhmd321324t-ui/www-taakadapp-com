@@ -847,9 +847,13 @@ async def admin_update_settings(data: AdminAppSettings, admin=Depends(get_admin_
     update["updated_at"] = datetime.utcnow().isoformat()
     update["updated_by"] = admin.get("email", "")
     
-    await db.app_settings.update_one(
+    # Ensure defaults are preserved
+    existing = await db.app_settings.find_one({"key": "global"}, {"_id": 0}) or {}
+    merged = {**existing, **update, "key": "global"}
+    
+    await db.app_settings.replace_one(
         {"key": "global"},
-        {"$set": update},
+        merged,
         upsert=True
     )
     return {"success": True, "message": "تم تحديث الإعدادات"}
