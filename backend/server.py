@@ -825,6 +825,158 @@ class AdminAppSettings(BaseModel):
     maintenance_mode: Optional[bool] = None
     announcement: Optional[str] = None
 
+class AdPlacement(BaseModel):
+    id: Optional[str] = None
+    name: str
+    provider: str  # exoclick, popads, clickadu, hilltopads, monetag, adsterra, ysense, admob, adsense, youtube, custom
+    code: str = ""
+    placement: str = "home"  # home, prayer, quran, duas, ruqyah, notifications, all
+    ad_type: str = "banner"  # banner, interstitial, native, video, popup
+    enabled: bool = True
+    priority: int = 0
+
+@api_router.get("/admin/ads")
+async def admin_get_ads(admin=Depends(get_admin_user)):
+    """List all ad placements"""
+    ads = await db.ad_placements.find({}, {"_id": 0}).sort("priority", -1).to_list(100)
+    return {"ads": ads, "total": len(ads)}
+
+@api_router.post("/admin/ads")
+async def admin_create_ad(ad: AdPlacement, admin=Depends(get_admin_user)):
+    """Create or update ad placement"""
+    ad_dict = ad.dict()
+    if not ad_dict.get("id"):
+        ad_dict["id"] = str(uuid.uuid4())[:8]
+    ad_dict["created_at"] = datetime.utcnow().isoformat()
+    ad_dict["created_by"] = admin.get("email", "")
+    
+    await db.ad_placements.update_one(
+        {"id": ad_dict["id"]},
+        {"$set": ad_dict},
+        upsert=True
+    )
+    return {"success": True, "ad": ad_dict}
+
+@api_router.delete("/admin/ads/{ad_id}")
+async def admin_delete_ad(ad_id: str, admin=Depends(get_admin_user)):
+    """Delete ad placement"""
+    result = await db.ad_placements.delete_one({"id": ad_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="الإعلان غير موجود")
+    return {"success": True}
+
+@api_router.get("/ads/active")
+async def get_active_ads(placement: str = "all"):
+    """Public endpoint - get active ads for a placement"""
+    query = {"enabled": True}
+    if placement != "all":
+        query["$or"] = [{"placement": placement}, {"placement": "all"}]
+    ads = await db.ad_placements.find(query, {"_id": 0}).sort("priority", -1).to_list(20)
+    return {"ads": ads}
+
+# Story moderation
+@api_router.get("/admin/stories")
+async def admin_get_stories(admin=Depends(get_admin_user), status: str = "pending"):
+    """List stories for moderation"""
+    stories = await db.stories.find({"status": status}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return {"stories": stories, "total": len(stories)}
+
+@api_router.put("/admin/stories/{story_id}")
+async def admin_moderate_story(story_id: str, data: dict, admin=Depends(get_admin_user)):
+    """Approve or reject a story"""
+    action = data.get("action", "")
+    if action not in ["approve", "reject"]:
+        raise HTTPException(status_code=400, detail="إجراء غير صالح")
+    
+    update = {
+        "status": "approved" if action == "approve" else "rejected",
+        "moderated_by": admin.get("email", ""),
+        "moderated_at": datetime.utcnow().isoformat(),
+    }
+    result = await db.stories.update_one({"id": story_id}, {"$set": update})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="القصة غير موجودة")
+    return {"success": True, "status": update["status"]}
+
+# Custom pages management  
+class CustomPage(BaseModel):
+    id: Optional[str] = None
+    title: str
+    category: str = ""
+    content: str = ""
+    enabled: bool = True
+    order: int = 0
+
+@api_router.get("/admin/pages")
+async def admin_get_pages(admin=Depends(get_admin_user)):
+    """List custom pages"""
+    pages = await db.custom_pages.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return {"pages": pages}
+
+@api_router.post("/admin/pages")
+async def admin_create_page(page: CustomPage, admin=Depends(get_admin_user)):
+    """Create or update custom page"""
+    page_dict = page.dict()
+    if not page_dict.get("id"):
+        page_dict["id"] = str(uuid.uuid4())[:8]
+    page_dict["updated_at"] = datetime.utcnow().isoformat()
+    page_dict["updated_by"] = admin.get("email", "")
+    
+    await db.custom_pages.update_one(
+        {"id": page_dict["id"]},
+        {"$set": page_dict},
+        upsert=True
+    )
+    return {"success": True, "page": page_dict}
+
+@api_router.delete("/admin/pages/{page_id}")
+async def admin_delete_page(page_id: str, admin=Depends(get_admin_user)):
+    result = await db.custom_pages.delete_one({"id": page_id})
+    return {"success": True}
+
+@api_router.get("/pages")
+async def get_public_pages(category: str = ""):
+    """Public - get enabled custom pages"""
+    query = {"enabled": True}
+    if category:
+        query["category"] = category
+    pages = await db.custom_pages.find(query, {"_id": 0}).sort("order", 1).to_list(50)
+    return {"pages": pages}
+
+# Notification scheduling
+class ScheduledNotification(BaseModel):
+    id: Optional[str] = None
+    title: str
+    body: str
+    schedule_time: str = ""  # HH:MM or empty for immediate
+    repeat: str = "once"  # once, daily, weekly
+    target: str = "all"
+    enabled: bool = True
+
+@api_router.get("/admin/scheduled-notifications")
+async def admin_get_scheduled_notifs(admin=Depends(get_admin_user)):
+    notifs = await db.scheduled_notifications.find({}, {"_id": 0}).to_list(50)
+    return {"notifications": notifs}
+
+@api_router.post("/admin/scheduled-notifications")
+async def admin_create_scheduled_notif(notif: ScheduledNotification, admin=Depends(get_admin_user)):
+    notif_dict = notif.dict()
+    if not notif_dict.get("id"):
+        notif_dict["id"] = str(uuid.uuid4())[:8]
+    notif_dict["created_at"] = datetime.utcnow().isoformat()
+    
+    await db.scheduled_notifications.update_one(
+        {"id": notif_dict["id"]},
+        {"$set": notif_dict},
+        upsert=True
+    )
+    return {"success": True, "notification": notif_dict}
+
+@api_router.delete("/admin/scheduled-notifications/{notif_id}")
+async def admin_delete_scheduled_notif(notif_id: str, admin=Depends(get_admin_user)):
+    await db.scheduled_notifications.delete_one({"id": notif_id})
+    return {"success": True}
+
 @api_router.get("/admin/settings")
 async def admin_get_settings(admin=Depends(get_admin_user)):
     """Get app settings"""

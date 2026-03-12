@@ -73,9 +73,9 @@ export default function InstallBanner() {
           </button>
 
           <div className="flex items-center gap-3">
-            <img src="/pwa-icon-192.png" alt="تأكد" className="h-12 w-12 rounded-xl shadow" />
+            <img src="/pwa-icon-192.png" alt="المؤذن العالمي" className="h-12 w-12 rounded-xl shadow" />
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-foreground">ثبّت تطبيق تأكد 📲</h3>
+              <h3 className="text-sm font-bold text-foreground">ثبّت تطبيق المؤذن العالمي</h3>
               <p className="text-xs text-muted-foreground mt-0.5">وصول سريع بدون متصفح</p>
             </div>
             <button

@@ -74,7 +74,7 @@ export default function RamadanCards() {
     // Bottom branding
     ctx.font = '28px sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillText('تطبيق أذان — taakadapp.com', canvas.width / 2, canvas.height - 60);
+    ctx.fillText('المؤذن العالمي — almuadhin.com', canvas.width / 2, canvas.height - 60);
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   }, [currentCard]);

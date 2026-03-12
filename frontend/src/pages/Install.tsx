@@ -52,7 +52,7 @@ export default function Install() {
       <div className="gradient-islamic relative px-5 pb-16 pt-safe-header-compact">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">📲 تثبيت التطبيق</h1>
-          <p className="text-white/70 text-sm mt-1.5 leading-relaxed">أضف تأكد إلى شاشتك الرئيسية</p>
+          <p className="text-white/70 text-sm mt-1.5 leading-relaxed">أضف المؤذن العالمي إلى شاشتك الرئيسية</p>
         </div>
         <div className="absolute -bottom-6 left-0 right-0 h-12 rounded-t-[2rem] bg-background" />
       </div>
@@ -66,7 +66,7 @@ export default function Install() {
           >
             <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-4" />
             <h2 className="text-xl font-bold text-foreground mb-2">التطبيق مثبّت بالفعل! ✅</h2>
-            <p className="text-sm text-muted-foreground">يمكنك فتح تأكد من شاشتك الرئيسية</p>
+            <p className="text-sm text-muted-foreground">يمكنك فتح المؤذن العالمي من شاشتك الرئيسية</p>
           </motion.div>
         ) : (
           <>
@@ -76,8 +76,8 @@ export default function Install() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl border border-border bg-card p-6 text-center mb-6"
             >
-              <img src="/pwa-icon-192.png" alt="تأكد" className="h-20 w-20 rounded-2xl mx-auto mb-4 shadow-lg" />
-              <h2 className="text-xl font-bold text-foreground mb-1">تأكد</h2>
+              <img src="/pwa-icon-192.png" alt="المؤذن العالمي" className="h-20 w-20 rounded-2xl mx-auto mb-4 shadow-lg" />
+              <h2 className="text-xl font-bold text-foreground mb-1">المؤذن العالمي</h2>
               <p className="text-sm text-muted-foreground mb-4">تطبيقك الإسلامي الشامل</p>
               
               <div className="grid grid-cols-3 gap-3 text-center mb-6">

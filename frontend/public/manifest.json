@@ -1,5 +1,5 @@
 {
-  "name": "المؤذن العالمي - Al-Muadhin Al-Alami",
+  "name": "المؤذن العالمي",
   "short_name": "المؤذن العالمي",
   "description": "مواقيت الصلاة والأذان، القرآن الكريم، الأذكار والأدعية",
   "start_url": "/",
@@ -25,6 +25,5 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
   "prefer_related_applications": false
 }
